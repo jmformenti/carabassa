@@ -1,0 +1,9 @@
+{
+	"properties": [
+		{
+			"name": "carabassa.repodir",
+			"type": "java.lang.String",
+			"description": "Base repository dir for datasets"
+		}
+	]
+}
