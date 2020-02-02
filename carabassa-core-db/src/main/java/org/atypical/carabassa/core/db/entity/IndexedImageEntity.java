@@ -2,7 +2,6 @@ package org.atypical.carabassa.core.db.entity;
 
 import java.time.ZonedDateTime;
 import java.util.Set;
-import java.util.stream.Collectors;
 
 import javax.persistence.CascadeType;
 import javax.persistence.Column;
@@ -38,7 +37,7 @@ public class IndexedImageEntity implements IndexedImage {
 	@Column(length = 10)
 	private String fileType;
 
-	@Column(unique = true)
+	@Column(unique = true, nullable = false)
 	private String hash;
 
 	@Column(nullable = false)
@@ -65,96 +64,94 @@ public class IndexedImageEntity implements IndexedImage {
 		this.modification = ZonedDateTime.now();
 	}
 
+	@Override
 	public Long getId() {
 		return id;
 	}
 
+	@Override
 	public void setId(Long id) {
 		this.id = id;
 	}
 
+	@Override
 	public String getFilename() {
 		return filename;
 	}
 
+	@Override
 	public void setFilename(String filename) {
 		this.filename = filename;
 	}
 
+	@Override
 	public String getFileType() {
 		return fileType;
 	}
 
+	@Override
 	public void setFileType(String fileType) {
 		this.fileType = fileType;
 	}
 
+	@Override
 	public String getHash() {
 		return hash;
 	}
 
+	@Override
 	public void setHash(String hash) {
 		this.hash = hash;
 	}
 
+	@Override
 	public ZonedDateTime getCreation() {
 		return creation;
 	}
 
+	@Override
 	public void setCreation(ZonedDateTime creation) {
 		this.creation = creation;
 	}
 
+	@Override
 	public ZonedDateTime getModification() {
 		return modification;
 	}
 
+	@Override
 	public void setModification(ZonedDateTime modification) {
 		this.modification = modification;
 	}
 
+	@Override
 	public ZonedDateTime getArchiveTime() {
 		return archiveTime;
 	}
 
+	@Override
 	public void setArchiveTime(ZonedDateTime archiveTime) {
 		this.archiveTime = archiveTime;
 	}
 
+	@Override
 	public Set<Tag> getTags() {
 		return tags;
 	}
 
+	@Override
 	public void setTags(Set<Tag> tags) {
 		this.tags = tags;
 	}
 
+	@Override
 	public Dataset getDataset() {
 		return dataset;
 	}
 
+	@Override
 	public void setDataset(Dataset dataset) {
 		this.dataset = dataset;
-	}
-
-	public Set<Tag> getTags(String name) {
-		if (name != null) {
-			return tags.stream().filter(t -> name.equals(t.getName())).collect(Collectors.toSet());
-		} else {
-			return null;
-		}
-	}
-
-	public Tag getFirstTag(String name) {
-		if (name != null) {
-			return tags.stream().filter(t -> name.equals(t.getName())).findFirst().orElse(null);
-		} else {
-			return null;
-		}
-	}
-
-	public boolean isArchived() {
-		return archiveTime != null;
 	}
 
 	@Override

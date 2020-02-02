@@ -125,8 +125,9 @@ public class DatasetServiceImpl implements org.atypical.carabassa.core.service.D
 
 	@Override
 	public Dataset update(Dataset dataset) throws IOException {
-		datasetStorage.update(dataset);
-		return datasetIndexer.update(dataset);
+		Dataset persistedDataset = datasetIndexer.update(dataset);
+		datasetStorage.update(persistedDataset);
+		return persistedDataset;
 	}
 
 	private void checkDatasetName(String name) {

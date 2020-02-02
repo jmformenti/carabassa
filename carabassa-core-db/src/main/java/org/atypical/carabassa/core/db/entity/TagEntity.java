@@ -12,12 +12,12 @@ import javax.persistence.Entity;
 import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
 import javax.persistence.Id;
+import javax.persistence.OneToOne;
 import javax.persistence.PrePersist;
 import javax.persistence.SequenceGenerator;
 import javax.persistence.Table;
 
 import org.apache.commons.lang3.builder.ToStringBuilder;
-import org.atypical.carabassa.core.db.entity.converter.BoundingBoxConverter;
 import org.atypical.carabassa.core.db.entity.converter.ValueTypeConverter;
 import org.atypical.carabassa.core.db.entity.enums.ValueType;
 import org.atypical.carabassa.core.model.BoundingBox;
@@ -47,7 +47,8 @@ public class TagEntity implements Tag {
 	private Double doubleValue;
 	private Boolean booleanValue;
 
-	@Convert(converter = BoundingBoxConverter.class)
+	// TODO share id between entities (@MapsId ??)
+	@OneToOne(targetEntity = BoundingBoxEntity.class)
 	private BoundingBox boundingBox;
 
 	public TagEntity() {
@@ -87,6 +88,7 @@ public class TagEntity implements Tag {
 		this.name = name;
 	}
 
+	@Override
 	public ZonedDateTime getCreation() {
 		return creation;
 	}

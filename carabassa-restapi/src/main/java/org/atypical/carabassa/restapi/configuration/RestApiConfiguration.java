@@ -4,7 +4,8 @@ import org.springframework.context.annotation.ComponentScan;
 import org.springframework.context.annotation.Configuration;
 
 @Configuration
-@ComponentScan(basePackages = { "org.atypical.carabassa.restapi.controller", "org.atypical.carabassa.restapi.mapper" })
+@ComponentScan(basePackages = { "org.atypical.carabassa.restapi.controller", "org.atypical.carabassa.restapi.mapper",
+		"org.atypical.carabassa.restapi.representation.assembler" })
 public class RestApiConfiguration {
 
 }

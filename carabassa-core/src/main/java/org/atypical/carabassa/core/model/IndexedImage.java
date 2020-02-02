@@ -2,6 +2,7 @@ package org.atypical.carabassa.core.model;
 
 import java.time.ZonedDateTime;
 import java.util.Set;
+import java.util.stream.Collectors;
 
 public interface IndexedImage {
 
@@ -37,11 +38,25 @@ public interface IndexedImage {
 
 	public void setTags(Set<Tag> tags);
 
-	public Set<Tag> getTags(String name);
+	public default Set<Tag> getTags(String name) {
+		if (name != null) {
+			return getTags().stream().filter(t -> name.equals(t.getName())).collect(Collectors.toSet());
+		} else {
+			return null;
+		}
+	}
 
-	public Tag getFirstTag(String name);
+	public default Tag getFirstTag(String name) {
+		if (name != null) {
+			return getTags().stream().filter(t -> name.equals(t.getName())).findFirst().orElse(null);
+		} else {
+			return null;
+		}
+	}
 
-	public boolean isArchived();
+	public default boolean isArchived() {
+		return getArchiveTime() != null;
+	}
 
 	public Dataset getDataset();
 

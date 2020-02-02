@@ -1,10 +1,14 @@
 package org.atypical.carabassa.core.model;
 
+import java.time.ZonedDateTime;
+
 public interface Tag {
 
 	public Long getId();
 
 	public void setId(Long id);
+
+	public ZonedDateTime getCreation();
 
 	public String getName();
 

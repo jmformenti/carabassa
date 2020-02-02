@@ -1,27 +1,14 @@
 package org.atypical.carabassa.restapi.mapper;
 
-import org.atypical.carabassa.core.db.entity.DatasetEntity;
 import org.atypical.carabassa.core.model.Dataset;
-import org.atypical.carabassa.restapi.dto.DatasetDto;
-import org.mapstruct.Mapper;
-import org.mapstruct.Mapping;
-import org.mapstruct.MappingTarget;
+import org.atypical.carabassa.restapi.representation.model.DatasetRepresentation;
 
-@Mapper
 public interface DatasetMapper {
 
-	public DatasetDto toDTO(Dataset dataset);
+	public DatasetRepresentation toRepresentation(Dataset dataset);
 
-	@Mapping(target = "id", ignore = true)
-	@Mapping(target = "creation", ignore = true)
-	@Mapping(target = "modification", ignore = true)
-	@Mapping(target = "images", ignore = true)
-	public DatasetEntity toEntity(DatasetDto datasetDTO);
+	public Dataset toEntity(DatasetRepresentation datasetDTO);
 
-	@Mapping(target = "id", ignore = true)
-	@Mapping(target = "creation", ignore = true)
-	@Mapping(target = "modification", ignore = true)
-	@Mapping(target = "images", ignore = true)
-	public void update(DatasetDto datasetDto, @MappingTarget Dataset dataset);
+	public void update(DatasetRepresentation datasetDto, Dataset dataset);
 
 }

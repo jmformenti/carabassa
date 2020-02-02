@@ -4,8 +4,6 @@ import org.atypical.carabassa.core.model.BoundingBox;
 
 public class BoundingBoxImpl implements BoundingBox {
 
-	private static final long serialVersionUID = -5535017000232544483L;
-
 	private int minX;
 	private int minY;
 	private int width;
@@ -23,6 +21,7 @@ public class BoundingBoxImpl implements BoundingBox {
 		this.height = height;
 	}
 
+	@Override
 	public int getMinX() {
 		return minX;
 	}
@@ -31,6 +30,7 @@ public class BoundingBoxImpl implements BoundingBox {
 		this.minX = minX;
 	}
 
+	@Override
 	public int getMinY() {
 		return minY;
 	}
@@ -39,6 +39,7 @@ public class BoundingBoxImpl implements BoundingBox {
 		this.minY = minY;
 	}
 
+	@Override
 	public int getWidth() {
 		return width;
 	}
@@ -47,6 +48,7 @@ public class BoundingBoxImpl implements BoundingBox {
 		this.width = width;
 	}
 
+	@Override
 	public int getHeight() {
 		return height;
 	}

@@ -15,6 +15,7 @@ public class StoredImageInfoImpl implements StoredImageInfo {
 		this.originalFilename = originalFilename;
 	}
 
+	@Override
 	public String getOriginalFilename() {
 		return originalFilename;
 	}

@@ -29,7 +29,7 @@ public class DatasetEntity implements Dataset {
 	@GeneratedValue(strategy = GenerationType.AUTO, generator = "dataset_id_gen")
 	private Long id;
 
-	@Column(unique = true, updatable = false)
+	@Column(unique = true, nullable = false, updatable = false)
 	private String name;
 
 	@Column(length = 255)
@@ -64,50 +64,62 @@ public class DatasetEntity implements Dataset {
 		this.modification = ZonedDateTime.now();
 	}
 
+	@Override
 	public Long getId() {
 		return id;
 	}
 
+	@Override
 	public void setId(Long id) {
 		this.id = id;
 	}
 
+	@Override
 	public String getName() {
 		return name;
 	}
 
+	@Override
 	public void setName(String name) {
 		this.name = name;
 	}
 
+	@Override
 	public String getDescription() {
 		return description;
 	}
 
+	@Override
 	public void setDescription(String description) {
 		this.description = description;
 	}
 
+	@Override
 	public ZonedDateTime getCreation() {
 		return creation;
 	}
 
+	@Override
 	public void setCreation(ZonedDateTime creation) {
 		this.creation = creation;
 	}
 
+	@Override
 	public ZonedDateTime getModification() {
 		return modification;
 	}
 
+	@Override
 	public void setModification(ZonedDateTime modification) {
 		this.modification = modification;
 	}
 
+	@Override
 	public Set<IndexedImage> getImages() {
 		return images;
 	}
 
+	@Override
 	public void setImages(Set<IndexedImage> images) {
 		this.images = images;
 	}

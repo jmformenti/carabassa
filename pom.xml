@@ -75,7 +75,12 @@
 		<module>carabassa-core</module>
 		<module>carabassa-core-db</module>
 		<module>carabassa-restapi</module>
+		<module>carabassa-restapi-db</module>
+		<module>carabassa-restapi-db-mapper</module>
+		<module>carabassa-web</module>
 		<module>carabassa-uploader</module>
+		<module>carabassa-cli</module>
+		<module>carabassa-restapi-representation</module>
 	</modules>
 
 </project>

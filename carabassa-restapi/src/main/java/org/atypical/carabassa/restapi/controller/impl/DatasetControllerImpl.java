@@ -2,8 +2,6 @@ package org.atypical.carabassa.restapi.controller.impl;
 
 import java.io.IOException;
 
-import javax.transaction.Transactional;
-
 import org.atypical.carabassa.core.exception.EntityExistsException;
 import org.atypical.carabassa.core.exception.EntityNotFoundException;
 import org.atypical.carabassa.core.model.Dataset;
@@ -11,17 +9,20 @@ import org.atypical.carabassa.core.model.IndexedImage;
 import org.atypical.carabassa.core.model.StoredImage;
 import org.atypical.carabassa.core.service.DatasetService;
 import org.atypical.carabassa.restapi.controller.DatasetController;
-import org.atypical.carabassa.restapi.dto.DatasetDto;
-import org.atypical.carabassa.restapi.dto.ImageDto;
-import org.atypical.carabassa.restapi.dto.TagDto;
 import org.atypical.carabassa.restapi.mapper.DatasetMapper;
 import org.atypical.carabassa.restapi.mapper.ImageMapper;
 import org.atypical.carabassa.restapi.mapper.TagMapper;
+import org.atypical.carabassa.restapi.representation.assembler.DatasetModelAssembler;
+import org.atypical.carabassa.restapi.representation.model.DatasetRepresentation;
+import org.atypical.carabassa.restapi.representation.model.ImageRepresentation;
+import org.atypical.carabassa.restapi.representation.model.TagRepresentation;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.web.PagedResourcesAssembler;
+import org.springframework.hateoas.PagedModel;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
@@ -31,7 +32,6 @@ import org.springframework.web.multipart.MultipartFile;
 import org.springframework.web.server.ResponseStatusException;
 
 @Component
-@Transactional(rollbackOn = Exception.class)
 public class DatasetControllerImpl implements DatasetController {
 
 	private static final Logger logger = LoggerFactory.getLogger(DatasetControllerImpl.class);
@@ -48,12 +48,18 @@ public class DatasetControllerImpl implements DatasetController {
 	@Autowired
 	private TagMapper tagMapper;
 
+	@Autowired
+	private DatasetModelAssembler datasetModelAssembler;
+
+	@Autowired
+	private PagedResourcesAssembler<Dataset> pagedResourcesAssembler;
+
 	@Override
-	public Long create(DatasetDto datasetDto) {
+	public Long create(DatasetRepresentation datasetRepresentation) {
 		Dataset dataset = null;
 		try {
-			dataset = datasetService.create(datasetDto.getName());
-			datasetMapper.update(datasetDto, dataset);
+			dataset = datasetService.create(datasetRepresentation.getName());
+			datasetMapper.update(datasetRepresentation, dataset);
 			datasetService.update(dataset);
 		} catch (IOException e) {
 			logger.error(e.getMessage(), e);
@@ -81,20 +87,33 @@ public class DatasetControllerImpl implements DatasetController {
 	}
 
 	@Override
-	public Page<DatasetDto> findAll(Pageable pageable) {
-		return datasetService.findAll(pageable).map(d -> datasetMapper.toDTO(d));
+	public PagedModel<DatasetRepresentation> findAll(Pageable pageable) {
+		Page<Dataset> page = datasetService.findAll(pageable);
+		return pagedResourcesAssembler.toModel(page, datasetModelAssembler);
 	}
 
 	@Override
-	public DatasetDto findById(Long datasetId) {
+	public DatasetRepresentation findById(Long datasetId) {
 		Dataset dataset = getDataset(datasetId);
-		return datasetMapper.toDTO(dataset);
+		return datasetMapper.toRepresentation(dataset);
 	}
 
 	@Override
-	public void update(Long datasetId, DatasetDto datasetDto) {
+	public DatasetRepresentation findByName(String datasetName) {
+		Dataset dataset = null;
+		try {
+			dataset = datasetService.findByName(datasetName);
+		} catch (EntityNotFoundException e) {
+			logger.error(e.getMessage(), e);
+			throw new ResponseStatusException(HttpStatus.NOT_FOUND, e.getMessage());
+		}
+		return datasetMapper.toRepresentation(dataset);
+	}
+
+	@Override
+	public void update(Long datasetId, DatasetRepresentation datasetRepresentation) {
 		Dataset dataset = getDataset(datasetId);
-		datasetMapper.update(datasetDto, dataset);
+		datasetMapper.update(datasetRepresentation, dataset);
 		try {
 			datasetService.update(dataset);
 		} catch (IOException e) {
@@ -104,15 +123,15 @@ public class DatasetControllerImpl implements DatasetController {
 	}
 
 	@Override
-	public Page<ImageDto> getImages(Long datasetId, Pageable pageable) {
+	public Page<ImageRepresentation> getImages(Long datasetId, Pageable pageable) {
 		Dataset dataset = getDataset(datasetId);
-		return datasetService.findImages(dataset, pageable).map(i -> imageMapper.toDTO(i));
+		return datasetService.findImages(dataset, pageable).map(i -> imageMapper.toRepresentation(i));
 	}
 
 	@Override
-	public ImageDto getImage(Long datasetId, Long imageId) {
+	public ImageRepresentation getImage(Long datasetId, Long imageId) {
 		IndexedImage indexedImage = getIndexedImage(getDataset(datasetId), imageId);
-		return imageMapper.toDTO(indexedImage);
+		return imageMapper.toRepresentation(indexedImage);
 	}
 
 	@Override
@@ -156,10 +175,10 @@ public class DatasetControllerImpl implements DatasetController {
 	}
 
 	@Override
-	public Long addImageTag(Long datasetId, Long imageId, TagDto tagDto) {
+	public Long addImageTag(Long datasetId, Long imageId, TagRepresentation tagRepresentation) {
 		Dataset dataset = getDataset(datasetId);
 		try {
-			return datasetService.addImageTag(dataset, imageId, tagMapper.toEntity(tagDto));
+			return datasetService.addImageTag(dataset, imageId, tagMapper.toEntity(tagRepresentation));
 		} catch (IllegalArgumentException e) {
 			logger.error(e.getMessage(), e);
 			throw new ResponseStatusException(HttpStatus.CONFLICT, e.getMessage());

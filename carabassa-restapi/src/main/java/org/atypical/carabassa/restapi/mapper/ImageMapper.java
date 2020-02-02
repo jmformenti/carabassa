@@ -4,14 +4,12 @@ import java.util.Collection;
 import java.util.List;
 
 import org.atypical.carabassa.core.model.IndexedImage;
-import org.atypical.carabassa.restapi.dto.ImageDto;
-import org.mapstruct.Mapper;
+import org.atypical.carabassa.restapi.representation.model.ImageRepresentation;
 
-@Mapper(uses = TagMapper.class)
 public interface ImageMapper {
 
-	public ImageDto toDTO(IndexedImage indexedImage);
+	public ImageRepresentation toRepresentation(IndexedImage indexedImage);
 
-	public List<ImageDto> toDTO(Collection<IndexedImage> images);
+	public List<ImageRepresentation> toDTO(Collection<IndexedImage> images);
 
 }

@@ -10,6 +10,7 @@ import java.util.stream.StreamSupport;
 
 import javax.persistence.EntityManager;
 import javax.persistence.PersistenceContext;
+import javax.transaction.Transactional;
 
 import org.apache.commons.lang3.StringUtils;
 import org.atypical.carabassa.core.component.indexer.DatasetIndexer;
@@ -33,6 +34,7 @@ import org.springframework.stereotype.Component;
 import org.springframework.util.Assert;
 
 @Component
+@Transactional(rollbackOn = Exception.class)
 public class DatasetDbIndexer implements DatasetIndexer {
 
 	private static final String DATASET_ID_NOT_FOUND_MESSAGE_KEY = "db.indexer.dataset.id_not_found";

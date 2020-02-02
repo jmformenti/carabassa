@@ -1,10 +1,11 @@
 package org.atypical.carabassa.restapi.controller;
 
-import org.atypical.carabassa.restapi.dto.DatasetDto;
-import org.atypical.carabassa.restapi.dto.ImageDto;
-import org.atypical.carabassa.restapi.dto.TagDto;
+import org.atypical.carabassa.restapi.representation.model.DatasetRepresentation;
+import org.atypical.carabassa.restapi.representation.model.ImageRepresentation;
+import org.atypical.carabassa.restapi.representation.model.TagRepresentation;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.hateoas.PagedModel;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
@@ -26,27 +27,31 @@ public interface DatasetController {
 
 	@PostMapping
 	@ResponseStatus(code = HttpStatus.CREATED)
-	public Long create(@RequestBody DatasetDto datasetDTO);
+	public Long create(@RequestBody DatasetRepresentation datasetRepresentation);
 
 	@GetMapping
-	public Page<DatasetDto> findAll(Pageable pageable);
+	public PagedModel<DatasetRepresentation> findAll(Pageable pageable);
 
 	@GetMapping(value = "{datasetId}")
-	public DatasetDto findById(@PathVariable("datasetId") Long datasetId);
+	public DatasetRepresentation findById(@PathVariable("datasetId") Long datasetId);
+
+	@GetMapping(value = "/name/{datasetName}")
+	public DatasetRepresentation findByName(@PathVariable("datasetName") String datasetName);
 
 	@PutMapping(value = "{datasetId}", consumes = MediaType.APPLICATION_JSON_VALUE)
 	@ResponseStatus(code = HttpStatus.NO_CONTENT)
-	public void update(@PathVariable("datasetId") Long datasetId, @RequestBody DatasetDto datasetDTO);
+	public void update(@PathVariable("datasetId") Long datasetId,
+			@RequestBody DatasetRepresentation datasetRepresentation);
 
 	@DeleteMapping(value = "{datasetId}")
 	@ResponseStatus(code = HttpStatus.NO_CONTENT)
 	public void delete(@PathVariable("datasetId") Long datasetId);
 
 	@GetMapping(value = "{datasetId}/image")
-	public Page<ImageDto> getImages(@PathVariable("datasetId") Long datasetId, Pageable pageable);
+	public Page<ImageRepresentation> getImages(@PathVariable("datasetId") Long datasetId, Pageable pageable);
 
 	@GetMapping(value = "{datasetId}/image/{id}")
-	public ImageDto getImage(@PathVariable("datasetId") Long datasetId, @PathVariable("id") Long imageId);
+	public ImageRepresentation getImage(@PathVariable("datasetId") Long datasetId, @PathVariable("id") Long imageId);
 
 	@GetMapping(value = "{datasetId}/image/{id}/content")
 	public ResponseEntity<byte[]> getImageContent(@PathVariable("datasetId") Long datasetId,
@@ -59,7 +64,7 @@ public interface DatasetController {
 	@PostMapping(value = "{datasetId}/image/{id}/tag")
 	@ResponseStatus(code = HttpStatus.CREATED)
 	public Long addImageTag(@PathVariable("datasetId") Long datasetId, @PathVariable("id") Long imageId,
-			@RequestBody TagDto tagDto);
+			@RequestBody TagRepresentation tagRepresentation);
 
 	@DeleteMapping(value = "{datasetId}/image/{id}")
 	@ResponseStatus(code = HttpStatus.NO_CONTENT)
