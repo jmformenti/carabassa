@@ -5,6 +5,7 @@ import java.util.concurrent.Callable;
 
 import org.atypical.carabassa.cli.exception.ApiException;
 import org.atypical.carabassa.cli.service.DatasetApiService;
+import org.atypical.carabassa.cli.util.CommandLogger;
 import org.atypical.carabassa.cli.util.DateFormatter;
 import org.atypical.carabassa.restapi.representation.model.DatasetRepresentation;
 import org.slf4j.Logger;
@@ -13,6 +14,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 import picocli.CommandLine.Command;
+import picocli.CommandLine.ExitCode;
 import picocli.CommandLine.Option;
 
 @Component
@@ -23,11 +25,13 @@ public class ListDatasetCommand implements Callable<Integer> {
 
 	private static final String OUTPUT_FORMAT = "%10s\t%20s\t%40s\t%20s\t%20s\n";
 
-	@Autowired
-	private DatasetApiService datasetApiService;
+	private CommandLogger cmdLogger = new CommandLogger(logger);
 
 	@Option(names = { "-d", "--dataset" }, description = "dataset name.")
 	private String dataset;
+
+	@Autowired
+	private DatasetApiService datasetApiService;
 
 	@Override
 	public Integer call() throws Exception {
@@ -42,15 +46,15 @@ public class ListDatasetCommand implements Callable<Integer> {
 							datasetRepresentation.getModification() == null ? ""
 									: DateFormatter.toLocalDateFormatted(datasetRepresentation.getModification()));
 				}
+				cmdLogger.info("done.");
 			} else {
-				System.out.println("No datasets found.");
+				cmdLogger.info("No datasets found.");
 			}
 		} catch (ApiException e) {
-			logger.error("API error", e);
-			System.err.println(e.getMessage());
-			return 1;
+			cmdLogger.error("API error", e);
+			return ExitCode.SOFTWARE;
 		}
-		return 0;
+		return ExitCode.OK;
 	}
 
 }

@@ -4,6 +4,11 @@
 			"name": "carabassa.repodir",
 			"type": "java.lang.String",
 			"description": "Base repository dir for datasets"
+		},
+		{
+			"name": "app.version",
+			"type": "java.lang.String",
+			"description": "Project version"
 		}
 	]
 }
