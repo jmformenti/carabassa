@@ -9,7 +9,8 @@ import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.boot.web.servlet.support.SpringBootServletInitializer;
 import org.springframework.context.annotation.Import;
 
-@Import({ CoreConfiguration.class, CoreDbConfiguration.class, RestApiConfiguration.class, RestApiMapperConfiguration.class })
+@Import({ CoreConfiguration.class, CoreDbConfiguration.class, RestApiConfiguration.class,
+		RestApiMapperConfiguration.class })
 @SpringBootApplication
 public class Application extends SpringBootServletInitializer {
 

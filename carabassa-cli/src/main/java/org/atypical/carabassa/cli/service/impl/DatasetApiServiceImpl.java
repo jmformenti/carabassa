@@ -4,12 +4,17 @@ import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.List;
 
+import javax.annotation.PostConstruct;
+
 import org.atypical.carabassa.cli.exception.ApiException;
 import org.atypical.carabassa.cli.exception.ResponseBodyException;
 import org.atypical.carabassa.cli.service.DatasetApiService;
 import org.atypical.carabassa.restapi.representation.model.DatasetRepresentation;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.core.ParameterizedTypeReference;
 import org.springframework.core.io.FileSystemResource;
+import org.springframework.hateoas.EntityModel;
 import org.springframework.hateoas.IanaLinkRelations;
 import org.springframework.hateoas.PagedModel;
 import org.springframework.hateoas.server.core.TypeReferences.PagedModelType;
@@ -31,13 +36,22 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 @Service
 public class DatasetApiServiceImpl implements DatasetApiService {
 
-	private final static String BASE_URL = "http://localhost:8080/api/";
-	private final static String DATASET_URL = BASE_URL + "dataset/";
+	private final static String DATASET_PATH = "dataset/";
+
+	@Value("${carabassa.baseUrl}")
+	private String baseUrl;
 
 	@Autowired
 	private RestTemplate restTemplate;
 
 	private ObjectMapper objectMapper = new ObjectMapper();
+
+	private String datasetUrl;
+
+	@PostConstruct
+	private void postConstruct() {
+		datasetUrl = getDatasetUrl();
+	}
 
 	@Override
 	public Long addImage(String datasetName, Path imagePath) throws ApiException {
@@ -51,13 +65,15 @@ public class DatasetApiServiceImpl implements DatasetApiService {
 
 		HttpEntity<MultiValueMap<String, Object>> request = new HttpEntity<>(body, headers);
 
-		ResponseEntity<Long> response = null;
+		ResponseEntity<EntityModel<Long>> response = null;
 		try {
-			response = restTemplate.postForEntity(DATASET_URL + "{datasetId}/image", request, Long.class, datasetId);
+			response = restTemplate.exchange(datasetUrl + "{datasetId}/image", HttpMethod.POST, request,
+					new ParameterizedTypeReference<EntityModel<Long>>() {
+					}, datasetId);
 		} catch (RestClientResponseException e) {
 			throw buildApiException(e);
 		}
-		return response.getBody();
+		return response.getBody().getContent();
 	}
 
 	@Override
@@ -72,19 +88,21 @@ public class DatasetApiServiceImpl implements DatasetApiService {
 
 		HttpEntity<String> request = new HttpEntity<>(objectMapper.writeValueAsString(dataset), headers);
 
-		ResponseEntity<Long> response = null;
+		ResponseEntity<EntityModel<Long>> response = null;
 		try {
-			response = restTemplate.postForEntity(DATASET_URL, request, Long.class);
+			response = restTemplate.exchange(datasetUrl, HttpMethod.POST, request,
+					new ParameterizedTypeReference<EntityModel<Long>>() {
+					});
 		} catch (RestClientResponseException e) {
 			throw buildApiException(e);
 		}
-		return response.getBody();
+		return response.getBody().getContent();
 	}
 
 	@Override
 	public void delete(Long datasetId) throws ApiException {
 		try {
-			restTemplate.delete(DATASET_URL + "{datasetId}", datasetId);
+			restTemplate.delete(datasetUrl + "{datasetId}", datasetId);
 		} catch (RestClientResponseException e) {
 			throw buildApiException(e);
 		}
@@ -93,7 +111,7 @@ public class DatasetApiServiceImpl implements DatasetApiService {
 	@Override
 	public List<DatasetRepresentation> findAll() throws ApiException {
 		try {
-			PagedModel<DatasetRepresentation> page = getPage(DATASET_URL, new PagedModelType<DatasetRepresentation>() {
+			PagedModel<DatasetRepresentation> page = getPage(datasetUrl, new PagedModelType<DatasetRepresentation>() {
 			});
 
 			List<DatasetRepresentation> datasets = new ArrayList<>(page.getContent());
@@ -114,7 +132,7 @@ public class DatasetApiServiceImpl implements DatasetApiService {
 	public Long findByName(String datasetName) throws ApiException {
 		ResponseEntity<DatasetRepresentation> response = null;
 		try {
-			response = restTemplate.getForEntity(DATASET_URL + "name/{datasetName}", DatasetRepresentation.class,
+			response = restTemplate.getForEntity(datasetUrl + "name/{datasetName}", DatasetRepresentation.class,
 					datasetName);
 		} catch (RestClientResponseException e) {
 			throw buildApiException(e);
@@ -127,7 +145,7 @@ public class DatasetApiServiceImpl implements DatasetApiService {
 		try {
 			DatasetRepresentation dataset = new DatasetRepresentation();
 			dataset.setDescription(description);
-			restTemplate.put(DATASET_URL + "{datasetId}", dataset, datasetId);
+			restTemplate.put(datasetUrl + "{datasetId}", dataset, datasetId);
 		} catch (RestClientResponseException e) {
 			throw buildApiException(e);
 		}
@@ -147,4 +165,7 @@ public class DatasetApiServiceImpl implements DatasetApiService {
 		return new ApiException(responseBody.getMessage());
 	}
 
+	private String getDatasetUrl() {
+		return (baseUrl.endsWith("/") ? baseUrl : baseUrl + "/") + DATASET_PATH;
+	}
 }

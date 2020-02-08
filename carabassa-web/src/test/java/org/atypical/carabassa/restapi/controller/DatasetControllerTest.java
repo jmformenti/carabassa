@@ -11,6 +11,7 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.multipart;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.put;
+import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.log;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.header;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
@@ -116,7 +117,8 @@ public class DatasetControllerTest {
 		mvc.perform(post("/api/dataset") //
 				.contentType(MediaType.APPLICATION_JSON).content(json)) //
 				.andExpect(status().isCreated()) //
-				.andExpect(content().string(is(String.valueOf(DATASET_ID)))).andDo(MockMvcResultHandlers.log());
+				.andExpect(jsonPath("$.content", is(DATASET_ID.intValue()))) //
+				.andDo(log());
 	}
 
 	@Test
@@ -128,7 +130,7 @@ public class DatasetControllerTest {
 		mvc.perform(post("/api/dataset") //
 				.contentType(MediaType.APPLICATION_JSON).content(json)) //
 				.andExpect(status().isConflict()) //
-				.andDo(MockMvcResultHandlers.log());
+				.andDo(log());
 	}
 
 	@Test
@@ -140,7 +142,7 @@ public class DatasetControllerTest {
 		mvc.perform(post("/api/dataset") //
 				.contentType(MediaType.APPLICATION_JSON).content(json)) //
 				.andExpect(status().isConflict()) //
-				.andDo(MockMvcResultHandlers.log());
+				.andDo(log());
 	}
 
 	@Test
@@ -150,7 +152,7 @@ public class DatasetControllerTest {
 
 		mvc.perform(delete("/api/dataset/" + DATASET_ID)) //
 				.andExpect(status().isNoContent()) //
-				.andDo(MockMvcResultHandlers.log());
+				.andDo(log());
 	}
 
 	@Test
@@ -159,7 +161,7 @@ public class DatasetControllerTest {
 
 		mvc.perform(delete("/api/dataset/" + DATASET_ID)) //
 				.andExpect(status().isNotFound()) //
-				.andDo(MockMvcResultHandlers.log());
+				.andDo(log());
 	}
 
 	@Test
@@ -169,12 +171,13 @@ public class DatasetControllerTest {
 		when(datasetService.findAll(isA(Pageable.class))).thenReturn(allDatasets);
 
 		mvc.perform(get("/api/dataset?page=0&size=10")) //
-				.andExpect(status().isOk()).andExpect(jsonPath("$._embedded.datasetRepresentationList", hasSize(1)))
+				.andExpect(status().isOk()) //
+				.andExpect(jsonPath("$._embedded.datasetRepresentationList", hasSize(1))) //
 				.andExpect(jsonPath("$._embedded.datasetRepresentationList.[0].name", is(dataset.getName()))) //
 				.andExpect(jsonPath("$.page.size", is(1))) //
 				.andExpect(jsonPath("$.page.totalElements", is(1))) //
 				.andExpect(jsonPath("$._links").exists()) //
-				.andDo(MockMvcResultHandlers.log());
+				.andDo(log());
 	}
 
 	@Test
@@ -189,7 +192,7 @@ public class DatasetControllerTest {
 						is(dataset.getCreation().format(DateTimeFormatter.ISO_OFFSET_DATE_TIME))))
 				.andExpect(jsonPath("$.modification",
 						is(dataset.getModification().format(DateTimeFormatter.ISO_OFFSET_DATE_TIME))))
-				.andDo(MockMvcResultHandlers.log());
+				.andDo(log());
 	}
 
 	@Test
@@ -198,7 +201,7 @@ public class DatasetControllerTest {
 
 		mvc.perform(get("/api/dataset/" + String.valueOf(DATASET_ID + 1))) //
 				.andExpect(status().isNotFound()) //
-				.andDo(MockMvcResultHandlers.log());
+				.andDo(log());
 	}
 
 	@Test
@@ -213,7 +216,7 @@ public class DatasetControllerTest {
 						is(dataset.getCreation().format(DateTimeFormatter.ISO_OFFSET_DATE_TIME))))
 				.andExpect(jsonPath("$.modification",
 						is(dataset.getModification().format(DateTimeFormatter.ISO_OFFSET_DATE_TIME))))
-				.andDo(MockMvcResultHandlers.log());
+				.andDo(log());
 	}
 
 	@Test
@@ -222,7 +225,7 @@ public class DatasetControllerTest {
 
 		mvc.perform(get("/api/dataset/name/" + String.valueOf(DATASET_NAME + "1"))) //
 				.andExpect(status().isNotFound()) //
-				.andDo(MockMvcResultHandlers.log());
+				.andDo(log());
 	}
 
 	@Test
@@ -235,7 +238,7 @@ public class DatasetControllerTest {
 		mvc.perform(put("/api/dataset/" + DATASET_ID) //
 				.contentType(MediaType.APPLICATION_JSON).content(json)) //
 				.andExpect(status().isNoContent()) //
-				.andDo(MockMvcResultHandlers.log());
+				.andDo(log());
 	}
 
 	@Test
@@ -248,7 +251,7 @@ public class DatasetControllerTest {
 				.contentType(MediaType.APPLICATION_JSON) //
 				.content(json)) //
 				.andExpect(status().isNotFound()) //
-				.andDo(MockMvcResultHandlers.log());
+				.andDo(log());
 	}
 
 	@Test
@@ -258,11 +261,13 @@ public class DatasetControllerTest {
 		when(datasetService.findImages(isA(Dataset.class), isA(Pageable.class))).thenReturn(images);
 
 		mvc.perform(get("/api/dataset/" + DATASET_ID + "/image?page=0&size=10")) //
-				.andExpect(status().isOk()).andExpect(jsonPath("$.content", hasSize(1)))
-				.andExpect(jsonPath("$.content[0].id", is(IMAGE_ID.intValue()))) //
-				.andExpect(jsonPath("$.size", is(1))) //
-				.andExpect(jsonPath("$.numberOfElements", is(1))) //
-				.andDo(MockMvcResultHandlers.log());
+				.andExpect(status().isOk()) //
+				.andExpect(jsonPath("$._embedded.imageRepresentationList", hasSize(1))) //
+				.andExpect(jsonPath("$._embedded.imageRepresentationList.[0].id", is(IMAGE_ID.intValue()))) //
+				.andExpect(jsonPath("$.page.size", is(1))) //
+				.andExpect(jsonPath("$.page.totalElements", is(1))) //
+				.andExpect(jsonPath("$._links").exists()) //
+				.andDo(log());
 	}
 
 	@Test
@@ -270,7 +275,7 @@ public class DatasetControllerTest {
 		when(datasetService.findById(DATASET_ID)).thenThrow(EntityNotFoundException.class);
 
 		mvc.perform(get("/api/dataset/" + DATASET_ID + "/image")) //
-				.andExpect(status().isNotFound()).andDo(MockMvcResultHandlers.log());
+				.andExpect(status().isNotFound()).andDo(log());
 	}
 
 	@Test
@@ -295,8 +300,7 @@ public class DatasetControllerTest {
 				.andExpect(jsonPath("$.tags[0].boundingBox.minX", is(tag.getBoundingBox().getMinX())))
 				.andExpect(jsonPath("$.tags[0].boundingBox.minY", is(tag.getBoundingBox().getMinY())))
 				.andExpect(jsonPath("$.tags[0].boundingBox.width", is(tag.getBoundingBox().getWidth())))
-				.andExpect(jsonPath("$.tags[0].boundingBox.height", is(tag.getBoundingBox().getHeight())))
-				.andDo(MockMvcResultHandlers.log());
+				.andExpect(jsonPath("$.tags[0].boundingBox.height", is(tag.getBoundingBox().getHeight()))).andDo(log());
 	}
 
 	@Test
@@ -305,7 +309,7 @@ public class DatasetControllerTest {
 
 		mvc.perform(get("/api/dataset/" + DATASET_ID + "/image/" + IMAGE_ID)) //
 				.andExpect(status().isNotFound()) //
-				.andDo(MockMvcResultHandlers.log());
+				.andDo(log());
 	}
 
 	@Test
@@ -315,7 +319,7 @@ public class DatasetControllerTest {
 
 		mvc.perform(get("/api/dataset/" + DATASET_ID + "/image/" + IMAGE_ID)) //
 				.andExpect(status().isNotFound()) //
-				.andDo(MockMvcResultHandlers.log());
+				.andDo(log());
 	}
 
 	@Test
@@ -334,7 +338,7 @@ public class DatasetControllerTest {
 				.andExpect(header().string(HttpHeaders.CONTENT_DISPOSITION,
 						"attachment; filename=\"" + indexedImage.getFilename() + "\""))
 				.andExpect(content().string("test")) //
-				.andDo(MockMvcResultHandlers.log());
+				.andDo(log());
 	}
 
 	@Test
@@ -348,8 +352,8 @@ public class DatasetControllerTest {
 
 		mvc.perform(multipart("/api/dataset/" + DATASET_ID + "/image").file(file)) //
 				.andExpect(status().isCreated()) //
-				.andExpect(content().string(indexedImage.getId().toString())) //
-				.andDo(MockMvcResultHandlers.log());
+				.andExpect(jsonPath("$.content", is(indexedImage.getId().intValue()))) //
+				.andDo(log());
 	}
 
 	@Test
@@ -363,7 +367,7 @@ public class DatasetControllerTest {
 
 		mvc.perform(multipart("/api/dataset/" + DATASET_ID + "/image").file(file)) //
 				.andExpect(status().isConflict()) //
-				.andDo(MockMvcResultHandlers.log());
+				.andDo(log());
 	}
 
 	@Test
@@ -378,7 +382,7 @@ public class DatasetControllerTest {
 
 		mvc.perform(multipart("/api/dataset/" + DATASET_ID + "/image").file(file)) //
 				.andExpect(status().isConflict()) //
-				.andDo(MockMvcResultHandlers.log());
+				.andDo(log());
 	}
 
 	@Test
@@ -392,7 +396,7 @@ public class DatasetControllerTest {
 		mvc.perform(post("/api/dataset/" + DATASET_ID + "/image/" + IMAGE_ID + "/tag") //
 				.contentType(MediaType.APPLICATION_JSON).content(json)) //
 				.andExpect(status().isCreated()) //
-				.andExpect(content().string(is(String.valueOf(TAG_ID)))) //
+				.andExpect(jsonPath("$.content", is(TAG_ID.intValue()))) //
 				.andDo(MockMvcResultHandlers.log());
 	}
 

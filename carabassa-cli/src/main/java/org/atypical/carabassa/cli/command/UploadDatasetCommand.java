@@ -41,17 +41,18 @@ public class UploadDatasetCommand implements Callable<Integer> {
 	public Integer call() throws Exception {
 		List<Path> imagesPath = Files.walk(Paths.get(basePath)).filter(path -> isImage(path))
 				.collect(Collectors.toList());
+		int uploaded = 0;
 		for (Path imagePath : imagesPath) {
 			cmdLogger.info(String.format("Uploading image %s ...", imagePath));
 			try {
 				datasetApiService.addImage(dataset, imagePath);
+				uploaded++;
 			} catch (ApiException e) {
 				cmdLogger.error("API error", e);
-				return ExitCode.SOFTWARE;
 			}
 		}
-		cmdLogger.info(
-				String.format("uploaded %d images from path=%s to dataset=%s", imagesPath.size(), basePath, dataset));
+		cmdLogger.info(String.format("uploaded %d of %d images from path=%s to dataset=%s", uploaded, imagesPath.size(),
+				basePath, dataset));
 		return ExitCode.OK;
 	}
 

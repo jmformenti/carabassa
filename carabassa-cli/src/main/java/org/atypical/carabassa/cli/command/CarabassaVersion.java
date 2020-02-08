@@ -8,7 +8,7 @@ import picocli.CommandLine.IVersionProvider;
 @Component
 public class CarabassaVersion implements IVersionProvider {
 
-	@Value("${app.version}")
+	@Value("${carabassa.version}")
 	private String appVersion;
 
 	@Override

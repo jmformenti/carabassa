@@ -1,7 +1,12 @@
 {
 	"properties": [
 		{
-			"name": "app.version",
+			"name": "carabassa.baseUrl",
+			"type": "java.lang.String",
+			"description": "REST API base url"
+		},
+		{
+			"name": "carabassa.version",
 			"type": "java.lang.String",
 			"description": "Project version"
 		}

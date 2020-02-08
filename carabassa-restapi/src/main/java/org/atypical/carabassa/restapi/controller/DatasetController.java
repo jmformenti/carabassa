@@ -3,8 +3,8 @@ package org.atypical.carabassa.restapi.controller;
 import org.atypical.carabassa.restapi.representation.model.DatasetRepresentation;
 import org.atypical.carabassa.restapi.representation.model.ImageRepresentation;
 import org.atypical.carabassa.restapi.representation.model.TagRepresentation;
-import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.hateoas.EntityModel;
 import org.springframework.hateoas.PagedModel;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
@@ -27,50 +27,51 @@ public interface DatasetController {
 
 	@PostMapping
 	@ResponseStatus(code = HttpStatus.CREATED)
-	public Long create(@RequestBody DatasetRepresentation datasetRepresentation);
+	public EntityModel<Long> create(@RequestBody DatasetRepresentation datasetRepresentation);
 
 	@GetMapping
 	public PagedModel<DatasetRepresentation> findAll(Pageable pageable);
 
-	@GetMapping(value = "{datasetId}")
+	@GetMapping(value = "/{datasetId}")
 	public DatasetRepresentation findById(@PathVariable("datasetId") Long datasetId);
 
 	@GetMapping(value = "/name/{datasetName}")
 	public DatasetRepresentation findByName(@PathVariable("datasetName") String datasetName);
 
-	@PutMapping(value = "{datasetId}", consumes = MediaType.APPLICATION_JSON_VALUE)
+	@PutMapping(value = "/{datasetId}", consumes = MediaType.APPLICATION_JSON_VALUE)
 	@ResponseStatus(code = HttpStatus.NO_CONTENT)
 	public void update(@PathVariable("datasetId") Long datasetId,
 			@RequestBody DatasetRepresentation datasetRepresentation);
 
-	@DeleteMapping(value = "{datasetId}")
+	@DeleteMapping(value = "/{datasetId}")
 	@ResponseStatus(code = HttpStatus.NO_CONTENT)
 	public void delete(@PathVariable("datasetId") Long datasetId);
 
-	@GetMapping(value = "{datasetId}/image")
-	public Page<ImageRepresentation> getImages(@PathVariable("datasetId") Long datasetId, Pageable pageable);
+	@GetMapping(value = "/{datasetId}/image")
+	public PagedModel<ImageRepresentation> getImages(@PathVariable("datasetId") Long datasetId, Pageable pageable);
 
-	@GetMapping(value = "{datasetId}/image/{id}")
+	@GetMapping(value = "/{datasetId}/image/{id}")
 	public ImageRepresentation getImage(@PathVariable("datasetId") Long datasetId, @PathVariable("id") Long imageId);
 
-	@GetMapping(value = "{datasetId}/image/{id}/content")
+	@GetMapping(value = "/{datasetId}/image/{id}/content")
 	public ResponseEntity<byte[]> getImageContent(@PathVariable("datasetId") Long datasetId,
 			@PathVariable("id") Long imageId);
 
-	@PostMapping(value = "{datasetId}/image")
+	@PostMapping(value = "/{datasetId}/image")
 	@ResponseStatus(code = HttpStatus.CREATED)
-	public Long addImage(@PathVariable("datasetId") Long datasetId, @RequestParam("file") MultipartFile file);
+	public EntityModel<Long> addImage(@PathVariable("datasetId") Long datasetId,
+			@RequestParam("file") MultipartFile file);
 
-	@PostMapping(value = "{datasetId}/image/{id}/tag")
+	@PostMapping(value = "/{datasetId}/image/{id}/tag")
 	@ResponseStatus(code = HttpStatus.CREATED)
-	public Long addImageTag(@PathVariable("datasetId") Long datasetId, @PathVariable("id") Long imageId,
+	public EntityModel<Long> addImageTag(@PathVariable("datasetId") Long datasetId, @PathVariable("id") Long imageId,
 			@RequestBody TagRepresentation tagRepresentation);
 
-	@DeleteMapping(value = "{datasetId}/image/{id}")
+	@DeleteMapping(value = "/{datasetId}/image/{id}")
 	@ResponseStatus(code = HttpStatus.NO_CONTENT)
 	public void deleteImage(@PathVariable("datasetId") Long datasetId, @PathVariable("id") Long imageId);
 
-	@DeleteMapping(value = "{datasetId}/image/{id}/tag/{tagId}")
+	@DeleteMapping(value = "/{datasetId}/image/{id}/tag/{tagId}")
 	@ResponseStatus(code = HttpStatus.NO_CONTENT)
 	public void deleteImageTag(@PathVariable("datasetId") Long datasetId, @PathVariable("id") Long imageId,
 			@PathVariable("tagId") Long tagId);

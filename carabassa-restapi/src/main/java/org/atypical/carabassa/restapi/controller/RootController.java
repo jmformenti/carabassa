@@ -9,7 +9,7 @@ import org.springframework.web.bind.annotation.RestController;
 @RequestMapping(value = { "/api" })
 public interface RootController {
 
-	@GetMapping
+	@GetMapping("/")
 	public EntityModel<String> actions();
 
 }

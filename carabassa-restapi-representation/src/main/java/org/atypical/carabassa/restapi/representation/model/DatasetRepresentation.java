@@ -2,6 +2,7 @@ package org.atypical.carabassa.restapi.representation.model;
 
 import java.time.ZonedDateTime;
 
+import org.springframework.hateoas.Links;
 import org.springframework.hateoas.RepresentationModel;
 
 public class DatasetRepresentation extends RepresentationModel<DatasetRepresentation> {
@@ -61,4 +62,7 @@ public class DatasetRepresentation extends RepresentationModel<DatasetRepresenta
 		this.modification = modification;
 	}
 
+	public Links getLinks() {
+		return super.getLinks();
+	}
 }
