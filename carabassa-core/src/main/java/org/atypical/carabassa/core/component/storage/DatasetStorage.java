@@ -11,7 +11,7 @@ import org.springframework.core.io.Resource;
 
 public interface DatasetStorage {
 
-	public void create(String datasetName) throws IOException, EntityExistsException;
+	public void create(Dataset dataset) throws IOException, EntityExistsException;
 
 	public void addImage(Dataset dataset, IndexedImage image, Resource inputImage)
 			throws IOException, EntityExistsException;

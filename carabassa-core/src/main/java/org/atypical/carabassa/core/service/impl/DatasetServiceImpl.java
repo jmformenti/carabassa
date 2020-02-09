@@ -48,10 +48,10 @@ public class DatasetServiceImpl implements org.atypical.carabassa.core.service.D
 	}
 
 	@Override
-	public Dataset create(String datasetName) throws IOException, EntityExistsException {
-		checkDatasetName(datasetName);
-		datasetStorage.create(datasetName);
-		return datasetIndexer.create(datasetName);
+	public Dataset create(Dataset dataset) throws IOException, EntityExistsException {
+		checkDatasetName(dataset.getName());
+		datasetStorage.create(dataset);
+		return datasetIndexer.create(dataset);
 	}
 
 	@Override

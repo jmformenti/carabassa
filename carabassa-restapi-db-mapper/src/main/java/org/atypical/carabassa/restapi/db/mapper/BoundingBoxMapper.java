@@ -3,15 +3,14 @@ package org.atypical.carabassa.restapi.db.mapper;
 import org.atypical.carabassa.core.model.BoundingBox;
 import org.atypical.carabassa.core.model.impl.BoundingBoxImpl;
 import org.atypical.carabassa.restapi.representation.model.BoundingBoxRepresentation;
-import org.mapstruct.BeanMapping;
 import org.mapstruct.Mapper;
+import org.mapstruct.ReportingPolicy;
 
-@Mapper
+@Mapper(unmappedTargetPolicy = ReportingPolicy.IGNORE)
 public interface BoundingBoxMapper extends org.atypical.carabassa.restapi.mapper.BoundingBoxMapper {
 
-	@BeanMapping(ignoreByDefault = true)
 	public BoundingBoxRepresentation toRepresentation(BoundingBox boundingBox);
 
-	public BoundingBoxImpl toEntity(BoundingBoxRepresentation boundingBoxDto);
+	public BoundingBoxImpl toEntity(BoundingBoxRepresentation boundingBoxRepresentation);
 
 }

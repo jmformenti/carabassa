@@ -8,6 +8,6 @@ public interface BoundingBoxMapper {
 
 	public BoundingBoxRepresentation toRepresentation(BoundingBox boundingBox);
 
-	public BoundingBoxImpl toEntity(BoundingBoxRepresentation boundingBoxDto);
+	public BoundingBoxImpl toEntity(BoundingBoxRepresentation boundingBoxRepresentation);
 
 }

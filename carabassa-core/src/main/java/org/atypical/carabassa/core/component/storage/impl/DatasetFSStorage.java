@@ -35,6 +35,7 @@ import com.fasterxml.jackson.databind.JsonMappingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
 @Component
+// TODO put in a new module: carabassa-storage-fs
 public class DatasetFSStorage implements DatasetStorage {
 
 	private static final String NO_REPO_DIR_MESSAGE_KEY = "core.storage.repo.no_dir";
@@ -64,7 +65,8 @@ public class DatasetFSStorage implements DatasetStorage {
 	}
 
 	@Override
-	public void create(String datasetName) throws IOException, EntityExistsException {
+	public void create(Dataset dataset) throws IOException, EntityExistsException {
+		String datasetName = dataset.getName();
 		Path datasetPath = getDatasetPath(datasetName);
 		if (!Files.exists(datasetPath)) {
 			Files.createDirectories(datasetPath);

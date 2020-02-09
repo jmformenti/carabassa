@@ -5,6 +5,7 @@ import java.time.ZonedDateTime;
 import org.springframework.hateoas.Links;
 import org.springframework.hateoas.RepresentationModel;
 
+// TODO extends from NewDatasetRepresentation (i.e, DatasetEntityRepresentation -> DatasetRepresentation)
 public class DatasetRepresentation extends RepresentationModel<DatasetRepresentation> {
 
 	private Long id;

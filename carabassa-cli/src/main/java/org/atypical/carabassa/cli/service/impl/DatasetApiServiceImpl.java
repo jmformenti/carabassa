@@ -10,11 +10,11 @@ import org.atypical.carabassa.cli.exception.ApiException;
 import org.atypical.carabassa.cli.exception.ResponseBodyException;
 import org.atypical.carabassa.cli.service.DatasetApiService;
 import org.atypical.carabassa.restapi.representation.model.DatasetRepresentation;
+import org.atypical.carabassa.restapi.representation.model.IdRepresentation;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.core.ParameterizedTypeReference;
 import org.springframework.core.io.FileSystemResource;
-import org.springframework.hateoas.EntityModel;
 import org.springframework.hateoas.IanaLinkRelations;
 import org.springframework.hateoas.PagedModel;
 import org.springframework.hateoas.server.core.TypeReferences.PagedModelType;
@@ -65,15 +65,15 @@ public class DatasetApiServiceImpl implements DatasetApiService {
 
 		HttpEntity<MultiValueMap<String, Object>> request = new HttpEntity<>(body, headers);
 
-		ResponseEntity<EntityModel<Long>> response = null;
+		ResponseEntity<IdRepresentation> response = null;
 		try {
 			response = restTemplate.exchange(datasetUrl + "{datasetId}/image", HttpMethod.POST, request,
-					new ParameterizedTypeReference<EntityModel<Long>>() {
+					new ParameterizedTypeReference<IdRepresentation>() {
 					}, datasetId);
 		} catch (RestClientResponseException e) {
 			throw buildApiException(e);
 		}
-		return response.getBody().getContent();
+		return response.getBody().getId();
 	}
 
 	@Override
@@ -88,15 +88,15 @@ public class DatasetApiServiceImpl implements DatasetApiService {
 
 		HttpEntity<String> request = new HttpEntity<>(objectMapper.writeValueAsString(dataset), headers);
 
-		ResponseEntity<EntityModel<Long>> response = null;
+		ResponseEntity<IdRepresentation> response = null;
 		try {
 			response = restTemplate.exchange(datasetUrl, HttpMethod.POST, request,
-					new ParameterizedTypeReference<EntityModel<Long>>() {
+					new ParameterizedTypeReference<IdRepresentation>() {
 					});
 		} catch (RestClientResponseException e) {
 			throw buildApiException(e);
 		}
-		return response.getBody().getContent();
+		return response.getBody().getId();
 	}
 
 	@Override

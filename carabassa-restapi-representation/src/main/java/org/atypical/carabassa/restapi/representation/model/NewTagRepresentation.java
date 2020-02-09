@@ -1,35 +1,20 @@
 package org.atypical.carabassa.restapi.representation.model;
 
-import org.springframework.hateoas.RepresentationModel;
-
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonInclude.Include;
 
-//TODO extends from NewTagRepresentation (i.e, TagEntityRepresentation -> TagRepresentation)
-public class TagRepresentation extends RepresentationModel<TagRepresentation> implements Comparable<TagRepresentation> {
+public class NewTagRepresentation {
 
-	private Long id;
 	private String name;
 	private Object value;
 	@JsonInclude(Include.NON_NULL)
 	private BoundingBoxRepresentation boundingBox;
 
-	public TagRepresentation() {
+	public NewTagRepresentation(String name, Object value, BoundingBoxRepresentation boundingBox) {
 		super();
-	}
-
-	public TagRepresentation(Long id, String name, Object value) {
-		this.id = id;
 		this.name = name;
 		this.value = value;
-	}
-
-	public Long getId() {
-		return id;
-	}
-
-	public void setId(Long id) {
-		this.id = id;
+		this.boundingBox = boundingBox;
 	}
 
 	public String getName() {
@@ -54,11 +39,6 @@ public class TagRepresentation extends RepresentationModel<TagRepresentation> im
 
 	public void setBoundingBox(BoundingBoxRepresentation boundingBox) {
 		this.boundingBox = boundingBox;
-	}
-
-	@Override
-	public int compareTo(TagRepresentation o) {
-		return getId().compareTo(o.getId());
 	}
 
 }

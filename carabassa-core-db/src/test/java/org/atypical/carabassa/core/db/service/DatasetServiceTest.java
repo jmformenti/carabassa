@@ -24,6 +24,7 @@ import org.atypical.carabassa.core.model.Dataset;
 import org.atypical.carabassa.core.model.IndexedImage;
 import org.atypical.carabassa.core.model.StoredImage;
 import org.atypical.carabassa.core.model.Tag;
+import org.atypical.carabassa.core.model.impl.DatasetImpl;
 import org.atypical.carabassa.core.model.impl.TagImpl;
 import org.atypical.carabassa.core.service.DatasetService;
 import org.junit.jupiter.api.AfterEach;
@@ -54,8 +55,8 @@ public class DatasetServiceTest {
 	@BeforeEach
 	void setUp() throws EntityExistsException, IOException {
 		datasetService.deleteAll();
-		datasetService.create(DATASET_TEST_NAME);
-		datasetService.create("test2");
+		datasetService.create(new DatasetImpl(DATASET_TEST_NAME));
+		datasetService.create(new DatasetImpl("test2"));
 	}
 
 	@AfterEach
@@ -277,11 +278,11 @@ public class DatasetServiceTest {
 
 	@Test
 	void createInvalidName() throws EntityExistsException, IOException {
-		assertThrows(IllegalArgumentException.class, () -> datasetService.create("Hi "));
+		assertThrows(IllegalArgumentException.class, () -> datasetService.create(new DatasetImpl("Hi ")));
 
-		assertThrows(IllegalArgumentException.class, () -> datasetService.create("tmp/h"));
+		assertThrows(IllegalArgumentException.class, () -> datasetService.create(new DatasetImpl("tmp/h")));
 
-		assertNotNull(datasetService.create("2020-01-11_Test"));
+		assertNotNull(datasetService.create(new DatasetImpl("2020-01-11_Test")));
 	}
 
 	@Test

@@ -1,15 +1,15 @@
 package org.atypical.carabassa.restapi.controller;
 
-import org.springframework.hateoas.EntityModel;
+import org.atypical.carabassa.restapi.representation.model.NoContentRepresentation;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 @RestController
 @RequestMapping(value = { "/api" })
-public interface RootController {
+public interface IndexController {
 
 	@GetMapping("/")
-	public EntityModel<String> actions();
+	public NoContentRepresentation index();
 
 }

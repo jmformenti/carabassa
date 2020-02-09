@@ -8,6 +8,7 @@ import org.atypical.carabassa.restapi.representation.model.DatasetRepresentation
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 
+// TODO Do junits
 public interface DatasetApiService {
 
 	public Long addImage(String datasetName, Path imagePath) throws ApiException;

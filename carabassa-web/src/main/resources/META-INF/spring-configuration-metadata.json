@@ -6,7 +6,7 @@
 			"description": "Base repository dir for datasets"
 		},
 		{
-			"name": "app.version",
+			"name": "carabassa.version",
 			"type": "java.lang.String",
 			"description": "Project version"
 		}

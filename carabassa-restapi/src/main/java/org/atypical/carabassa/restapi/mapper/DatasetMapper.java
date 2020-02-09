@@ -2,13 +2,16 @@ package org.atypical.carabassa.restapi.mapper;
 
 import org.atypical.carabassa.core.model.Dataset;
 import org.atypical.carabassa.restapi.representation.model.DatasetRepresentation;
+import org.atypical.carabassa.restapi.representation.model.NewDatasetRepresentation;
 
 public interface DatasetMapper {
 
 	public DatasetRepresentation toRepresentation(Dataset dataset);
 
-	public Dataset toEntity(DatasetRepresentation datasetDTO);
+	public Dataset toEntity(NewDatasetRepresentation newDatasetRepresentation);
 
-	public void update(DatasetRepresentation datasetDto, Dataset dataset);
+	public Dataset toEntity(DatasetRepresentation datasetRepresentation);
+
+	public void update(NewDatasetRepresentation datasetRepresentation, Dataset dataset);
 
 }

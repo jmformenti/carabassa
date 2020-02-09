@@ -19,7 +19,7 @@ public interface DatasetService {
 
 	public Long addImageTag(Dataset dataset, Long imageId, Tag tag) throws EntityNotFoundException;
 
-	public Dataset create(String datasetName) throws IOException, EntityExistsException;
+	public Dataset create(Dataset dataset) throws IOException, EntityExistsException;
 
 	public void delete(Dataset dataset) throws IOException;
 

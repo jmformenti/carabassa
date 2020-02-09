@@ -1,10 +1,11 @@
 package org.atypical.carabassa.restapi.controller;
 
 import org.atypical.carabassa.restapi.representation.model.DatasetRepresentation;
+import org.atypical.carabassa.restapi.representation.model.IdRepresentation;
 import org.atypical.carabassa.restapi.representation.model.ImageRepresentation;
-import org.atypical.carabassa.restapi.representation.model.TagRepresentation;
+import org.atypical.carabassa.restapi.representation.model.NewDatasetRepresentation;
+import org.atypical.carabassa.restapi.representation.model.NewTagRepresentation;
 import org.springframework.data.domain.Pageable;
-import org.springframework.hateoas.EntityModel;
 import org.springframework.hateoas.PagedModel;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
@@ -23,11 +24,13 @@ import org.springframework.web.multipart.MultipartFile;
 
 @RestController
 @RequestMapping(value = { "/api/dataset" })
+// TODO add authentication
+// TODO add rest api validation (not null fields)
 public interface DatasetController {
 
 	@PostMapping
 	@ResponseStatus(code = HttpStatus.CREATED)
-	public EntityModel<Long> create(@RequestBody DatasetRepresentation datasetRepresentation);
+	public IdRepresentation create(@RequestBody NewDatasetRepresentation datasetRepresentation);
 
 	@GetMapping
 	public PagedModel<DatasetRepresentation> findAll(Pageable pageable);
@@ -41,7 +44,7 @@ public interface DatasetController {
 	@PutMapping(value = "/{datasetId}", consumes = MediaType.APPLICATION_JSON_VALUE)
 	@ResponseStatus(code = HttpStatus.NO_CONTENT)
 	public void update(@PathVariable("datasetId") Long datasetId,
-			@RequestBody DatasetRepresentation datasetRepresentation);
+			@RequestBody NewDatasetRepresentation datasetRepresentation);
 
 	@DeleteMapping(value = "/{datasetId}")
 	@ResponseStatus(code = HttpStatus.NO_CONTENT)
@@ -59,13 +62,13 @@ public interface DatasetController {
 
 	@PostMapping(value = "/{datasetId}/image")
 	@ResponseStatus(code = HttpStatus.CREATED)
-	public EntityModel<Long> addImage(@PathVariable("datasetId") Long datasetId,
+	public IdRepresentation addImage(@PathVariable("datasetId") Long datasetId,
 			@RequestParam("file") MultipartFile file);
 
 	@PostMapping(value = "/{datasetId}/image/{id}/tag")
 	@ResponseStatus(code = HttpStatus.CREATED)
-	public EntityModel<Long> addImageTag(@PathVariable("datasetId") Long datasetId, @PathVariable("id") Long imageId,
-			@RequestBody TagRepresentation tagRepresentation);
+	public IdRepresentation addImageTag(@PathVariable("datasetId") Long datasetId, @PathVariable("id") Long imageId,
+			@RequestBody NewTagRepresentation tagRepresentation);
 
 	@DeleteMapping(value = "/{datasetId}/image/{id}")
 	@ResponseStatus(code = HttpStatus.NO_CONTENT)

@@ -18,7 +18,7 @@ public interface DatasetIndexer {
 
 	public Long addImageTag(Dataset dataset, Long imageId, Tag tag) throws EntityNotFoundException;
 
-	public Dataset create(String datasetName) throws EntityExistsException;
+	public Dataset create(Dataset dataset) throws EntityExistsException;
 
 	public List<Dataset> findAll();
 

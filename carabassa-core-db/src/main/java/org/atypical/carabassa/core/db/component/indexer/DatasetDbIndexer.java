@@ -35,6 +35,7 @@ import org.springframework.util.Assert;
 
 @Component
 @Transactional(rollbackOn = Exception.class)
+// TODO put in a new module: carabassa-indexer-db
 public class DatasetDbIndexer implements DatasetIndexer {
 
 	private static final String DATASET_ID_NOT_FOUND_MESSAGE_KEY = "db.indexer.dataset.id_not_found";
@@ -136,13 +137,15 @@ public class DatasetDbIndexer implements DatasetIndexer {
 	}
 
 	@Override
-	public Dataset create(String datasetName) throws EntityExistsException {
+	public Dataset create(Dataset dataset) throws EntityExistsException {
+		String datasetName = dataset.getName();
 		Optional<DatasetEntity> persistedDataset = datasetRepository.findByName(datasetName);
 		if (persistedDataset.isPresent()) {
 			throw new EntityExistsException(localizedMessage.getText(DATASET_EXISTS_MESSAGE_KEY, datasetName));
 		} else {
-			DatasetEntity dataset = new DatasetEntity(datasetName);
-			return update(dataset);
+			DatasetEntity datasetEntity = new DatasetEntity(datasetName);
+			datasetEntity.setDescription(dataset.getDescription());
+			return update(datasetEntity);
 		}
 	}
 
