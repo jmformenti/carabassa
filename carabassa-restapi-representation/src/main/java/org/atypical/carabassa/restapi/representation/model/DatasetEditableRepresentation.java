@@ -1,11 +1,11 @@
 package org.atypical.carabassa.restapi.representation.model;
 
-public class NewDatasetRepresentation {
+public class DatasetEditableRepresentation {
 
 	private String name;
 	private String description;
 
-	public NewDatasetRepresentation(String name, String description) {
+	public DatasetEditableRepresentation(String name, String description) {
 		super();
 		this.name = name;
 		this.description = description;

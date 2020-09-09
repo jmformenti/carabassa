@@ -7,7 +7,7 @@ import org.atypical.carabassa.cli.exception.ApiException;
 import org.atypical.carabassa.cli.service.DatasetApiService;
 import org.atypical.carabassa.cli.util.CommandLogger;
 import org.atypical.carabassa.cli.util.DateFormatter;
-import org.atypical.carabassa.restapi.representation.model.DatasetRepresentation;
+import org.atypical.carabassa.restapi.representation.model.DatasetEntityRepresentation;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -36,10 +36,10 @@ public class ListDatasetCommand implements Callable<Integer> {
 	@Override
 	public Integer call() throws Exception {
 		try {
-			List<DatasetRepresentation> datasets = datasetApiService.findAll();
+			List<DatasetEntityRepresentation> datasets = datasetApiService.findAll();
 			if (!datasets.isEmpty()) {
 				System.out.format(OUTPUT_FORMAT, "id", "name", "description", "creation", "modification");
-				for (DatasetRepresentation datasetRepresentation : datasets) {
+				for (DatasetEntityRepresentation datasetRepresentation : datasets) {
 					System.out.format(OUTPUT_FORMAT, datasetRepresentation.getId(), datasetRepresentation.getName(),
 							datasetRepresentation.getDescription(),
 							DateFormatter.toLocalDateFormatted(datasetRepresentation.getCreation()),

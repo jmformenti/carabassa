@@ -32,9 +32,9 @@ import org.atypical.carabassa.core.model.impl.StoredImageInfoImpl;
 import org.atypical.carabassa.core.service.DatasetService;
 import org.atypical.carabassa.restapi.configuration.RestApiConfiguration;
 import org.atypical.carabassa.restapi.db.configuration.RestApiMapperConfiguration;
-import org.atypical.carabassa.restapi.representation.model.DatasetRepresentation;
-import org.atypical.carabassa.restapi.representation.model.NewDatasetRepresentation;
-import org.atypical.carabassa.restapi.representation.model.TagRepresentation;
+import org.atypical.carabassa.restapi.representation.model.DatasetEntityRepresentation;
+import org.atypical.carabassa.restapi.representation.model.DatasetEditableRepresentation;
+import org.atypical.carabassa.restapi.representation.model.TagEntityRepresentation;
 import org.atypical.carabassa.restapi.test.helper.DatasetControllerHelper;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -54,6 +54,7 @@ import org.springframework.test.web.servlet.result.MockMvcResultHandlers;
 
 @ContextConfiguration(classes = { RestApiConfiguration.class, RestApiMapperConfiguration.class })
 @WebMvcTest(DatasetController.class)
+// TODO come back to carabassa-restapi mocking mappers
 public class DatasetControllerIntegrationTest extends DatasetControllerHelper {
 
 	@Autowired
@@ -69,7 +70,7 @@ public class DatasetControllerIntegrationTest extends DatasetControllerHelper {
 
 	@Test
 	void createOK() throws Exception {
-		String json = objectMapper.writeValueAsString(new DatasetRepresentation(DATASET_NAME));
+		String json = objectMapper.writeValueAsString(new DatasetEntityRepresentation(DATASET_NAME));
 
 		when(datasetService.create(isA(Dataset.class))).thenReturn(dataset);
 
@@ -82,7 +83,7 @@ public class DatasetControllerIntegrationTest extends DatasetControllerHelper {
 
 	@Test
 	void createAlreadyExists() throws Exception {
-		String json = objectMapper.writeValueAsString(new NewDatasetRepresentation(DATASET_NAME, "desc"));
+		String json = objectMapper.writeValueAsString(new DatasetEditableRepresentation(DATASET_NAME, "desc"));
 
 		when(datasetService.create(isA(Dataset.class))).thenThrow(new EntityExistsException());
 
@@ -94,7 +95,7 @@ public class DatasetControllerIntegrationTest extends DatasetControllerHelper {
 
 	@Test
 	void createInvalid() throws Exception {
-		String json = objectMapper.writeValueAsString(new NewDatasetRepresentation(null, "desc"));
+		String json = objectMapper.writeValueAsString(new DatasetEditableRepresentation(null, "desc"));
 
 		when(datasetService.create(isA(Dataset.class))).thenThrow(IllegalArgumentException.class);
 
@@ -131,8 +132,8 @@ public class DatasetControllerIntegrationTest extends DatasetControllerHelper {
 
 		mvc.perform(get("/api/dataset?page=0&size=10")) //
 				.andExpect(status().isOk()) //
-				.andExpect(jsonPath("$._embedded.datasetRepresentationList", hasSize(1))) //
-				.andExpect(jsonPath("$._embedded.datasetRepresentationList.[0].name", is(dataset.getName()))) //
+				.andExpect(jsonPath("$._embedded.datasetEntityRepresentationList", hasSize(1))) //
+				.andExpect(jsonPath("$._embedded.datasetEntityRepresentationList.[0].name", is(dataset.getName()))) //
 				.andExpect(jsonPath("$.page.size", is(1))) //
 				.andExpect(jsonPath("$.page.totalElements", is(1))) //
 				.andExpect(jsonPath("$._links").exists()) //
@@ -190,7 +191,7 @@ public class DatasetControllerIntegrationTest extends DatasetControllerHelper {
 
 	@Test
 	void updateOK() throws Exception {
-		String json = objectMapper.writeValueAsString(new DatasetRepresentation(DATASET_NAME));
+		String json = objectMapper.writeValueAsString(new DatasetEntityRepresentation(DATASET_NAME));
 
 		when(datasetService.findById(DATASET_ID)).thenReturn(dataset);
 		when(datasetService.update(dataset)).thenReturn(dataset);
@@ -203,7 +204,7 @@ public class DatasetControllerIntegrationTest extends DatasetControllerHelper {
 
 	@Test
 	void updateNotFound() throws Exception {
-		String json = objectMapper.writeValueAsString(new DatasetRepresentation(DATASET_NAME));
+		String json = objectMapper.writeValueAsString(new DatasetEntityRepresentation(DATASET_NAME));
 
 		when(datasetService.findById(DATASET_ID)).thenThrow(EntityNotFoundException.class);
 
@@ -348,7 +349,7 @@ public class DatasetControllerIntegrationTest extends DatasetControllerHelper {
 
 	@Test
 	void addImageTagOK() throws Exception {
-		String json = objectMapper.writeValueAsString(new TagRepresentation(TAG_ID, tag.getName(), tag.getValue()));
+		String json = objectMapper.writeValueAsString(new TagEntityRepresentation(TAG_ID, tag.getName(), tag.getValue()));
 
 		when(datasetService.findById(DATASET_ID)).thenReturn(dataset);
 		when(datasetService.findImageById(dataset, IMAGE_ID)).thenReturn(indexedImage);
@@ -363,7 +364,7 @@ public class DatasetControllerIntegrationTest extends DatasetControllerHelper {
 
 	@Test
 	void addImageTagInvalid() throws Exception {
-		String json = objectMapper.writeValueAsString(new TagRepresentation(TAG_ID, null, tag.getValue()));
+		String json = objectMapper.writeValueAsString(new TagEntityRepresentation(TAG_ID, null, tag.getValue()));
 
 		when(datasetService.findById(DATASET_ID)).thenReturn(dataset);
 		when(datasetService.findImageById(dataset, IMAGE_ID)).thenReturn(indexedImage);

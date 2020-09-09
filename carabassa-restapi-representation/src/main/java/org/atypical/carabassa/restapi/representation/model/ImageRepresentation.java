@@ -14,7 +14,7 @@ public class ImageRepresentation extends RepresentationModel<ImageRepresentation
 	private ZonedDateTime creation;
 	private ZonedDateTime modification;
 	private ZonedDateTime archiveTime;
-	private SortedSet<TagRepresentation> tags;
+	private SortedSet<TagEntityRepresentation> tags;
 
 	public Long getId() {
 		return id;
@@ -72,11 +72,11 @@ public class ImageRepresentation extends RepresentationModel<ImageRepresentation
 		this.archiveTime = archiveTime;
 	}
 
-	public SortedSet<TagRepresentation> getTags() {
+	public SortedSet<TagEntityRepresentation> getTags() {
 		return tags;
 	}
 
-	public void setTags(SortedSet<TagRepresentation> tags) {
+	public void setTags(SortedSet<TagEntityRepresentation> tags) {
 		this.tags = tags;
 	}
 

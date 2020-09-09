@@ -14,11 +14,11 @@ import org.atypical.carabassa.restapi.mapper.ImageMapper;
 import org.atypical.carabassa.restapi.mapper.TagMapper;
 import org.atypical.carabassa.restapi.representation.assembler.DatasetModelAssembler;
 import org.atypical.carabassa.restapi.representation.assembler.ImageModelAssembler;
-import org.atypical.carabassa.restapi.representation.model.DatasetRepresentation;
+import org.atypical.carabassa.restapi.representation.model.DatasetEntityRepresentation;
 import org.atypical.carabassa.restapi.representation.model.IdRepresentation;
 import org.atypical.carabassa.restapi.representation.model.ImageRepresentation;
-import org.atypical.carabassa.restapi.representation.model.NewDatasetRepresentation;
-import org.atypical.carabassa.restapi.representation.model.NewTagRepresentation;
+import org.atypical.carabassa.restapi.representation.model.DatasetEditableRepresentation;
+import org.atypical.carabassa.restapi.representation.model.TagEditableRepresentation;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -64,7 +64,7 @@ public class DatasetControllerImpl implements DatasetController {
 	private PagedResourcesAssembler<IndexedImage> imagePagedResourcesAssembler;
 
 	@Override
-	public IdRepresentation create(NewDatasetRepresentation datasetRepresentation) {
+	public IdRepresentation create(DatasetEditableRepresentation datasetRepresentation) {
 		Dataset dataset = null;
 		try {
 			dataset = datasetMapper.toEntity(datasetRepresentation);
@@ -95,19 +95,19 @@ public class DatasetControllerImpl implements DatasetController {
 	}
 
 	@Override
-	public PagedModel<DatasetRepresentation> findAll(Pageable pageable) {
+	public PagedModel<DatasetEntityRepresentation> findAll(Pageable pageable) {
 		Page<Dataset> page = datasetService.findAll(pageable);
 		return datasetPagedResourcesAssembler.toModel(page, datasetModelAssembler);
 	}
 
 	@Override
-	public DatasetRepresentation findById(Long datasetId) {
+	public DatasetEntityRepresentation findById(Long datasetId) {
 		Dataset dataset = getDataset(datasetId);
 		return datasetMapper.toRepresentation(dataset);
 	}
 
 	@Override
-	public DatasetRepresentation findByName(String datasetName) {
+	public DatasetEntityRepresentation findByName(String datasetName) {
 		Dataset dataset = null;
 		try {
 			dataset = datasetService.findByName(datasetName);
@@ -119,7 +119,7 @@ public class DatasetControllerImpl implements DatasetController {
 	}
 
 	@Override
-	public void update(Long datasetId, NewDatasetRepresentation datasetRepresentation) {
+	public void update(Long datasetId, DatasetEditableRepresentation datasetRepresentation) {
 		Dataset dataset = getDataset(datasetId);
 		datasetMapper.update(datasetRepresentation, dataset);
 		try {
@@ -184,7 +184,7 @@ public class DatasetControllerImpl implements DatasetController {
 	}
 
 	@Override
-	public IdRepresentation addImageTag(Long datasetId, Long imageId, NewTagRepresentation tagRepresentation) {
+	public IdRepresentation addImageTag(Long datasetId, Long imageId, TagEditableRepresentation tagRepresentation) {
 		Dataset dataset = getDataset(datasetId);
 		try {
 			Long tagId = datasetService.addImageTag(dataset, imageId, tagMapper.toEntity(tagRepresentation));

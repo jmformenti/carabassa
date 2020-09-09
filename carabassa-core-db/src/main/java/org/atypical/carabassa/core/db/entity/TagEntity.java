@@ -47,7 +47,6 @@ public class TagEntity implements Tag {
 	private Double doubleValue;
 	private Boolean booleanValue;
 
-	// TODO share id between entities (@MapsId ??)
 	@OneToOne(targetEntity = BoundingBoxEntity.class)
 	private BoundingBox boundingBox;
 

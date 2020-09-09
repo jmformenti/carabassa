@@ -5,8 +5,8 @@ import org.springframework.hateoas.RepresentationModel;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonInclude.Include;
 
-//TODO extends from NewTagRepresentation (i.e, TagEntityRepresentation -> TagRepresentation)
-public class TagRepresentation extends RepresentationModel<TagRepresentation> implements Comparable<TagRepresentation> {
+public class TagEntityRepresentation extends RepresentationModel<TagEntityRepresentation>
+		implements Comparable<TagEntityRepresentation> {
 
 	private Long id;
 	private String name;
@@ -14,11 +14,11 @@ public class TagRepresentation extends RepresentationModel<TagRepresentation> im
 	@JsonInclude(Include.NON_NULL)
 	private BoundingBoxRepresentation boundingBox;
 
-	public TagRepresentation() {
+	public TagEntityRepresentation() {
 		super();
 	}
 
-	public TagRepresentation(Long id, String name, Object value) {
+	public TagEntityRepresentation(Long id, String name, Object value) {
 		this.id = id;
 		this.name = name;
 		this.value = value;
@@ -57,7 +57,7 @@ public class TagRepresentation extends RepresentationModel<TagRepresentation> im
 	}
 
 	@Override
-	public int compareTo(TagRepresentation o) {
+	public int compareTo(TagEntityRepresentation o) {
 		return getId().compareTo(o.getId());
 	}
 

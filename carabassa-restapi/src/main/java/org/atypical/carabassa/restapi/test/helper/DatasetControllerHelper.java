@@ -11,9 +11,9 @@ import org.atypical.carabassa.core.model.impl.BoundingBoxImpl;
 import org.atypical.carabassa.core.model.impl.DatasetImpl;
 import org.atypical.carabassa.core.model.impl.IndexedImageImpl;
 import org.atypical.carabassa.core.model.impl.TagImpl;
-import org.atypical.carabassa.restapi.representation.model.DatasetRepresentation;
+import org.atypical.carabassa.restapi.representation.model.DatasetEntityRepresentation;
 import org.atypical.carabassa.restapi.representation.model.ImageRepresentation;
-import org.atypical.carabassa.restapi.representation.model.TagRepresentation;
+import org.atypical.carabassa.restapi.representation.model.TagEntityRepresentation;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 
@@ -28,11 +28,11 @@ public class DatasetControllerHelper {
 	protected final static String TAG_VALUE = "tag_value";
 
 	protected Dataset dataset;
-	protected DatasetRepresentation datasetRepresentation;
+	protected DatasetEntityRepresentation datasetRepresentation;
 	protected IndexedImage indexedImage;
 	protected ImageRepresentation imageRepresentation;
 	protected Tag tag;
-	protected TagRepresentation tagRepresentation;
+	protected TagEntityRepresentation tagRepresentation;
 
 	protected ObjectMapper objectMapper = new ObjectMapper();
 
@@ -45,7 +45,7 @@ public class DatasetControllerHelper {
 		dataset.setCreation(ZonedDateTime.now().minusDays(1));
 		dataset.setModification(now);
 
-		datasetRepresentation = new DatasetRepresentation(DATASET_NAME);
+		datasetRepresentation = new DatasetEntityRepresentation(DATASET_NAME);
 		datasetRepresentation.setId(DATASET_ID);
 		datasetRepresentation.setDescription("description");
 		datasetRepresentation.setCreation(ZonedDateTime.now().minusDays(1));
@@ -55,7 +55,7 @@ public class DatasetControllerHelper {
 		tag.setId(TAG_ID);
 		tag.setBoundingBox(new BoundingBoxImpl(1, 2, 3, 4));
 
-		tagRepresentation = new TagRepresentation(TAG_ID, TAG_NAME, TAG_VALUE);
+		tagRepresentation = new TagEntityRepresentation(TAG_ID, TAG_NAME, TAG_VALUE);
 
 		indexedImage = new IndexedImageImpl();
 		indexedImage.setId(IMAGE_ID);

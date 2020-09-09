@@ -4,7 +4,7 @@ import java.nio.file.Path;
 import java.util.List;
 
 import org.atypical.carabassa.cli.exception.ApiException;
-import org.atypical.carabassa.restapi.representation.model.DatasetRepresentation;
+import org.atypical.carabassa.restapi.representation.model.DatasetEntityRepresentation;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 
@@ -17,7 +17,7 @@ public interface DatasetApiService {
 
 	public void delete(Long datasetId) throws ApiException;
 
-	public List<DatasetRepresentation> findAll() throws ApiException;
+	public List<DatasetEntityRepresentation> findAll() throws ApiException;
 
 	public Long findByName(String datasetName) throws ApiException;
 

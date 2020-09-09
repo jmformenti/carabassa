@@ -3,14 +3,14 @@ package org.atypical.carabassa.restapi.representation.model;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonInclude.Include;
 
-public class NewTagRepresentation {
+public class TagEditableRepresentation {
 
 	private String name;
 	private Object value;
 	@JsonInclude(Include.NON_NULL)
 	private BoundingBoxRepresentation boundingBox;
 
-	public NewTagRepresentation(String name, Object value, BoundingBoxRepresentation boundingBox) {
+	public TagEditableRepresentation(String name, Object value, BoundingBoxRepresentation boundingBox) {
 		super();
 		this.name = name;
 		this.value = value;

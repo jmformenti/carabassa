@@ -1,10 +1,10 @@
 package org.atypical.carabassa.restapi.controller;
 
-import org.atypical.carabassa.restapi.representation.model.DatasetRepresentation;
+import org.atypical.carabassa.restapi.representation.model.DatasetEntityRepresentation;
 import org.atypical.carabassa.restapi.representation.model.IdRepresentation;
 import org.atypical.carabassa.restapi.representation.model.ImageRepresentation;
-import org.atypical.carabassa.restapi.representation.model.NewDatasetRepresentation;
-import org.atypical.carabassa.restapi.representation.model.NewTagRepresentation;
+import org.atypical.carabassa.restapi.representation.model.DatasetEditableRepresentation;
+import org.atypical.carabassa.restapi.representation.model.TagEditableRepresentation;
 import org.springframework.data.domain.Pageable;
 import org.springframework.hateoas.PagedModel;
 import org.springframework.http.HttpStatus;
@@ -30,21 +30,21 @@ public interface DatasetController {
 
 	@PostMapping
 	@ResponseStatus(code = HttpStatus.CREATED)
-	public IdRepresentation create(@RequestBody NewDatasetRepresentation datasetRepresentation);
+	public IdRepresentation create(@RequestBody DatasetEditableRepresentation datasetRepresentation);
 
 	@GetMapping
-	public PagedModel<DatasetRepresentation> findAll(Pageable pageable);
+	public PagedModel<DatasetEntityRepresentation> findAll(Pageable pageable);
 
 	@GetMapping(value = "/{datasetId}")
-	public DatasetRepresentation findById(@PathVariable("datasetId") Long datasetId);
+	public DatasetEntityRepresentation findById(@PathVariable("datasetId") Long datasetId);
 
 	@GetMapping(value = "/name/{datasetName}")
-	public DatasetRepresentation findByName(@PathVariable("datasetName") String datasetName);
+	public DatasetEntityRepresentation findByName(@PathVariable("datasetName") String datasetName);
 
 	@PutMapping(value = "/{datasetId}", consumes = MediaType.APPLICATION_JSON_VALUE)
 	@ResponseStatus(code = HttpStatus.NO_CONTENT)
 	public void update(@PathVariable("datasetId") Long datasetId,
-			@RequestBody NewDatasetRepresentation datasetRepresentation);
+			@RequestBody DatasetEditableRepresentation datasetRepresentation);
 
 	@DeleteMapping(value = "/{datasetId}")
 	@ResponseStatus(code = HttpStatus.NO_CONTENT)
@@ -68,7 +68,7 @@ public interface DatasetController {
 	@PostMapping(value = "/{datasetId}/image/{id}/tag")
 	@ResponseStatus(code = HttpStatus.CREATED)
 	public IdRepresentation addImageTag(@PathVariable("datasetId") Long datasetId, @PathVariable("id") Long imageId,
-			@RequestBody NewTagRepresentation tagRepresentation);
+			@RequestBody TagEditableRepresentation tagRepresentation);
 
 	@DeleteMapping(value = "/{datasetId}/image/{id}")
 	@ResponseStatus(code = HttpStatus.NO_CONTENT)

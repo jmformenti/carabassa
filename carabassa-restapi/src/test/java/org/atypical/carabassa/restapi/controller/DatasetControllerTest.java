@@ -40,8 +40,8 @@ import org.atypical.carabassa.restapi.mapper.TagMapper;
 import org.atypical.carabassa.restapi.representation.assembler.DatasetModelAssembler;
 import org.atypical.carabassa.restapi.representation.assembler.ImageModelAssembler;
 import org.atypical.carabassa.restapi.representation.model.BoundingBoxRepresentation;
-import org.atypical.carabassa.restapi.representation.model.NewDatasetRepresentation;
-import org.atypical.carabassa.restapi.representation.model.NewTagRepresentation;
+import org.atypical.carabassa.restapi.representation.model.DatasetEditableRepresentation;
+import org.atypical.carabassa.restapi.representation.model.TagEditableRepresentation;
 import org.atypical.carabassa.restapi.test.helper.DatasetControllerHelper;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -95,9 +95,9 @@ public class DatasetControllerTest extends DatasetControllerHelper {
 	private TagMapper tagMapper;
 
 	private FieldDescriptor[] datasetDescriptor;
-	private FieldDescriptor[] newDatasetDescriptor;
+	private FieldDescriptor[] datasetEditableDescriptor;
 	private FieldDescriptor[] imageDescriptor;
-	private FieldDescriptor[] newTagDescriptor;
+	private FieldDescriptor[] tagEditableDescriptor;
 	private LinksSnippet pagingLinks;
 
 	@BeforeEach
@@ -110,13 +110,13 @@ public class DatasetControllerTest extends DatasetControllerHelper {
 		super.initData();
 
 		this.datasetDescriptor = getDatasetDescriptor();
-		this.newDatasetDescriptor = getNewDatasetDescriptor();
+		this.datasetEditableDescriptor = getDatasetEditableDescriptor();
 		this.imageDescriptor = getImageDescriptor();
-		this.newTagDescriptor = getNewTagDescriptor();
+		this.tagEditableDescriptor = getTagEditableDescriptor();
 		this.pagingLinks = getPageLinks();
 	}
 
-	private FieldDescriptor[] getNewDatasetDescriptor() {
+	private FieldDescriptor[] getDatasetEditableDescriptor() {
 		return new FieldDescriptor[] { fieldWithPath("name").description("Dataset name"),
 				fieldWithPath("description").description("Dataset description") };
 	}
@@ -140,7 +140,7 @@ public class DatasetControllerTest extends DatasetControllerHelper {
 				subsectionWithPath("tags[]").description("Array of tags") };
 	}
 
-	private FieldDescriptor[] getNewTagDescriptor() {
+	private FieldDescriptor[] getTagEditableDescriptor() {
 		return new FieldDescriptor[] { fieldWithPath("name").description("Tag name"),
 				fieldWithPath("value").description("Tag value"), subsectionWithPath("boundingBox")
 						.description("Bounding box related").type(BoundingBoxRepresentation.class) };
@@ -156,16 +156,16 @@ public class DatasetControllerTest extends DatasetControllerHelper {
 
 	@Test
 	public void create() throws Exception {
-		String json = objectMapper.writeValueAsString(new NewDatasetRepresentation(DATASET_NAME, "description"));
+		String json = objectMapper.writeValueAsString(new DatasetEditableRepresentation(DATASET_NAME, "description"));
 
-		when(datasetMapper.toEntity(isA(NewDatasetRepresentation.class))).thenReturn(dataset);
+		when(datasetMapper.toEntity(isA(DatasetEditableRepresentation.class))).thenReturn(dataset);
 		when(datasetService.create(dataset)).thenReturn(dataset);
 
 		mvc.perform(post("/api/dataset") //
 				.contentType(MediaType.APPLICATION_JSON).content(json)) //
 				.andExpect(status().isCreated()) //
 				.andDo(document("create", //
-						requestFields(newDatasetDescriptor),
+						requestFields(datasetEditableDescriptor),
 						responseFields(fieldWithPath("id").description("New dataset identifier"))));
 	}
 
@@ -184,7 +184,7 @@ public class DatasetControllerTest extends DatasetControllerHelper {
 						pagingLinks, //
 						responseFields(
 								subsectionWithPath("_links").description("Links to other resources").type(Links.class),
-								subsectionWithPath("_embedded.datasetRepresentationList[]")
+								subsectionWithPath("_embedded.datasetEntityRepresentationList[]")
 										.description("List of datasets"),
 								subsectionWithPath("page").description("Page metadata").type(Page.class))));
 	}
@@ -215,7 +215,7 @@ public class DatasetControllerTest extends DatasetControllerHelper {
 
 	@Test
 	public void update() throws Exception {
-		String json = objectMapper.writeValueAsString(new NewDatasetRepresentation(DATASET_NAME, "description"));
+		String json = objectMapper.writeValueAsString(new DatasetEditableRepresentation(DATASET_NAME, "description"));
 
 		when(datasetService.findById(DATASET_ID)).thenReturn(dataset);
 		when(datasetService.update(dataset)).thenReturn(dataset);
@@ -225,7 +225,7 @@ public class DatasetControllerTest extends DatasetControllerHelper {
 				.andExpect(status().isNoContent()) //
 				.andDo(document("update", //
 						pathParameters(parameterWithName("datasetId").description("Dataset identifier")),
-						requestFields(newDatasetDescriptor)));
+						requestFields(datasetEditableDescriptor)));
 	}
 
 	@Test
@@ -314,12 +314,12 @@ public class DatasetControllerTest extends DatasetControllerHelper {
 
 	@Test
 	public void addImageTag() throws Exception {
-		NewTagRepresentation newTagRepresentation = new NewTagRepresentation(TAG_NAME, TAG_VALUE,
+		TagEditableRepresentation tagEditableRepresentation = new TagEditableRepresentation(TAG_NAME, TAG_VALUE,
 				new BoundingBoxRepresentation(10, 20, 30, 40));
-		String json = objectMapper.writeValueAsString(newTagRepresentation);
+		String json = objectMapper.writeValueAsString(tagEditableRepresentation);
 
 		when(datasetService.findById(DATASET_ID)).thenReturn(dataset);
-		when(tagMapper.toEntity(isA(NewTagRepresentation.class))).thenReturn(tag);
+		when(tagMapper.toEntity(isA(TagEditableRepresentation.class))).thenReturn(tag);
 		when(datasetService.addImageTag(isA(Dataset.class), isA(Long.class), isA(Tag.class))).thenReturn(TAG_ID);
 
 		mvc.perform(post("/api/dataset/{datasetId}/image/{imageId}/tag", DATASET_ID, IMAGE_ID) //
@@ -328,7 +328,7 @@ public class DatasetControllerTest extends DatasetControllerHelper {
 				.andDo(document("add-image-tag",
 						pathParameters(parameterWithName("datasetId").description("Dataset identifier"),
 								parameterWithName("imageId").description("Image identifier")),
-						requestFields(newTagDescriptor),
+						requestFields(tagEditableDescriptor),
 						responseFields(fieldWithPath("id").description("New tag identifier"))));
 	}
 

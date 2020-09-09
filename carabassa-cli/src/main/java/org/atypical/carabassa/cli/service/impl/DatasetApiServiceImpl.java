@@ -9,7 +9,7 @@ import javax.annotation.PostConstruct;
 import org.atypical.carabassa.cli.exception.ApiException;
 import org.atypical.carabassa.cli.exception.ResponseBodyException;
 import org.atypical.carabassa.cli.service.DatasetApiService;
-import org.atypical.carabassa.restapi.representation.model.DatasetRepresentation;
+import org.atypical.carabassa.restapi.representation.model.DatasetEntityRepresentation;
 import org.atypical.carabassa.restapi.representation.model.IdRepresentation;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
@@ -83,7 +83,7 @@ public class DatasetApiServiceImpl implements DatasetApiService {
 		HttpHeaders headers = new HttpHeaders();
 		headers.setContentType(MediaType.APPLICATION_JSON);
 
-		DatasetRepresentation dataset = new DatasetRepresentation(name);
+		DatasetEntityRepresentation dataset = new DatasetEntityRepresentation(name);
 		dataset.setDescription(description);
 
 		HttpEntity<String> request = new HttpEntity<>(objectMapper.writeValueAsString(dataset), headers);
@@ -109,15 +109,15 @@ public class DatasetApiServiceImpl implements DatasetApiService {
 	}
 
 	@Override
-	public List<DatasetRepresentation> findAll() throws ApiException {
+	public List<DatasetEntityRepresentation> findAll() throws ApiException {
 		try {
-			PagedModel<DatasetRepresentation> page = getPage(datasetUrl, new PagedModelType<DatasetRepresentation>() {
+			PagedModel<DatasetEntityRepresentation> page = getPage(datasetUrl, new PagedModelType<DatasetEntityRepresentation>() {
 			});
 
-			List<DatasetRepresentation> datasets = new ArrayList<>(page.getContent());
+			List<DatasetEntityRepresentation> datasets = new ArrayList<>(page.getContent());
 			while (page.hasLink(IanaLinkRelations.NEXT)) {
 				page = getPage(page.getLink("next").get().toUri().toString(),
-						new PagedModelType<DatasetRepresentation>() {
+						new PagedModelType<DatasetEntityRepresentation>() {
 						});
 				datasets.addAll(page.getContent());
 			}
@@ -130,9 +130,9 @@ public class DatasetApiServiceImpl implements DatasetApiService {
 
 	@Override
 	public Long findByName(String datasetName) throws ApiException {
-		ResponseEntity<DatasetRepresentation> response = null;
+		ResponseEntity<DatasetEntityRepresentation> response = null;
 		try {
-			response = restTemplate.getForEntity(datasetUrl + "name/{datasetName}", DatasetRepresentation.class,
+			response = restTemplate.getForEntity(datasetUrl + "name/{datasetName}", DatasetEntityRepresentation.class,
 					datasetName);
 		} catch (RestClientResponseException e) {
 			throw buildApiException(e);
@@ -143,7 +143,7 @@ public class DatasetApiServiceImpl implements DatasetApiService {
 	@Override
 	public void update(Long datasetId, String description) throws ApiException {
 		try {
-			DatasetRepresentation dataset = new DatasetRepresentation();
+			DatasetEntityRepresentation dataset = new DatasetEntityRepresentation();
 			dataset.setDescription(description);
 			restTemplate.put(datasetUrl + "{datasetId}", dataset, datasetId);
 		} catch (RestClientResponseException e) {
@@ -151,7 +151,7 @@ public class DatasetApiServiceImpl implements DatasetApiService {
 		}
 	}
 
-	private <T extends DatasetRepresentation> PagedModel<T> getPage(String uri, PagedModelType<T> responseType) {
+	private <T extends DatasetEntityRepresentation> PagedModel<T> getPage(String uri, PagedModelType<T> responseType) {
 		return restTemplate.exchange(uri, HttpMethod.GET, null, responseType).getBody();
 	}
 
