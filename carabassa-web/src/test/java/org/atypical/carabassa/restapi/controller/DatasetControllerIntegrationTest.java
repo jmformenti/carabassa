@@ -31,9 +31,9 @@ import org.atypical.carabassa.core.model.impl.StoredImageImpl;
 import org.atypical.carabassa.core.model.impl.StoredImageInfoImpl;
 import org.atypical.carabassa.core.service.DatasetService;
 import org.atypical.carabassa.restapi.configuration.RestApiConfiguration;
-import org.atypical.carabassa.restapi.db.configuration.RestApiMapperConfiguration;
-import org.atypical.carabassa.restapi.representation.model.DatasetEntityRepresentation;
+import org.atypical.carabassa.restapi.rdbms.configuration.RestApiRdbmsMapperConfiguration;
 import org.atypical.carabassa.restapi.representation.model.DatasetEditableRepresentation;
+import org.atypical.carabassa.restapi.representation.model.DatasetEntityRepresentation;
 import org.atypical.carabassa.restapi.representation.model.TagEntityRepresentation;
 import org.atypical.carabassa.restapi.test.helper.DatasetControllerHelper;
 import org.junit.jupiter.api.BeforeEach;
@@ -52,9 +52,8 @@ import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.result.MockMvcResultHandlers;
 
-@ContextConfiguration(classes = { RestApiConfiguration.class, RestApiMapperConfiguration.class })
+@ContextConfiguration(classes = { RestApiConfiguration.class, RestApiRdbmsMapperConfiguration.class })
 @WebMvcTest(DatasetController.class)
-// TODO come back to carabassa-restapi mocking mappers
 public class DatasetControllerIntegrationTest extends DatasetControllerHelper {
 
 	@Autowired
@@ -349,7 +348,8 @@ public class DatasetControllerIntegrationTest extends DatasetControllerHelper {
 
 	@Test
 	void addImageTagOK() throws Exception {
-		String json = objectMapper.writeValueAsString(new TagEntityRepresentation(TAG_ID, tag.getName(), tag.getValue()));
+		String json = objectMapper
+				.writeValueAsString(new TagEntityRepresentation(TAG_ID, tag.getName(), tag.getValue()));
 
 		when(datasetService.findById(DATASET_ID)).thenReturn(dataset);
 		when(datasetService.findImageById(dataset, IMAGE_ID)).thenReturn(indexedImage);

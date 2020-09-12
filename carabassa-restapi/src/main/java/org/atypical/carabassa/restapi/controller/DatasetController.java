@@ -1,9 +1,9 @@
 package org.atypical.carabassa.restapi.controller;
 
+import org.atypical.carabassa.restapi.representation.model.DatasetEditableRepresentation;
 import org.atypical.carabassa.restapi.representation.model.DatasetEntityRepresentation;
 import org.atypical.carabassa.restapi.representation.model.IdRepresentation;
 import org.atypical.carabassa.restapi.representation.model.ImageRepresentation;
-import org.atypical.carabassa.restapi.representation.model.DatasetEditableRepresentation;
 import org.atypical.carabassa.restapi.representation.model.TagEditableRepresentation;
 import org.springframework.data.domain.Pageable;
 import org.springframework.hateoas.PagedModel;

@@ -17,7 +17,12 @@
 		</dependency>
 		<dependency>
 			<groupId>org.atypical</groupId>
-			<artifactId>carabassa-restapi-db-mapper</artifactId>
+			<artifactId>carabassa-restapi-rdbms-mapper</artifactId>
+			<version>0.0.1-SNAPSHOT</version>
+		</dependency>
+		<dependency>
+			<groupId>org.atypical</groupId>
+			<artifactId>carabassa-storage-fs</artifactId>
 			<version>0.0.1-SNAPSHOT</version>
 		</dependency>
 		<dependency>

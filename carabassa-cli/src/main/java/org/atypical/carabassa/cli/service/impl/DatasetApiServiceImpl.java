@@ -111,8 +111,9 @@ public class DatasetApiServiceImpl implements DatasetApiService {
 	@Override
 	public List<DatasetEntityRepresentation> findAll() throws ApiException {
 		try {
-			PagedModel<DatasetEntityRepresentation> page = getPage(datasetUrl, new PagedModelType<DatasetEntityRepresentation>() {
-			});
+			PagedModel<DatasetEntityRepresentation> page = getPage(datasetUrl,
+					new PagedModelType<DatasetEntityRepresentation>() {
+					});
 
 			List<DatasetEntityRepresentation> datasets = new ArrayList<>(page.getContent());
 			while (page.hasLink(IanaLinkRelations.NEXT)) {

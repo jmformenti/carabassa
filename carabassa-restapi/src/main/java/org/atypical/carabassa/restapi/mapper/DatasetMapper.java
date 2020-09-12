@@ -1,8 +1,8 @@
 package org.atypical.carabassa.restapi.mapper;
 
 import org.atypical.carabassa.core.model.Dataset;
-import org.atypical.carabassa.restapi.representation.model.DatasetEntityRepresentation;
 import org.atypical.carabassa.restapi.representation.model.DatasetEditableRepresentation;
+import org.atypical.carabassa.restapi.representation.model.DatasetEntityRepresentation;
 
 public interface DatasetMapper {
 
