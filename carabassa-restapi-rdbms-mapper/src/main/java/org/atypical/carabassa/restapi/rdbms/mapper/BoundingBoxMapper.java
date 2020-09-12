@@ -6,7 +6,7 @@ import org.atypical.carabassa.restapi.representation.model.BoundingBoxRepresenta
 import org.mapstruct.Mapper;
 
 @Mapper
-public interface BoundingBoxMapper extends org.atypical.carabassa.restapi.mapper.BoundingBoxMapper {
+public interface BoundingBoxMapper extends org.atypical.carabassa.restapi.representation.mapper.BoundingBoxMapper {
 
 	public BoundingBoxRepresentation toRepresentation(BoundingBox boundingBox);
 

@@ -9,7 +9,7 @@ import org.mapstruct.MappingTarget;
 import org.mapstruct.ReportingPolicy;
 
 @Mapper(unmappedTargetPolicy = ReportingPolicy.IGNORE)
-public interface DatasetMapper extends org.atypical.carabassa.restapi.mapper.DatasetMapper {
+public interface DatasetMapper extends org.atypical.carabassa.restapi.representation.mapper.DatasetMapper {
 
 	public DatasetEntityRepresentation toRepresentation(Dataset dataset);
 

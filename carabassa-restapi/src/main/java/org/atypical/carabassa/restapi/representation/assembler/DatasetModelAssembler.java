@@ -2,7 +2,7 @@ package org.atypical.carabassa.restapi.representation.assembler;
 
 import org.atypical.carabassa.core.model.Dataset;
 import org.atypical.carabassa.restapi.controller.DatasetController;
-import org.atypical.carabassa.restapi.mapper.DatasetMapper;
+import org.atypical.carabassa.restapi.representation.mapper.DatasetMapper;
 import org.atypical.carabassa.restapi.representation.model.DatasetEntityRepresentation;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.hateoas.server.mvc.RepresentationModelAssemblerSupport;

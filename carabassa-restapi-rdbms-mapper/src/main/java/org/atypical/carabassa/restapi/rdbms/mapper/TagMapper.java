@@ -6,7 +6,7 @@ import org.mapstruct.Mapper;
 import org.mapstruct.ReportingPolicy;
 
 @Mapper(uses = BoundingBoxMapper.class, unmappedTargetPolicy = ReportingPolicy.IGNORE)
-public interface TagMapper extends org.atypical.carabassa.restapi.mapper.TagMapper {
+public interface TagMapper extends org.atypical.carabassa.restapi.representation.mapper.TagMapper {
 
 	public TagEntity toEntity(TagEditableRepresentation tagEditableRepresentation);
 

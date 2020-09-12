@@ -6,7 +6,7 @@ import org.mapstruct.Mapper;
 import org.mapstruct.ReportingPolicy;
 
 @Mapper(uses = TagMapper.class, unmappedTargetPolicy = ReportingPolicy.IGNORE)
-public interface ImageMapper extends org.atypical.carabassa.restapi.mapper.ImageMapper {
+public interface ImageMapper extends org.atypical.carabassa.restapi.representation.mapper.ImageMapper {
 
 	public ImageRepresentation toRepresentation(IndexedImage indexedImage);
 
