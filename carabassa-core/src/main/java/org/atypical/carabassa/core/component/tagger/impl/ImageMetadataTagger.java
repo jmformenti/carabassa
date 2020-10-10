@@ -41,7 +41,8 @@ public class ImageMetadataTagger implements Tagger {
 
 	private static final Logger logger = LoggerFactory.getLogger(ImageMetadataTagger.class);
 
-	private static final String IMAGE_ERROR_MESSAGE_KEY = "core.tagger.meta.image.error";
+	private static final String IMAGE_ERROR_META_MESSAGE_KEY = "core.tagger.meta.image.error";
+	private static final String IMAGE_ERROR_PHASH_MESSAGE_KEY = "core.tagger.phash.error";
 
 	public static final String TAG_PREFIX = "meta.";
 	public static final String TAG_HASH = TAG_PREFIX + "Hash";
@@ -72,7 +73,11 @@ public class ImageMetadataTagger implements Tagger {
 		Set<Tag> tags = new HashSet<>();
 
 		tags.add((Tag) new TagImpl(TAG_HASH, getHash(content)));
-		tags.add((Tag) new TagImpl(TAG_DHASH, getPerceptualHash(content)));
+		try {
+			tags.add((Tag) new TagImpl(TAG_DHASH, getPerceptualHash(content)));
+		} catch (IOException e) {
+			logger.error(e.getMessage(), e);
+		}
 		ZonedDateTime archiveTime = getArchiveTime(metadata);
 		if (archiveTime != null) {
 			tags.add((Tag) new TagImpl(TAG_ARCHIVE_TIME, archiveTime));
@@ -97,7 +102,7 @@ public class ImageMetadataTagger implements Tagger {
 		try {
 			metadata = ImageMetadataReader.readMetadata(imageStream);
 		} catch (ImageProcessingException | IOException e) {
-			throw new IOException(localizedMessage.getText(IMAGE_ERROR_MESSAGE_KEY), e);
+			throw new IOException(localizedMessage.getText(IMAGE_ERROR_META_MESSAGE_KEY, e.getMessage()), e);
 		}
 		return metadata;
 	}
@@ -161,7 +166,16 @@ public class ImageMetadataTagger implements Tagger {
 		DifferenceHash differenceHash = new DifferenceHash(64, Precision.Double);
 
 		InputStream in = new ByteArrayInputStream(content);
-		BufferedImage image = ImageIO.read(in);
+		BufferedImage image;
+		try {
+			image = ImageIO.read(in);
+		} catch (IOException e) {
+			throw new IOException(localizedMessage.getText(IMAGE_ERROR_PHASH_MESSAGE_KEY, e.getMessage()), e);
+		}
+		if (image == null) {
+			throw new IOException(localizedMessage.getText(IMAGE_ERROR_PHASH_MESSAGE_KEY, "null image"));
+		}
+
 		Hash hash = differenceHash.hash(image);
 
 		return Hex.encodeHexString(hash.toByteArray());

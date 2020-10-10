@@ -8,6 +8,7 @@ import java.util.List;
 import javax.annotation.PostConstruct;
 
 import org.atypical.carabassa.cli.exception.ApiException;
+import org.atypical.carabassa.cli.exception.ImageAlreadyExists;
 import org.atypical.carabassa.cli.exception.ResponseBodyException;
 import org.atypical.carabassa.cli.service.DatasetApiService;
 import org.atypical.carabassa.core.component.tagger.impl.ImageMetadataTagger;
@@ -35,7 +36,9 @@ import org.springframework.web.client.RestClientResponseException;
 import org.springframework.web.client.RestTemplate;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 
 @Service
 public class DatasetApiServiceImpl implements DatasetApiService {
@@ -51,17 +54,21 @@ public class DatasetApiServiceImpl implements DatasetApiService {
 	@Autowired
 	private ImageMetadataTagger imageMetadataTagger;
 
-	private ObjectMapper objectMapper = new ObjectMapper();
+	private ObjectMapper objectMapper;
 
 	private String datasetUrl;
 
 	@PostConstruct
 	private void postConstruct() {
 		datasetUrl = getDatasetUrl();
+
+		objectMapper = new ObjectMapper();
+		objectMapper.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
+		objectMapper.registerModule(new JavaTimeModule());
 	}
 
 	@Override
-	public Long addImage(Long datasetId, Path imagePath) throws ApiException, IOException {
+	public Long addImage(Long datasetId, Path imagePath) throws ImageAlreadyExists, ApiException, IOException {
 		Resource image = new FileSystemResource(imagePath);
 
 		if (!findImageByHash(datasetId, image)) {
@@ -84,7 +91,7 @@ public class DatasetApiServiceImpl implements DatasetApiService {
 
 			return response.getBody().getId();
 		} else {
-			throw new ApiException("Image already exists.");
+			throw new ImageAlreadyExists("Image already exists.");
 		}
 	}
 

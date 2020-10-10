@@ -9,6 +9,7 @@ import java.util.concurrent.Callable;
 import java.util.stream.Collectors;
 
 import org.atypical.carabassa.cli.exception.ApiException;
+import org.atypical.carabassa.cli.exception.ImageAlreadyExists;
 import org.atypical.carabassa.cli.service.DatasetApiService;
 import org.atypical.carabassa.cli.util.CommandLogger;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -45,20 +46,28 @@ public class UploadDatasetCommand implements Callable<Integer> {
 		List<Path> imagesPath = Files.walk(Paths.get(basePath)).filter(path -> isImage(path))
 				.collect(Collectors.toList());
 
-		int uploaded = 0, count = 0;
+		int count = 0, uploaded = 0, existing = 0, error = 0;
 		int total = imagesPath.size();
+
+		long imageId;
 		for (Path imagePath : imagesPath) {
 			cmdLogger.info(String.format("Uploading image %s ( %d / %d ) ...", imagePath, ++count, total));
 			try {
-				datasetApiService.addImage(datasetId, imagePath);
+				imageId = datasetApiService.addImage(datasetId, imagePath);
 				uploaded++;
-			} catch (ApiException e) {
-				cmdLogger.error(String.format("Error uploading image %s: %s", imagePath, e.getMessage()));
+				cmdLogger.info(String.format("Uploaded image %s with id %d.", imagePath, imageId));
+			} catch (ImageAlreadyExists e) {
+				cmdLogger.warn(String.format("Warning uploading image %s", imagePath), e);
+				existing++;
+			} catch (ApiException | IOException e) {
+				cmdLogger.error(String.format("Error uploading image %s", imagePath), e);
+				error++;
 			}
 		}
 
-		cmdLogger.info(String.format("Uploaded %d of %d images from path=%s to dataset=%s", uploaded, total, basePath,
-				dataset));
+		cmdLogger.info(String.format(
+				"Uploaded %d of %d images (%d already existing, %d error) from path=\"%s\" to dataset=\"%s\"", uploaded,
+				total, existing, error, basePath, dataset));
 		return ExitCode.OK;
 	}
 
@@ -68,14 +77,14 @@ public class UploadDatasetCommand implements Callable<Integer> {
 			try {
 				mimeType = Files.probeContentType(path);
 			} catch (IOException e) {
-				cmdLogger.warn(String.format("Error reading files %s, ignoring", path), e);
+				cmdLogger.warn(String.format("Error reading file %s, ignoring", path));
 				return false;
 			}
 			if (mimeType != null && mimeType.startsWith("image/")) {
-				cmdLogger.info(String.format("Found image %s", path));
+				cmdLogger.debug(String.format("Found image %s", path));
 				return true;
 			} else {
-				cmdLogger.warn(String.format("File %s is not an image, ignoring", path));
+				cmdLogger.debug(String.format("File %s is not an image, ignoring", path));
 				return false;
 			}
 		} else {
