@@ -22,6 +22,7 @@ public class DatasetControllerHelper {
 	protected final static Long DATASET_ID = 1L;
 	protected final static Long IMAGE_ID = 2L;
 	protected final static Long TAG_ID = 3L;
+	protected final static String IMAGE_HASH = "hash";
 
 	protected final static String DATASET_NAME = "mydataset";
 	protected final static String TAG_NAME = "tag_name";

@@ -27,6 +27,7 @@ import org.atypical.carabassa.indexer.rdbms.configuration.IndexerRdbmsConfigurat
 import org.atypical.carabassa.indexer.rdbms.entity.TagEntity;
 import org.atypical.carabassa.indexer.rdbms.test.configuration.TestConfiguration;
 import org.atypical.carabassa.indexer.rdbms.test.helper.TestHelper;
+import org.atypical.carabassa.storage.fs.configuration.StorageFSConfiguration;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -40,7 +41,8 @@ import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Sort;
 import org.springframework.test.context.ContextConfiguration;
 
-@ContextConfiguration(classes = { CoreConfiguration.class, IndexerRdbmsConfiguration.class, TestConfiguration.class })
+@ContextConfiguration(classes = { CoreConfiguration.class, IndexerRdbmsConfiguration.class,
+		StorageFSConfiguration.class, TestConfiguration.class })
 @DataJpaTest
 public class DatasetServiceTest {
 

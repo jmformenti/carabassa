@@ -42,6 +42,7 @@ public class DatasetDbIndexer implements DatasetIndexer {
 	private static final String DATASET_EXISTS_MESSAGE_KEY = "db.indexer.dataset.exists";
 	private static final String IMAGE_NOT_NULL_MESSAGE_KEY = "db.indexer.dataset.image.not_null";
 	private static final String IMAGE_ID_NOT_FOUND_MESSAGE_KEY = "db.indexer.dataset.image.id_not_found";
+	private static final String IMAGE_HASH_NOT_FOUND_MESSAGE_KEY = "db.indexer.dataset.image.hash_not_found";
 	private static final String IMAGE_EXISTS_MESSAGE_KEY = "db.indexer.dataset.image.exists";
 	private static final String IMAGE_BLANK_FILENAME_MESSAGE_KEY = "db.indexer.dataset.image.blank_filename";
 	private static final String IMAGE_CONTENT_NULL_MESSAGE_KEY = "db.indexer.dataset.image.content_null";
@@ -180,6 +181,12 @@ public class DatasetDbIndexer implements DatasetIndexer {
 	public IndexedImage findImageById(Dataset dataset, Long imageId) throws EntityNotFoundException {
 		return indexedImageRepository.findImageById(dataset, imageId).orElseThrow(
 				() -> new EntityNotFoundException(localizedMessage.getText(IMAGE_ID_NOT_FOUND_MESSAGE_KEY, imageId)));
+	}
+
+	@Override
+	public IndexedImage findImageByHash(Dataset dataset, String hash) throws EntityNotFoundException {
+		return indexedImageRepository.findImageByHash(dataset, hash).orElseThrow(
+				() -> new EntityNotFoundException(localizedMessage.getText(IMAGE_HASH_NOT_FOUND_MESSAGE_KEY, hash)));
 	}
 
 	@Override

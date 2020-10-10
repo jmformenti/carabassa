@@ -1,11 +1,16 @@
 package org.atypical.carabassa.restapi.representation.model;
 
+import javax.validation.constraints.NotEmpty;
+import javax.validation.constraints.NotNull;
+
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonInclude.Include;
 
 public class TagEditableRepresentation {
 
+	@NotEmpty(message = "{api.dataset.image.tag.name.notEmpty}")
 	private String name;
+	@NotNull(message = "{api.dataset.image.tag.value.notNull}")
 	private Object value;
 	@JsonInclude(Include.NON_NULL)
 	private BoundingBoxRepresentation boundingBox;

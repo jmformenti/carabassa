@@ -6,6 +6,10 @@ public class IdRepresentation extends RepresentationModel<IdRepresentation> {
 
 	private Long id;
 
+	public IdRepresentation() {
+		super();
+	}
+
 	public IdRepresentation(Long id) {
 		super();
 		this.id = id;

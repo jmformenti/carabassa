@@ -1,5 +1,6 @@
 package org.atypical.carabassa.cli.service;
 
+import java.io.IOException;
 import java.nio.file.Path;
 import java.util.List;
 
@@ -11,7 +12,7 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 // TODO Do junits
 public interface DatasetApiService {
 
-	public Long addImage(String datasetName, Path imagePath) throws ApiException;
+	public Long addImage(Long datasetId, Path imagePath) throws ApiException, IOException;
 
 	public Long create(String name, String description) throws ApiException, JsonProcessingException;
 

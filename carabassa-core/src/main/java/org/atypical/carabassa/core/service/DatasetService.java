@@ -41,6 +41,8 @@ public interface DatasetService {
 
 	public IndexedImage findImageById(Dataset dataset, Long imageId) throws EntityNotFoundException;
 
+	public IndexedImage findImageByHash(Dataset dataset, String hash) throws EntityNotFoundException;
+
 	public Tag findImageTagById(Dataset dataset, Long imageId, Long tagId) throws EntityNotFoundException;
 
 	public StoredImage getStoredImage(Dataset dataset, IndexedImage image) throws IOException, EntityNotFoundException;

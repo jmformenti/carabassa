@@ -8,8 +8,6 @@ import org.atypical.carabassa.cli.service.DatasetApiService;
 import org.atypical.carabassa.cli.util.CommandLogger;
 import org.atypical.carabassa.cli.util.DateFormatter;
 import org.atypical.carabassa.restapi.representation.model.DatasetEntityRepresentation;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
@@ -21,11 +19,9 @@ import picocli.CommandLine.Option;
 @Command(name = "list", description = "list datasets.", mixinStandardHelpOptions = true, exitCodeOnExecutionException = 1)
 public class ListDatasetCommand implements Callable<Integer> {
 
-	private static final Logger logger = LoggerFactory.getLogger(ListDatasetCommand.class);
-
 	private static final String OUTPUT_FORMAT = "%10s\t%20s\t%40s\t%20s\t%20s\n";
 
-	private CommandLogger cmdLogger = new CommandLogger(logger);
+	private CommandLogger cmdLogger = new CommandLogger();
 
 	@Option(names = { "-d", "--dataset" }, description = "dataset name.")
 	private String dataset;

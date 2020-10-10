@@ -1,5 +1,6 @@
 package org.atypical.carabassa.cli.service.impl;
 
+import java.io.IOException;
 import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.List;
@@ -9,18 +10,21 @@ import javax.annotation.PostConstruct;
 import org.atypical.carabassa.cli.exception.ApiException;
 import org.atypical.carabassa.cli.exception.ResponseBodyException;
 import org.atypical.carabassa.cli.service.DatasetApiService;
+import org.atypical.carabassa.core.component.tagger.impl.ImageMetadataTagger;
 import org.atypical.carabassa.restapi.representation.model.DatasetEntityRepresentation;
 import org.atypical.carabassa.restapi.representation.model.IdRepresentation;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.core.ParameterizedTypeReference;
 import org.springframework.core.io.FileSystemResource;
+import org.springframework.core.io.Resource;
 import org.springframework.hateoas.IanaLinkRelations;
 import org.springframework.hateoas.PagedModel;
 import org.springframework.hateoas.server.core.TypeReferences.PagedModelType;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpMethod;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
@@ -44,6 +48,9 @@ public class DatasetApiServiceImpl implements DatasetApiService {
 	@Autowired
 	private RestTemplate restTemplate;
 
+	@Autowired
+	private ImageMetadataTagger imageMetadataTagger;
+
 	private ObjectMapper objectMapper = new ObjectMapper();
 
 	private String datasetUrl;
@@ -54,26 +61,43 @@ public class DatasetApiServiceImpl implements DatasetApiService {
 	}
 
 	@Override
-	public Long addImage(String datasetName, Path imagePath) throws ApiException {
-		Long datasetId = findByName(datasetName);
+	public Long addImage(Long datasetId, Path imagePath) throws ApiException, IOException {
+		Resource image = new FileSystemResource(imagePath);
 
-		HttpHeaders headers = new HttpHeaders();
-		headers.setContentType(MediaType.MULTIPART_FORM_DATA);
+		if (!findImageByHash(datasetId, image)) {
+			HttpHeaders headers = new HttpHeaders();
+			headers.setContentType(MediaType.MULTIPART_FORM_DATA);
 
-		MultiValueMap<String, Object> body = new LinkedMultiValueMap<>();
-		body.add("file", new FileSystemResource(imagePath));
+			MultiValueMap<String, Object> body = new LinkedMultiValueMap<>();
+			body.add("file", new FileSystemResource(imagePath));
 
-		HttpEntity<MultiValueMap<String, Object>> request = new HttpEntity<>(body, headers);
+			HttpEntity<MultiValueMap<String, Object>> request = new HttpEntity<>(body, headers);
 
-		ResponseEntity<IdRepresentation> response = null;
-		try {
-			response = restTemplate.exchange(datasetUrl + "{datasetId}/image", HttpMethod.POST, request,
-					new ParameterizedTypeReference<IdRepresentation>() {
-					}, datasetId);
-		} catch (RestClientResponseException e) {
-			throw buildApiException(e);
+			ResponseEntity<IdRepresentation> response = null;
+			try {
+				response = restTemplate.exchange(datasetUrl + "{datasetId}/image", HttpMethod.POST, request,
+						new ParameterizedTypeReference<IdRepresentation>() {
+						}, datasetId);
+			} catch (RestClientResponseException e) {
+				throw buildApiException(e);
+			}
+
+			return response.getBody().getId();
+		} else {
+			throw new ApiException("Image already exists.");
 		}
-		return response.getBody().getId();
+	}
+
+	private boolean findImageByHash(Long datasetId, Resource image) throws IOException {
+		try {
+			restTemplate.getForEntity(datasetUrl + "{datasetId}/image/exists/{hash}", Void.class, datasetId,
+					imageMetadataTagger.getHash(image));
+		} catch (RestClientResponseException e) {
+			if (e.getRawStatusCode() == HttpStatus.NOT_FOUND.value()) {
+				return false;
+			}
+		}
+		return true;
 	}
 
 	@Override

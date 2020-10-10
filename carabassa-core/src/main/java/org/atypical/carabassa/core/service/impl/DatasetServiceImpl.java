@@ -113,6 +113,11 @@ public class DatasetServiceImpl implements org.atypical.carabassa.core.service.D
 	}
 
 	@Override
+	public IndexedImage findImageByHash(Dataset dataset, String hash) throws EntityNotFoundException {
+		return datasetIndexer.findImageByHash(dataset, hash);
+	}
+
+	@Override
 	public Tag findImageTagById(Dataset dataset, Long imageId, Long tagId) throws EntityNotFoundException {
 		return datasetIndexer.findImageTagById(dataset, imageId, tagId);
 	}

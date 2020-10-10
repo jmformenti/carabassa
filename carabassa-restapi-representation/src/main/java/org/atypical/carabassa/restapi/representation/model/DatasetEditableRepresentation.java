@@ -1,7 +1,10 @@
 package org.atypical.carabassa.restapi.representation.model;
 
+import javax.validation.constraints.NotEmpty;
+
 public class DatasetEditableRepresentation {
 
+	@NotEmpty(message = "{api.dataset.name.notEmpty}")
 	private String name;
 	private String description;
 

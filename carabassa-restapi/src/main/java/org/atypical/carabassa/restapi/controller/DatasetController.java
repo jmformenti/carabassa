@@ -1,5 +1,7 @@
 package org.atypical.carabassa.restapi.controller;
 
+import javax.validation.Valid;
+
 import org.atypical.carabassa.restapi.representation.model.DatasetEditableRepresentation;
 import org.atypical.carabassa.restapi.representation.model.DatasetEntityRepresentation;
 import org.atypical.carabassa.restapi.representation.model.IdRepresentation;
@@ -25,12 +27,11 @@ import org.springframework.web.multipart.MultipartFile;
 @RestController
 @RequestMapping(value = { "/api/dataset" })
 // TODO add authentication
-// TODO add rest api validation (not null fields)
 public interface DatasetController {
 
 	@PostMapping
 	@ResponseStatus(code = HttpStatus.CREATED)
-	public IdRepresentation create(@RequestBody DatasetEditableRepresentation datasetRepresentation);
+	public IdRepresentation create(@RequestBody @Valid DatasetEditableRepresentation datasetRepresentation);
 
 	@GetMapping
 	public PagedModel<DatasetEntityRepresentation> findAll(Pageable pageable);
@@ -44,7 +45,7 @@ public interface DatasetController {
 	@PutMapping(value = "/{datasetId}", consumes = MediaType.APPLICATION_JSON_VALUE)
 	@ResponseStatus(code = HttpStatus.NO_CONTENT)
 	public void update(@PathVariable("datasetId") Long datasetId,
-			@RequestBody DatasetEditableRepresentation datasetRepresentation);
+			@RequestBody @Valid DatasetEditableRepresentation datasetRepresentation);
 
 	@DeleteMapping(value = "/{datasetId}")
 	@ResponseStatus(code = HttpStatus.NO_CONTENT)
@@ -55,6 +56,9 @@ public interface DatasetController {
 
 	@GetMapping(value = "/{datasetId}/image/{id}")
 	public ImageRepresentation getImage(@PathVariable("datasetId") Long datasetId, @PathVariable("id") Long imageId);
+
+	@GetMapping(value = "/{datasetId}/image/exists/{hash}")
+	public void existsImage(@PathVariable("datasetId") Long datasetId, @PathVariable("hash") String hash);
 
 	@GetMapping(value = "/{datasetId}/image/{id}/content")
 	public ResponseEntity<byte[]> getImageContent(@PathVariable("datasetId") Long datasetId,
@@ -68,7 +72,7 @@ public interface DatasetController {
 	@PostMapping(value = "/{datasetId}/image/{id}/tag")
 	@ResponseStatus(code = HttpStatus.CREATED)
 	public IdRepresentation addImageTag(@PathVariable("datasetId") Long datasetId, @PathVariable("id") Long imageId,
-			@RequestBody TagEditableRepresentation tagRepresentation);
+			@RequestBody @Valid TagEditableRepresentation tagRepresentation);
 
 	@DeleteMapping(value = "/{datasetId}/image/{id}")
 	@ResponseStatus(code = HttpStatus.NO_CONTENT)

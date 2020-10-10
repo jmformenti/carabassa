@@ -8,6 +8,7 @@ import java.time.ZoneId;
 import java.time.ZonedDateTime;
 import java.util.HashSet;
 import java.util.Set;
+import java.util.stream.IntStream;
 
 import javax.imageio.ImageIO;
 
@@ -18,6 +19,8 @@ import org.atypical.carabassa.core.component.tagger.Tagger;
 import org.atypical.carabassa.core.component.util.LocalizedMessage;
 import org.atypical.carabassa.core.model.Tag;
 import org.atypical.carabassa.core.model.impl.TagImpl;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.io.Resource;
 import org.springframework.stereotype.Component;
@@ -35,6 +38,8 @@ import com.github.kilianB.hashAlgorithms.DifferenceHash.Precision;
 
 @Component
 public class ImageMetadataTagger implements Tagger {
+
+	private static final Logger logger = LoggerFactory.getLogger(ImageMetadataTagger.class);
 
 	private static final String IMAGE_ERROR_MESSAGE_KEY = "core.tagger.meta.image.error";
 
@@ -58,6 +63,8 @@ public class ImageMetadataTagger implements Tagger {
 			tags.addAll(getCustomTags(content, metadata));
 		}
 
+		tags.forEach(t -> logger.debug("Tag {} = {}", t.getName(), t.getValue()));
+
 		return tags;
 	}
 
@@ -75,7 +82,12 @@ public class ImageMetadataTagger implements Tagger {
 		return tags;
 	}
 
-	private String getHash(byte[] content) throws IOException {
+	public String getHash(Resource inputImage) throws IOException {
+		byte[] content = IOUtils.toByteArray(inputImage.getInputStream());
+		return getHash(content);
+	}
+
+	public String getHash(byte[] content) throws IOException {
 		return DigestUtils.md5DigestAsHex(content);
 	}
 
@@ -94,12 +106,28 @@ public class ImageMetadataTagger implements Tagger {
 		Set<Tag> metaTags = new HashSet<>();
 		for (Directory directory : metadata.getDirectories()) {
 			for (com.drew.metadata.Tag metaTag : directory.getTags()) {
-				Tag tag = new TagImpl(TAG_PREFIX + toCamelCase(metaTag.getTagName()),
-						directory.getObject(metaTag.getTagType()));
-				metaTags.add((Tag) tag);
+				Object tagValue = directory.getObject(metaTag.getTagType());
+				if (isValidValue(tagValue)) {
+					Tag tag = new TagImpl(TAG_PREFIX + toCamelCase(metaTag.getTagName()), tagValue);
+					metaTags.add((Tag) tag);
+				}
 			}
 		}
 		return metaTags;
+	}
+
+	private boolean isValidValue(Object value) {
+		if (value == null) {
+			return false;
+		} else if (value instanceof String) {
+			if (((String) value).isEmpty()) {
+				return false;
+			}
+		} else if (value instanceof byte[]) {
+			byte[] data = (byte[]) value;
+			return !IntStream.range(0, data.length).parallel().allMatch(i -> data[i] == 0);
+		}
+		return true;
 	}
 
 	private String toCamelCase(String name) {
@@ -108,7 +136,7 @@ public class ImageMetadataTagger implements Tagger {
 
 	private ZonedDateTime getArchiveTime(Metadata metadata) {
 		ExifSubIFDDirectory directory = metadata.getFirstDirectoryOfType(ExifSubIFDDirectory.class);
-		if (directory != null) {
+		if (directory != null && directory.getDateOriginal() != null) {
 			return directory.getDateOriginal().toInstant().atZone(ZoneId.of("UTC"));
 		} else {
 			return null;

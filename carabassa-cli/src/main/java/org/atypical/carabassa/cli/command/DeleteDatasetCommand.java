@@ -6,8 +6,6 @@ import java.util.concurrent.Callable;
 import org.atypical.carabassa.cli.exception.ApiException;
 import org.atypical.carabassa.cli.service.DatasetApiService;
 import org.atypical.carabassa.cli.util.CommandLogger;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
@@ -19,9 +17,7 @@ import picocli.CommandLine.Option;
 @Command(name = "delete", description = "delete dataset.", mixinStandardHelpOptions = true, exitCodeOnExecutionException = 1)
 public class DeleteDatasetCommand implements Callable<Integer> {
 
-	private static final Logger logger = LoggerFactory.getLogger(DeleteDatasetCommand.class);
-
-	private CommandLogger cmdLogger = new CommandLogger(logger);
+	private CommandLogger cmdLogger = new CommandLogger();
 
 	@Option(names = { "-d", "--dataset" }, description = "dataset name.", required = true)
 	private String dataset;

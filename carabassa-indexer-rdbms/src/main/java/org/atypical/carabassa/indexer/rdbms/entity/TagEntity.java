@@ -17,6 +17,7 @@ import javax.persistence.PrePersist;
 import javax.persistence.SequenceGenerator;
 import javax.persistence.Table;
 
+import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.builder.ToStringBuilder;
 import org.atypical.carabassa.core.model.BoundingBox;
 import org.atypical.carabassa.core.model.Tag;
@@ -27,6 +28,8 @@ import org.atypical.carabassa.indexer.rdbms.entity.enums.ValueType;
 @Table(name = "TAG")
 @SequenceGenerator(initialValue = 1, name = "tag_id_gen", sequenceName = "tag_sequence")
 public class TagEntity implements Tag {
+
+	private static final int MAX_TEXT_LENGTH = 255;
 
 	@Id
 	@GeneratedValue(strategy = GenerationType.AUTO, generator = "tag_id_gen")
@@ -40,7 +43,7 @@ public class TagEntity implements Tag {
 	@Convert(converter = ValueTypeConverter.class)
 	private ValueType valueType;
 
-	@Column(length = 255)
+	@Column(length = MAX_TEXT_LENGTH)
 	private String textValue;
 	private ZonedDateTime dateValue;
 	private Long longValue;
@@ -154,10 +157,10 @@ public class TagEntity implements Tag {
 	public void setValue(Object value) {
 		if (value instanceof String) {
 			this.valueType = ValueType.STRING;
-			this.textValue = (String) value;
+			this.textValue = StringUtils.left((String) value, MAX_TEXT_LENGTH);
 		} else if (value instanceof byte[]) {
 			this.valueType = ValueType.STRING;
-			this.textValue = Arrays.toString((byte[]) value);
+			this.textValue = StringUtils.left(Arrays.toString((byte[]) value), MAX_TEXT_LENGTH);
 		} else if (value instanceof Long) {
 			this.valueType = ValueType.LONG;
 			this.longValue = (Long) value;
@@ -185,7 +188,7 @@ public class TagEntity implements Tag {
 		} else {
 			// if not supported type save as string
 			this.valueType = ValueType.STRING;
-			this.textValue = value.toString();
+			this.textValue = StringUtils.left(value.toString(), MAX_TEXT_LENGTH);
 		}
 	}
 

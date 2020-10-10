@@ -275,6 +275,18 @@ public class DatasetControllerTest extends DatasetControllerHelper {
 	}
 
 	@Test
+	void existsImage() throws Exception {
+		when(datasetService.findById(DATASET_ID)).thenReturn(dataset);
+		when(datasetService.findImageByHash(dataset, IMAGE_HASH)).thenReturn(indexedImage);
+
+		mvc.perform(get("/api/dataset/{datasetId}/image/exists/{hash}", DATASET_ID, IMAGE_HASH)) //
+				.andExpect(status().isOk()) //
+				.andDo(document("exists-image",
+						pathParameters(parameterWithName("datasetId").description("Dataset identifier"),
+								parameterWithName("hash").description("Image hash (hexadecimal md5 digest)"))));
+	}
+
+	@Test
 	public void getImageContent() throws Exception {
 		when(datasetService.findById(DATASET_ID)).thenReturn(dataset);
 		when(datasetService.findImageById(dataset, IMAGE_ID)).thenReturn(indexedImage);

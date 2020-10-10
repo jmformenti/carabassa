@@ -144,6 +144,15 @@ public class DatasetControllerImpl implements DatasetController {
 	}
 
 	@Override
+	public void existsImage(Long datasetId, String hash) {
+		try {
+			datasetService.findImageByHash(getDataset(datasetId), hash);
+		} catch (EntityNotFoundException e) {
+			throw new ResponseStatusException(HttpStatus.NOT_FOUND, e.getMessage());
+		}
+	}
+
+	@Override
 	public ResponseEntity<byte[]> getImageContent(Long datasetId, Long imageId) {
 		Dataset dataset = getDataset(datasetId);
 		IndexedImage indexedImage = getIndexedImage(dataset, imageId);
@@ -172,13 +181,13 @@ public class DatasetControllerImpl implements DatasetController {
 			IndexedImage indexedImage = datasetService.addImage(dataset, file.getResource());
 			return new IdRepresentation(indexedImage.getId());
 		} catch (IllegalArgumentException e) {
-			logger.error(e.getMessage(), e);
+			logger.error(String.format("Error adding file %s.", file.getOriginalFilename()), e);
 			throw new ResponseStatusException(HttpStatus.CONFLICT, e.getMessage());
 		} catch (EntityExistsException e) {
-			logger.error(e.getMessage(), e);
+			logger.error(String.format("Error adding file %s.", file.getOriginalFilename()), e);
 			throw new ResponseStatusException(HttpStatus.CONFLICT, e.getMessage());
-		} catch (IOException e) {
-			logger.error(e.getMessage(), e);
+		} catch (Exception e) {
+			logger.error(String.format("Error adding file %s.", file.getOriginalFilename()), e);
 			throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, e.getMessage());
 		}
 	}
