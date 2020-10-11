@@ -45,7 +45,7 @@ public class DatasetApiServiceImpl implements DatasetApiService {
 
 	private final static String DATASET_PATH = "dataset/";
 
-	@Value("${carabassa.baseUrl}")
+	@Value("${carabassa.base-url}")
 	private String baseUrl;
 
 	@Autowired
