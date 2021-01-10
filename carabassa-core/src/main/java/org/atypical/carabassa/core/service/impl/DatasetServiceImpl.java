@@ -1,10 +1,6 @@
 package org.atypical.carabassa.core.service.impl;
 
-import java.io.File;
-import java.io.FileOutputStream;
 import java.io.IOException;
-import java.io.InputStream;
-import java.nio.file.Paths;
 import java.util.List;
 
 import org.apache.commons.lang3.StringUtils;
@@ -19,20 +15,15 @@ import org.atypical.carabassa.core.model.StoredItem;
 import org.atypical.carabassa.core.model.Tag;
 import org.atypical.carabassa.core.model.enums.ItemType;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Value;
-import org.springframework.core.io.FileSystemResource;
 import org.springframework.core.io.Resource;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
-import org.springframework.util.FileCopyUtils;
 
 @Service
 public class DatasetServiceImpl implements org.atypical.carabassa.core.service.DatasetService {
 
 	private static final String DATASET_NAME_NOT_VALID_MESSAGE_KEY = "core.dataset.name_not_valid";
-
-	private static final String TEMP_FILE_PREFIX = "item";
 
 	private static final String REGEX_DATASET_NAME = "[a-zA-Z0-9_-]+";
 
@@ -44,15 +35,6 @@ public class DatasetServiceImpl implements org.atypical.carabassa.core.service.D
 
 	@Autowired
 	private LocalizedMessage localizedMessage;
-
-	@Value("${carabassa.tempdir:/tmp}")
-	private String tempDirPath;
-
-	@Override
-	public IndexedItem addItem(Dataset dataset, ItemType type, String originalFilename, InputStream inputStream)
-			throws IOException, EntityExistsException {
-		return addItem(dataset, type, originalFilename, getTempResource(inputStream));
-	}
 
 	@Override
 	public IndexedItem addItem(Dataset dataset, ItemType type, String originalFilename, Resource inputItem)
@@ -158,20 +140,6 @@ public class DatasetServiceImpl implements org.atypical.carabassa.core.service.D
 		if (StringUtils.isBlank(name) || !name.matches(REGEX_DATASET_NAME)) {
 			throw new IllegalArgumentException(localizedMessage.getText(DATASET_NAME_NOT_VALID_MESSAGE_KEY));
 		}
-	}
-
-	/**
-	 * This method is intended to save file in disk to avoid problems when the
-	 * indexer tries to access to a file to detect media type and extract metadata.
-	 * 
-	 * @param inputStream the input stream to convert
-	 * @return resource persisted in file system
-	 * @throws IOException
-	 */
-	private Resource getTempResource(InputStream inputStream) throws IOException {
-		File tempFile = File.createTempFile(TEMP_FILE_PREFIX, null, Paths.get(tempDirPath).toFile());
-		FileCopyUtils.copy(inputStream, new FileOutputStream(tempFile));
-		return new FileSystemResource(tempFile);
 	}
 
 }

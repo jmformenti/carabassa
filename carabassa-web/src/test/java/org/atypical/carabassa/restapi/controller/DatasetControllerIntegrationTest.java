@@ -17,7 +17,6 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
-import java.io.InputStream;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -43,6 +42,7 @@ import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
+import org.springframework.core.io.Resource;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.Pageable;
@@ -329,7 +329,7 @@ public class DatasetControllerIntegrationTest extends DatasetControllerHelper {
 		final byte[] CONTENT = "test".getBytes();
 
 		when(datasetService.findById(DATASET_ID)).thenReturn(dataset);
-		when(datasetService.addItem(isA(Dataset.class), isA(ItemType.class), isA(String.class), isA(InputStream.class)))
+		when(datasetService.addItem(isA(Dataset.class), isA(ItemType.class), isA(String.class), isA(Resource.class)))
 				.thenReturn(indexedItem);
 
 		MockMultipartFile file = new MockMultipartFile("file", indexedItem.getFilename(), "image/jpg", CONTENT);
@@ -345,7 +345,7 @@ public class DatasetControllerIntegrationTest extends DatasetControllerHelper {
 		final byte[] CONTENT = "test".getBytes();
 
 		when(datasetService.findById(DATASET_ID)).thenReturn(dataset);
-		when(datasetService.addItem(isA(Dataset.class), isA(ItemType.class), isA(String.class), isA(InputStream.class)))
+		when(datasetService.addItem(isA(Dataset.class), isA(ItemType.class), isA(String.class), isA(Resource.class)))
 				.thenThrow(EntityExistsException.class);
 
 		MockMultipartFile file = new MockMultipartFile("file", indexedItem.getFilename(), "image/jpg", CONTENT);
@@ -360,7 +360,7 @@ public class DatasetControllerIntegrationTest extends DatasetControllerHelper {
 		final byte[] CONTENT = "test".getBytes();
 
 		when(datasetService.findById(DATASET_ID)).thenReturn(dataset);
-		when(datasetService.addItem(isA(Dataset.class), isA(ItemType.class), isA(String.class), isA(InputStream.class)))
+		when(datasetService.addItem(isA(Dataset.class), isA(ItemType.class), isA(String.class), isA(Resource.class)))
 				.thenThrow(IllegalArgumentException.class);
 
 		MockMultipartFile file = new MockMultipartFile("file", indexedItem.getFilename(), "image/jpg", CONTENT);

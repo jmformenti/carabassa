@@ -1,6 +1,8 @@
 package org.atypical.carabassa.restapi.controller.impl;
 
+import java.io.File;
 import java.io.IOException;
+import java.nio.file.Paths;
 
 import org.atypical.carabassa.core.exception.EntityExistsException;
 import org.atypical.carabassa.core.exception.EntityNotFoundException;
@@ -24,6 +26,9 @@ import org.atypical.carabassa.restapi.representation.model.TagEditableRepresenta
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.core.io.FileSystemResource;
+import org.springframework.core.io.Resource;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.web.PagedResourcesAssembler;
@@ -40,6 +45,8 @@ import org.springframework.web.server.ResponseStatusException;
 public class DatasetControllerImpl implements DatasetController {
 
 	private static final Logger logger = LoggerFactory.getLogger(DatasetControllerImpl.class);
+
+	private static final String TEMP_FILE_PREFIX = "item";
 
 	@Autowired
 	private DatasetService datasetService;
@@ -64,6 +71,9 @@ public class DatasetControllerImpl implements DatasetController {
 
 	@Autowired
 	private PagedResourcesAssembler<IndexedItem> itemPagedResourcesAssembler;
+
+	@Value("${carabassa.tempdir:/tmp}")
+	private String tempDirPath;
 
 	@Override
 	public IdRepresentation create(DatasetEditableRepresentation datasetRepresentation) {
@@ -181,7 +191,7 @@ public class DatasetControllerImpl implements DatasetController {
 		Dataset dataset = getDataset(datasetId);
 		try {
 			IndexedItem indexedItem = datasetService.addItem(dataset, MediaTypeDetector.convert(file.getContentType()),
-					file.getOriginalFilename(), file.getInputStream());
+					file.getOriginalFilename(), getTempResource(file));
 			return new IdRepresentation(indexedItem.getId());
 		} catch (IllegalArgumentException e) {
 			logger.error(String.format("Error adding file %s.", file.getOriginalFilename()), e);
@@ -252,6 +262,24 @@ public class DatasetControllerImpl implements DatasetController {
 			throw new ResponseStatusException(HttpStatus.NOT_FOUND, e.getMessage());
 		}
 		return indexedItem;
+	}
+
+	/**
+	 * This method is intended to write uploaded file in temporal file to avoid
+	 * problems when the indexer tries to access to a file to detect media type and
+	 * extract metadata.
+	 * 
+	 * It also renames the uploaded file instead of creating a new one using the
+	 * transferTo method.
+	 * 
+	 * @param file the multi part file
+	 * @return resource persisted in file system
+	 * @throws IOException
+	 */
+	private Resource getTempResource(MultipartFile file) throws IOException {
+		File tempFile = File.createTempFile(TEMP_FILE_PREFIX, null, Paths.get(tempDirPath).toFile());
+		file.transferTo(tempFile);
+		return new FileSystemResource(tempFile);
 	}
 
 }

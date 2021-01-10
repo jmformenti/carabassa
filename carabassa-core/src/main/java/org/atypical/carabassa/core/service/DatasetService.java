@@ -1,7 +1,6 @@
 package org.atypical.carabassa.core.service;
 
 import java.io.IOException;
-import java.io.InputStream;
 import java.util.List;
 
 import org.atypical.carabassa.core.exception.EntityExistsException;
@@ -16,9 +15,6 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 
 public interface DatasetService {
-
-	public IndexedItem addItem(Dataset dataset, ItemType type, String originalFilename, InputStream inputStream)
-			throws IOException, EntityExistsException;
 
 	public IndexedItem addItem(Dataset dataset, ItemType type, String originalFilename, Resource inputItem)
 			throws IOException, EntityExistsException;

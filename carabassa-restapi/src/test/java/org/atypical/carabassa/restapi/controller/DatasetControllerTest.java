@@ -22,7 +22,6 @@ import static org.springframework.restdocs.request.RequestDocumentation.pathPara
 import static org.springframework.restdocs.request.RequestDocumentation.requestParameters;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
-import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.Arrays;
 
@@ -314,7 +313,7 @@ public class DatasetControllerTest extends DatasetControllerHelper {
 		resource.getInputStream().read(sampleContent);
 
 		when(datasetService.findById(DATASET_ID)).thenReturn(dataset);
-		when(datasetService.addItem(isA(Dataset.class), isA(ItemType.class), isA(String.class), isA(InputStream.class)))
+		when(datasetService.addItem(isA(Dataset.class), isA(ItemType.class), isA(String.class), isA(Resource.class)))
 				.thenReturn(indexedItem);
 
 		MockMultipartFile file = new MockMultipartFile("file", indexedItem.getFilename(), "image/jpg", sampleContent);
