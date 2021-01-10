@@ -13,8 +13,7 @@ import org.springframework.web.client.RestTemplate;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
 @Configuration
-@Import(value = { org.atypical.carabassa.core.component.tagger.impl.ImageMetadataTagger.class,
-		org.atypical.carabassa.core.component.util.LocalizedMessage.class })
+@Import(value = { org.atypical.carabassa.core.component.util.LocalizedMessage.class })
 public class CliConfiguration {
 
 	@Autowired

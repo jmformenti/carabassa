@@ -4,19 +4,25 @@ import java.time.ZonedDateTime;
 import java.util.Set;
 import java.util.stream.Collectors;
 
-public interface IndexedImage {
+import org.atypical.carabassa.core.model.enums.ItemType;
+
+public interface IndexedItem {
 
 	public Long getId();
 
 	public void setId(Long id);
 
+	public ItemType getType();
+
+	public void setType(ItemType type);
+
 	public String getFilename();
 
 	public void setFilename(String filename);
 
-	public String getFileType();
+	public String getFormat();
 
-	public void setFileType(String fileType);
+	public void setFormat(String format);
 
 	public String getHash();
 

@@ -5,7 +5,7 @@ import java.util.HashSet;
 import java.util.Set;
 
 import org.atypical.carabassa.core.model.Dataset;
-import org.atypical.carabassa.core.model.IndexedImage;
+import org.atypical.carabassa.core.model.IndexedItem;
 
 public class DatasetImpl implements Dataset {
 
@@ -14,11 +14,11 @@ public class DatasetImpl implements Dataset {
 	private String description;
 	private ZonedDateTime creation;
 	private ZonedDateTime modification;
-	private Set<IndexedImage> images;
+	private Set<IndexedItem> items;
 
 	public DatasetImpl() {
 		super();
-		this.images = new HashSet<>();
+		this.items = new HashSet<>();
 	}
 
 	public DatasetImpl(String name) {
@@ -77,13 +77,13 @@ public class DatasetImpl implements Dataset {
 	}
 
 	@Override
-	public Set<IndexedImage> getImages() {
-		return images;
+	public Set<IndexedItem> getItems() {
+		return items;
 	}
 
 	@Override
-	public void setImages(Set<IndexedImage> images) {
-		this.images = images;
+	public void setItems(Set<IndexedItem> items) {
+		this.items = items;
 	}
 
 }

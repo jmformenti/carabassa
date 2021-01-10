@@ -13,7 +13,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import org.atypical.carabassa.core.service.DatasetService;
 import org.atypical.carabassa.restapi.configuration.RestApiConfiguration;
 import org.atypical.carabassa.restapi.representation.mapper.DatasetMapper;
-import org.atypical.carabassa.restapi.representation.mapper.ImageMapper;
+import org.atypical.carabassa.restapi.representation.mapper.ItemMapper;
 import org.atypical.carabassa.restapi.representation.mapper.TagMapper;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -44,7 +44,7 @@ public class IndexControllerTest {
 	private DatasetMapper datasetMapper;
 
 	@MockBean
-	private ImageMapper imageMapper;
+	private ItemMapper itemMapper;
 
 	@MockBean
 	private TagMapper tagMapper;

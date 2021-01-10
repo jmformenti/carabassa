@@ -1,16 +1,16 @@
 package org.atypical.carabassa.core.model.impl;
 
-import org.atypical.carabassa.core.model.StoredImageInfo;
+import org.atypical.carabassa.core.model.StoredItemInfo;
 
-public class StoredImageInfoImpl implements StoredImageInfo {
+public class StoredItemInfoImpl implements StoredItemInfo {
 
 	private String originalFilename;
 
-	public StoredImageInfoImpl() {
+	public StoredItemInfoImpl() {
 		super();
 	}
 
-	public StoredImageInfoImpl(String originalFilename) {
+	public StoredItemInfoImpl(String originalFilename) {
 		super();
 		this.originalFilename = originalFilename;
 	}

@@ -18,7 +18,7 @@ import javax.persistence.SequenceGenerator;
 import javax.persistence.Table;
 
 import org.atypical.carabassa.core.model.Dataset;
-import org.atypical.carabassa.core.model.IndexedImage;
+import org.atypical.carabassa.core.model.IndexedItem;
 
 @Entity
 @Table(name = "DATASET")
@@ -40,13 +40,13 @@ public class DatasetEntity implements Dataset {
 
 	private ZonedDateTime modification;
 
-	@OneToMany(targetEntity = IndexedImageEntity.class, cascade = CascadeType.ALL, orphanRemoval = true)
+	@OneToMany(targetEntity = IndexedItemEntity.class, cascade = CascadeType.ALL, orphanRemoval = true)
 	@JoinColumn(name = "DATASET_ID")
-	private Set<IndexedImage> images;
+	private Set<IndexedItem> items;
 
 	public DatasetEntity() {
 		super();
-		this.images = new HashSet<>();
+		this.items = new HashSet<>();
 	}
 
 	public DatasetEntity(String name) {
@@ -115,13 +115,13 @@ public class DatasetEntity implements Dataset {
 	}
 
 	@Override
-	public Set<IndexedImage> getImages() {
-		return images;
+	public Set<IndexedItem> getItems() {
+		return items;
 	}
 
 	@Override
-	public void setImages(Set<IndexedImage> images) {
-		this.images = images;
+	public void setItems(Set<IndexedItem> items) {
+		this.items = items;
 	}
 
 }

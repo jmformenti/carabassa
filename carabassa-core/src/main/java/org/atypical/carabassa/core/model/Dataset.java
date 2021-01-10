@@ -25,8 +25,8 @@ public interface Dataset {
 
 	public void setModification(ZonedDateTime modification);
 
-	public Set<IndexedImage> getImages();
+	public Set<IndexedItem> getItems();
 
-	public void setImages(Set<IndexedImage> images);
+	public void setItems(Set<IndexedItem> items);
 
 }

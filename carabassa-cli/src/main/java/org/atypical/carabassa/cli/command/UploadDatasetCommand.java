@@ -10,10 +10,13 @@ import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ForkJoinPool;
 import java.util.stream.Collectors;
 
+import org.atypical.carabassa.cli.dto.ItemToUpload;
 import org.atypical.carabassa.cli.exception.ApiException;
-import org.atypical.carabassa.cli.exception.ImageAlreadyExists;
+import org.atypical.carabassa.cli.exception.ItemAlreadyExists;
 import org.atypical.carabassa.cli.service.DatasetApiService;
 import org.atypical.carabassa.cli.util.CommandLogger;
+import org.atypical.carabassa.core.model.enums.ItemType;
+import org.atypical.carabassa.core.util.MediaTypeDetector;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
@@ -23,13 +26,13 @@ import picocli.CommandLine.ExitCode;
 import picocli.CommandLine.Option;
 
 @Component
-@Command(name = "upload", description = "upload images to dataset.", mixinStandardHelpOptions = true, exitCodeOnExecutionException = 1)
+@Command(name = "upload", description = "upload items to dataset.", mixinStandardHelpOptions = true, exitCodeOnExecutionException = 1)
 public class UploadDatasetCommand implements Callable<Integer> {
 
 	@Option(names = { "-d", "--dataset" }, description = "dataset name.", required = true)
 	private String dataset;
 
-	@Option(names = { "-p", "--path" }, description = "base path to upload images.", required = true)
+	@Option(names = { "-p", "--path" }, description = "base path to upload items.", required = true)
 	private String basePath;
 
 	private CommandLogger cmdLogger = new CommandLogger();
@@ -55,18 +58,20 @@ public class UploadDatasetCommand implements Callable<Integer> {
 
 		Long datasetId = getDatasetId(dataset);
 		if (datasetId != null) {
-			List<Path> imagesPath = getImagesToUpload(basePath);
-			this.total = imagesPath.size();
+			List<ItemToUpload> itemsToUpload = getItemsToUpload(basePath);
+			this.total = itemsToUpload.size();
 
 			if (total > 0) {
-				uploadImages(datasetId, imagesPath);
+				uploadItems(datasetId, itemsToUpload);
 
 				cmdLogger.info(String.format(
-						"Uploaded %d of %d images (%d already existing, %d error) from path=\"%s\" to dataset=\"%s\"",
+						"Uploaded %d of %d items (%d already existing, %d error) from path=\"%s\" to dataset=\"%s\"",
 						uploaded, total, existing, error, basePath, dataset));
 			} else {
-				cmdLogger.info("No images found.");
+				cmdLogger.info("No items found.");
 			}
+
+			cmdLogger.info("done.");
 
 			return ExitCode.OK;
 		} else {
@@ -83,53 +88,65 @@ public class UploadDatasetCommand implements Callable<Integer> {
 		}
 	}
 
-	private List<Path> getImagesToUpload(String basePath) throws IOException {
-		cmdLogger.info(String.format("Looking for images in %s ...", basePath));
+	private List<ItemToUpload> getItemsToUpload(String basePath) throws IOException {
+		cmdLogger.info(String.format("Looking for items in %s ...", basePath));
 
-		return Files.walk(Paths.get(basePath)).filter(path -> isImage(path)).collect(Collectors.toList());
+		return Files.walk(Paths.get(basePath)) //
+				.filter(p -> Files.isRegularFile(p)) //
+				.map(p -> toItemToUpload(p)) //
+				.filter(i -> isSupportedType(i)) //
+				.collect(Collectors.toList());
 	}
 
-	private void uploadImages(Long datasetId, List<Path> imagesPath) throws InterruptedException, ExecutionException {
-		cmdLogger.info(String.format("Uploading %d images ...", total));
+	private ItemToUpload toItemToUpload(Path path) {
+		ItemToUpload itemToUpload = new ItemToUpload();
+		itemToUpload.setFilename(path.getFileName().toString());
+		itemToUpload.setPath(path);
+		try {
+			itemToUpload.setContentType(MediaTypeDetector.detect(path));
+		} catch (IOException e) {
+			cmdLogger.warn(String.format("Error reading file %s, ignoring", path));
+			itemToUpload.setContentType(null);
+		}
+		return itemToUpload;
+	}
+
+	private void uploadItems(Long datasetId, List<ItemToUpload> itemsToUpload)
+			throws InterruptedException, ExecutionException {
+		cmdLogger.info(String.format("Uploading %d items ...", total));
 
 		ForkJoinPool customThreadPool = new ForkJoinPool(numThreads);
-		customThreadPool.submit(() -> imagesPath.parallelStream().forEach(path -> upload(datasetId, path))).get();
+		customThreadPool
+				.submit(() -> itemsToUpload.parallelStream().forEach(itemToUpload -> upload(datasetId, itemToUpload)))
+				.get();
 	}
 
-	private void upload(Long datasetId, Path imagePath) {
-		long imageId = 0;
+	private void upload(Long datasetId, ItemToUpload itemToUpload) {
+		long itemId = 0;
+		Path itemPath = itemToUpload.getPath();
 
-		cmdLogger.info(String.format("Uploading image %s ( %d / %d ) ...", imagePath, ++count, total));
+		cmdLogger.info(String.format("Uploading item %s ( %d / %d ) ...", itemPath, ++count, total));
 		try {
-			imageId = datasetApiService.addImage(datasetId, imagePath);
+			itemId = datasetApiService.addItem(datasetId, itemToUpload);
 			uploaded++;
-			cmdLogger.info(String.format("Uploaded image %s with id %d.", imagePath, imageId));
-		} catch (ImageAlreadyExists e) {
-			cmdLogger.warn(String.format("Warning uploading image %s", imagePath), e);
+			cmdLogger.info(String.format("Uploaded item %s with id %d.", itemPath, itemId));
+		} catch (ItemAlreadyExists e) {
+			cmdLogger.warn(String.format("Warning uploading item %s", itemPath), e);
 			existing++;
 		} catch (ApiException | IOException e) {
-			cmdLogger.error(String.format("Error uploading image %s", imagePath), e);
+			cmdLogger.error(String.format("Error uploading item %s", itemPath), e);
 			error++;
 		}
 	}
 
-	private boolean isImage(Path path) {
-		if (Files.isRegularFile(path)) {
-			String mimeType;
-			try {
-				mimeType = Files.probeContentType(path);
-			} catch (IOException e) {
-				cmdLogger.warn(String.format("Error reading file %s, ignoring", path));
-				return false;
-			}
-			if (mimeType != null && mimeType.startsWith("image/")) {
-				cmdLogger.debug(String.format("Found image %s", path));
-				return true;
-			} else {
-				cmdLogger.debug(String.format("File %s is not an image, ignoring", path));
-				return false;
-			}
+	private boolean isSupportedType(ItemToUpload itemToUpload) {
+		ItemType type = MediaTypeDetector.convert(itemToUpload.getContentType());
+		if (type != null) {
+			cmdLogger.debug(String.format("Found %s %s (%s)", type.normalized(), itemToUpload.getPath(),
+					itemToUpload.getContentType()));
+			return true;
 		} else {
+			cmdLogger.debug(String.format("File %s is not supported type, ignoring", itemToUpload.getPath()));
 			return false;
 		}
 	}

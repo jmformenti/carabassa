@@ -7,7 +7,7 @@
 	<parent>
 		<groupId>org.atypical</groupId>
 		<artifactId>carabassa</artifactId>
-		<version>0.0.1-SNAPSHOT</version>
+		<version>0.1.0-SNAPSHOT</version>
 	</parent>
 	<artifactId>carabassa-restapi</artifactId>
 	<packaging>jar</packaging>
@@ -20,12 +20,12 @@
 		<dependency>
 			<groupId>org.atypical</groupId>
 			<artifactId>carabassa-core</artifactId>
-			<version>0.0.1-SNAPSHOT</version>
+			<version>0.1.0-SNAPSHOT</version>
 		</dependency>
 		<dependency>
 			<groupId>org.atypical</groupId>
 			<artifactId>carabassa-restapi-representation</artifactId>
-			<version>0.0.1-SNAPSHOT</version>
+			<version>0.1.0-SNAPSHOT</version>
 		</dependency>
 		<dependency>
 			<groupId>org.springframework</groupId>

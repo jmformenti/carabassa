@@ -22,22 +22,24 @@ import static org.springframework.restdocs.request.RequestDocumentation.pathPara
 import static org.springframework.restdocs.request.RequestDocumentation.requestParameters;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
+import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.Arrays;
 
 import org.atypical.carabassa.core.model.Dataset;
-import org.atypical.carabassa.core.model.IndexedImage;
-import org.atypical.carabassa.core.model.StoredImage;
+import org.atypical.carabassa.core.model.IndexedItem;
+import org.atypical.carabassa.core.model.StoredItem;
 import org.atypical.carabassa.core.model.Tag;
+import org.atypical.carabassa.core.model.enums.ItemType;
 import org.atypical.carabassa.core.model.impl.DatasetImpl;
-import org.atypical.carabassa.core.model.impl.StoredImageImpl;
-import org.atypical.carabassa.core.model.impl.StoredImageInfoImpl;
+import org.atypical.carabassa.core.model.impl.StoredItemImpl;
+import org.atypical.carabassa.core.model.impl.StoredItemInfoImpl;
 import org.atypical.carabassa.core.service.DatasetService;
 import org.atypical.carabassa.restapi.configuration.RestApiConfiguration;
 import org.atypical.carabassa.restapi.representation.assembler.DatasetModelAssembler;
-import org.atypical.carabassa.restapi.representation.assembler.ImageModelAssembler;
+import org.atypical.carabassa.restapi.representation.assembler.ItemModelAssembler;
 import org.atypical.carabassa.restapi.representation.mapper.DatasetMapper;
-import org.atypical.carabassa.restapi.representation.mapper.ImageMapper;
+import org.atypical.carabassa.restapi.representation.mapper.ItemMapper;
 import org.atypical.carabassa.restapi.representation.mapper.TagMapper;
 import org.atypical.carabassa.restapi.representation.model.BoundingBoxRepresentation;
 import org.atypical.carabassa.restapi.representation.model.DatasetEditableRepresentation;
@@ -86,17 +88,17 @@ public class DatasetControllerTest extends DatasetControllerHelper {
 	private DatasetModelAssembler datasetModelAssembler;
 
 	@MockBean
-	private ImageModelAssembler imageModelAssembler;
+	private ItemModelAssembler itemModelAssembler;
 
 	@MockBean
-	private ImageMapper imageMapper;
+	private ItemMapper itemMapper;
 
 	@MockBean
 	private TagMapper tagMapper;
 
 	private FieldDescriptor[] datasetDescriptor;
 	private FieldDescriptor[] datasetEditableDescriptor;
-	private FieldDescriptor[] imageDescriptor;
+	private FieldDescriptor[] itemDescriptor;
 	private FieldDescriptor[] tagEditableDescriptor;
 	private LinksSnippet pagingLinks;
 
@@ -111,7 +113,7 @@ public class DatasetControllerTest extends DatasetControllerHelper {
 
 		this.datasetDescriptor = getDatasetDescriptor();
 		this.datasetEditableDescriptor = getDatasetEditableDescriptor();
-		this.imageDescriptor = getImageDescriptor();
+		this.itemDescriptor = getItemDescriptor();
 		this.tagEditableDescriptor = getTagEditableDescriptor();
 		this.pagingLinks = getPageLinks();
 	}
@@ -129,14 +131,14 @@ public class DatasetControllerTest extends DatasetControllerHelper {
 				fieldWithPath("modification").description("Dataset last modification date") };
 	}
 
-	private FieldDescriptor[] getImageDescriptor() {
-		return new FieldDescriptor[] { fieldWithPath("id").description("Image identifier"),
-				fieldWithPath("filename").description("Image original filename"),
-				fieldWithPath("fileType").description("Image type"),
-				fieldWithPath("hash").description("Image unique hash"),
-				fieldWithPath("creation").description("Image date creation in repository"),
-				fieldWithPath("modification").description("Image date last modification in repository"),
-				fieldWithPath("archiveTime").description("Image archived date (by default, shot date)"),
+	private FieldDescriptor[] getItemDescriptor() {
+		return new FieldDescriptor[] { fieldWithPath("id").description("Item identifier"),
+				fieldWithPath("type").description("Item type"), fieldWithPath("format").description("Item format"),
+				fieldWithPath("filename").description("Item original filename"),
+				fieldWithPath("hash").description("Item unique hash"),
+				fieldWithPath("creation").description("Item date creation in repository"),
+				fieldWithPath("modification").description("Item date last modification in repository"),
+				fieldWithPath("archiveTime").description("Item archived date (by default, shot date)"),
 				subsectionWithPath("tags[]").description("Array of tags") };
 	}
 
@@ -240,134 +242,134 @@ public class DatasetControllerTest extends DatasetControllerHelper {
 	}
 
 	@Test
-	public void getImages() throws Exception {
+	public void getItems() throws Exception {
 		when(datasetService.findById(DATASET_ID)).thenReturn(dataset);
-		Page<IndexedImage> page = new PageImpl<>(new ArrayList<>(dataset.getImages()), PageRequest.of(2, 10), 100L);
-		when(datasetService.findImages(isA(Dataset.class), isA(Pageable.class))).thenReturn(page);
-		when(imageModelAssembler.toModel(isA(IndexedImage.class))).thenReturn(imageRepresentation);
+		Page<IndexedItem> page = new PageImpl<>(new ArrayList<>(dataset.getItems()), PageRequest.of(2, 10), 100L);
+		when(datasetService.findItems(isA(Dataset.class), isA(Pageable.class))).thenReturn(page);
+		when(itemModelAssembler.toModel(isA(IndexedItem.class))).thenReturn(itemRepresentation);
 
-		mvc.perform(get("/api/dataset/{datasetId}/image?page=0&size=10", DATASET_ID)) //
+		mvc.perform(get("/api/dataset/{datasetId}/item?page=0&size=10", DATASET_ID)) //
 				.andExpect(status().isOk()) //
-				.andDo(document("get-images", //
+				.andDo(document("get-items", //
 						pathParameters(parameterWithName("datasetId").description("Dataset identifier")),
 						requestParameters(parameterWithName("page").description("The page to retrieve"),
 								parameterWithName("size").description("Entries per page")),
 						pagingLinks, //
 						responseFields(
 								subsectionWithPath("_links").description("Links to other resources").type(Links.class),
-								subsectionWithPath("_embedded.imageRepresentationList[]")
-										.description("Array of images"),
+								subsectionWithPath("_embedded.itemRepresentationList[]").description("Array of items"),
 								subsectionWithPath("page").description("Page metadata").type(Page.class))));
 	}
 
 	@Test
-	public void getImage() throws Exception {
+	public void getItem() throws Exception {
 		when(datasetService.findById(DATASET_ID)).thenReturn(dataset);
-		when(datasetService.findImageById(dataset, IMAGE_ID)).thenReturn(indexedImage);
-		when(imageMapper.toRepresentation(indexedImage)).thenReturn(imageRepresentation);
+		when(datasetService.findItemById(dataset, ITEM_ID)).thenReturn(indexedItem);
+		when(itemMapper.toRepresentation(indexedItem)).thenReturn(itemRepresentation);
 
-		mvc.perform(get("/api/dataset/{datasetId}/image/{imageId}", DATASET_ID, IMAGE_ID)) //
+		mvc.perform(get("/api/dataset/{datasetId}/item/{itemId}", DATASET_ID, ITEM_ID)) //
 				.andExpect(status().isOk()) //
-				.andDo(document("get-image",
+				.andDo(document("get-item",
 						pathParameters(parameterWithName("datasetId").description("Dataset identifier"),
-								parameterWithName("imageId").description("Image identifier")),
-						responseFields(imageDescriptor)));
+								parameterWithName("itemId").description("Item identifier")),
+						responseFields(itemDescriptor)));
 	}
 
 	@Test
-	void existsImage() throws Exception {
+	void existsItem() throws Exception {
 		when(datasetService.findById(DATASET_ID)).thenReturn(dataset);
-		when(datasetService.findImageByHash(dataset, IMAGE_HASH)).thenReturn(indexedImage);
+		when(datasetService.findItemByHash(dataset, ITEM_HASH)).thenReturn(indexedItem);
 
-		mvc.perform(get("/api/dataset/{datasetId}/image/exists/{hash}", DATASET_ID, IMAGE_HASH)) //
+		mvc.perform(get("/api/dataset/{datasetId}/item/exists/{hash}", DATASET_ID, ITEM_HASH)) //
 				.andExpect(status().isOk()) //
-				.andDo(document("exists-image",
+				.andDo(document("exists-item",
 						pathParameters(parameterWithName("datasetId").description("Dataset identifier"),
-								parameterWithName("hash").description("Image hash (hexadecimal md5 digest)"))));
+								parameterWithName("hash").description("Item hash (hexadecimal md5 digest)"))));
 	}
 
 	@Test
-	public void getImageContent() throws Exception {
+	public void getItemContent() throws Exception {
 		when(datasetService.findById(DATASET_ID)).thenReturn(dataset);
-		when(datasetService.findImageById(dataset, IMAGE_ID)).thenReturn(indexedImage);
+		when(datasetService.findItemById(dataset, ITEM_ID)).thenReturn(indexedItem);
 
-		StoredImage storedImage = new StoredImageImpl();
+		StoredItem storedItem = new StoredItemImpl();
 		Resource resource = new ClassPathResource("images/IMG_NO_DATE.jpg");
-		storedImage.setStoredImageInfo(new StoredImageInfoImpl(resource.getFilename()));
+		storedItem.setStoredItemInfo(new StoredItemInfoImpl(resource.getFilename()));
 		byte[] sampleContent = new byte[1000];
 		resource.getInputStream().read(sampleContent);
-		storedImage.setContent(sampleContent);
-		when(datasetService.getStoredImage(dataset, indexedImage)).thenReturn(storedImage);
+		storedItem.setContent(sampleContent);
+		when(datasetService.getStoredItem(dataset, indexedItem)).thenReturn(storedItem);
 
-		mvc.perform(get("/api/dataset/{datasetId}/image/{imageId}/content", DATASET_ID, IMAGE_ID)) //
+		mvc.perform(get("/api/dataset/{datasetId}/item/{itemId}/content", DATASET_ID, ITEM_ID)) //
 				.andExpect(status().isOk()) //
-				.andDo(document("get-image-content",
+				.andDo(document("get-item-content",
 						pathParameters(parameterWithName("datasetId").description("Dataset identifier"),
-								parameterWithName("imageId").description("Image identifier"))));
+								parameterWithName("itemId").description("Item identifier"))));
 	}
 
 	@Test
-	public void addImage() throws Exception {
+	public void addItem() throws Exception {
 		Resource resource = new ClassPathResource("images/IMG_NO_DATE.jpg");
 		byte[] sampleContent = new byte[1000];
 		resource.getInputStream().read(sampleContent);
 
 		when(datasetService.findById(DATASET_ID)).thenReturn(dataset);
-		when(datasetService.addImage(isA(Dataset.class), isA(Resource.class))).thenReturn(indexedImage);
+		when(datasetService.addItem(isA(Dataset.class), isA(ItemType.class), isA(String.class), isA(InputStream.class)))
+				.thenReturn(indexedItem);
 
-		MockMultipartFile file = new MockMultipartFile("file", indexedImage.getFilename(), null, sampleContent);
+		MockMultipartFile file = new MockMultipartFile("file", indexedItem.getFilename(), "image/jpg", sampleContent);
 
-		mvc.perform(fileUpload("/api/dataset/{datasetId}/image", DATASET_ID).file(file)) //
+		mvc.perform(fileUpload("/api/dataset/{datasetId}/item", DATASET_ID).file(file)) //
 				.andExpect(status().isCreated()) //
-				.andDo(document("add-image",
+				.andDo(document("add-item",
 						pathParameters(parameterWithName("datasetId").description("Dataset identifier")),
-						responseFields(fieldWithPath("id").description("New image identifier"))));
+						responseFields(fieldWithPath("id").description("New item identifier"))));
 	}
 
 	@Test
-	public void addImageTag() throws Exception {
+	public void addItemTag() throws Exception {
 		TagEditableRepresentation tagEditableRepresentation = new TagEditableRepresentation(TAG_NAME, TAG_VALUE,
 				new BoundingBoxRepresentation(10, 20, 30, 40));
 		String json = objectMapper.writeValueAsString(tagEditableRepresentation);
 
 		when(datasetService.findById(DATASET_ID)).thenReturn(dataset);
 		when(tagMapper.toEntity(isA(TagEditableRepresentation.class))).thenReturn(tag);
-		when(datasetService.addImageTag(isA(Dataset.class), isA(Long.class), isA(Tag.class))).thenReturn(TAG_ID);
+		when(datasetService.addItemTag(isA(Dataset.class), isA(Long.class), isA(Tag.class))).thenReturn(TAG_ID);
 
-		mvc.perform(post("/api/dataset/{datasetId}/image/{imageId}/tag", DATASET_ID, IMAGE_ID) //
+		mvc.perform(post("/api/dataset/{datasetId}/item/{itemId}/tag", DATASET_ID, ITEM_ID) //
 				.contentType(MediaType.APPLICATION_JSON).content(json)) //
 				.andExpect(status().isCreated()) //
-				.andDo(document("add-image-tag",
+				.andDo(document("add-item-tag",
 						pathParameters(parameterWithName("datasetId").description("Dataset identifier"),
-								parameterWithName("imageId").description("Image identifier")),
+								parameterWithName("itemId").description("Item identifier")),
 						requestFields(tagEditableDescriptor),
 						responseFields(fieldWithPath("id").description("New tag identifier"))));
 	}
 
 	@Test
-	public void deleteImage() throws Exception {
+	public void deleteItem() throws Exception {
 		when(datasetService.findById(DATASET_ID)).thenReturn(dataset);
-		when(datasetService.findImageById(dataset, IMAGE_ID)).thenReturn(indexedImage);
-		doNothing().when(datasetService).deleteImage(dataset, IMAGE_ID);
+		when(datasetService.findItemById(dataset, ITEM_ID)).thenReturn(indexedItem);
+		doNothing().when(datasetService).deleteItem(dataset, ITEM_ID);
 
-		mvc.perform(delete("/api/dataset/{datasetId}/image/{imageId}", DATASET_ID, IMAGE_ID)) //
+		mvc.perform(delete("/api/dataset/{datasetId}/item/{itemId}", DATASET_ID, ITEM_ID)) //
 				.andExpect(status().isNoContent()) //
-				.andDo(document("delete-image",
+				.andDo(document("delete-item",
 						pathParameters(parameterWithName("datasetId").description("Dataset identifier"),
-								parameterWithName("imageId").description("Image identifier"))));
+								parameterWithName("itemId").description("Item identifier"))));
 	}
 
 	@Test
-	public void deleteImageTag() throws Exception {
+	public void deleteItemTag() throws Exception {
 		when(datasetService.findById(DATASET_ID)).thenReturn(dataset);
-		when(datasetService.findImageById(dataset, IMAGE_ID)).thenReturn(indexedImage);
-		doNothing().when(datasetService).deleteImageTag(dataset, IMAGE_ID, TAG_ID);
+		when(datasetService.findItemById(dataset, ITEM_ID)).thenReturn(indexedItem);
+		doNothing().when(datasetService).deleteItemTag(dataset, ITEM_ID, TAG_ID);
 
-		mvc.perform(delete("/api/dataset/{datasetId}/image/{imageId}/tag/{tagId}", DATASET_ID, IMAGE_ID, TAG_ID)) //
+		mvc.perform(delete("/api/dataset/{datasetId}/item/{itemId}/tag/{tagId}", DATASET_ID, ITEM_ID, TAG_ID)) //
 				.andExpect(status().isNoContent()) //
-				.andDo(document("delete-image-tag",
+				.andDo(document("delete-item-tag",
 						pathParameters(parameterWithName("datasetId").description("Dataset identifier"),
-								parameterWithName("imageId").description("Image identifier"),
+								parameterWithName("itemId").description("Item identifier"),
 								parameterWithName("tagId").description("Tag identifier"))));
 	}
 

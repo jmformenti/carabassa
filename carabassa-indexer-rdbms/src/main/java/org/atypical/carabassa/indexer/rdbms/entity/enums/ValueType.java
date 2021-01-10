@@ -11,8 +11,8 @@ public enum ValueType {
 	private static final Map<String, ValueType> codes = new HashMap<>();
 
 	static {
-		for (ValueType resolution : ValueType.values()) {
-			codes.put(resolution.getCode(), resolution);
+		for (ValueType valueType : ValueType.values()) {
+			codes.put(valueType.getCode(), valueType);
 		}
 	}
 
@@ -26,11 +26,6 @@ public enum ValueType {
 
 	public static ValueType fromCode(String code) {
 		return codes.get(code);
-	}
-
-	@Override
-	public String toString() {
-		return code;
 	}
 
 }

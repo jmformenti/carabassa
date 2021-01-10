@@ -14,9 +14,9 @@ jmformenti;
 == Introduction
 This guide defines all Carabassa RESTful API resources.
 
-The goal is to provide an extensible image manager using REST API to organize, index and search your images.
+The goal is to provide an extensible image/video manager using REST API to organize, index and search your media data.
 
-The images are grouped in _datasets_, i.e, a _dataset_ is an images collection.  
+The media files (items) are grouped in _datasets_, i.e, a _dataset_ is an items collection.  
 
 [[resources]]
 = Resources
@@ -190,163 +190,163 @@ include::{snippets}/delete/curl-request.adoc[]
 ===== Example
 include::{snippets}/delete/http-response.adoc[]
 
-[[resources-dataset-getimages]]
-=== Get images
-Get images from a dataset.
+[[resources-dataset-getitems]]
+=== Get items
+Get items from a dataset.
 
 ==== Request
 
 ===== Path parameters
-include::{snippets}/get-images/path-parameters.adoc[]
+include::{snippets}/get-items/path-parameters.adoc[]
 
 ===== Request parameters
-include::{snippets}/get-images/request-parameters.adoc[]
+include::{snippets}/get-items/request-parameters.adoc[]
 
 ===== Example
-include::{snippets}/get-images/http-request.adoc[]
+include::{snippets}/get-items/http-request.adoc[]
 
 ===== CURL request
-include::{snippets}/get-images/curl-request.adoc[]
+include::{snippets}/get-items/curl-request.adoc[]
 
 ==== Response
 
 ===== Fields
-include::{snippets}/get-images/response-fields.adoc[]
+include::{snippets}/get-items/response-fields.adoc[]
 
 ===== Links
-include::{snippets}/get-images/links.adoc[]
+include::{snippets}/get-items/links.adoc[]
 
 ===== Example
-include::{snippets}/get-images/http-response.adoc[]
+include::{snippets}/get-items/http-response.adoc[]
 
-[[resources-dataset-getimage]]
-=== Get image
-Get an indexed image from a dataset.
+[[resources-dataset-getitem]]
+=== Get item
+Get an indexed item from a dataset.
 
 ==== Request
 
 ===== Path parameters
-include::{snippets}/get-image/path-parameters.adoc[]
+include::{snippets}/get-item/path-parameters.adoc[]
 
 ===== Example
-include::{snippets}/get-image/http-request.adoc[]
+include::{snippets}/get-item/http-request.adoc[]
 
 ===== CURL request
-include::{snippets}/get-image/curl-request.adoc[]
+include::{snippets}/get-item/curl-request.adoc[]
 
 ==== Response
 
 ===== Fields
-include::{snippets}/get-image/response-fields.adoc[]
+include::{snippets}/get-item/response-fields.adoc[]
 
 ===== Example
-include::{snippets}/get-image/http-response.adoc[]
+include::{snippets}/get-item/http-response.adoc[]
 
-[[resources-dataset-getimagecontent]]
-=== Get image content
-Get an image content from a dataset.
+[[resources-dataset-getitemcontent]]
+=== Get item content
+Get an item content from a dataset.
 
 ==== Request
 
 ===== Path parameters
-include::{snippets}/get-image-content/path-parameters.adoc[]
+include::{snippets}/get-item-content/path-parameters.adoc[]
 
 ===== Example
-include::{snippets}/get-image-content/http-request.adoc[]
+include::{snippets}/get-item-content/http-request.adoc[]
 
 ===== CURL request
-include::{snippets}/get-image-content/curl-request.adoc[]
+include::{snippets}/get-item-content/curl-request.adoc[]
 
 ==== Response
 
 ===== Example
-include::{snippets}/get-image-content/http-response.adoc[]
+include::{snippets}/get-item-content/http-response.adoc[]
 
-[[resources-dataset-addimage]]
-=== Add image 
-Add a new image to a dataset.
-
-==== Request
-
-===== Path parameters
-include::{snippets}/add-image/path-parameters.adoc[]
-
-===== Example
-include::{snippets}/add-image/http-request.adoc[]
-
-===== CURL request
-include::{snippets}/add-image/curl-request.adoc[]
-
-==== Response
-
-===== Fields
-include::{snippets}/add-image/response-fields.adoc[]
-
-===== Example
-include::{snippets}/add-image/http-response.adoc[]
-
-[[resources-dataset-addimagetag]]
-=== Add image tag 
-Add a new tag to an image.
+[[resources-dataset-additem]]
+=== Add item 
+Add a new item to a dataset.
 
 ==== Request
 
 ===== Path parameters
-include::{snippets}/add-image-tag/path-parameters.adoc[]
-
-===== Fields
-include::{snippets}/add-image-tag/request-fields.adoc[]
+include::{snippets}/add-item/path-parameters.adoc[]
 
 ===== Example
-include::{snippets}/add-image-tag/http-request.adoc[]
+include::{snippets}/add-item/http-request.adoc[]
 
 ===== CURL request
-include::{snippets}/add-image-tag/curl-request.adoc[]
+include::{snippets}/add-item/curl-request.adoc[]
 
 ==== Response
 
 ===== Fields
-include::{snippets}/add-image-tag/response-fields.adoc[]
+include::{snippets}/add-item/response-fields.adoc[]
 
 ===== Example
-include::{snippets}/add-image-tag/http-response.adoc[]
+include::{snippets}/add-item/http-response.adoc[]
 
-[[resources-dataset-deleteimage]]
-=== Delete image 
-Deletes an image from a dataset.
+[[resources-dataset-additemtag]]
+=== Add item tag 
+Add a new tag to an item.
 
 ==== Request
 
 ===== Path parameters
-include::{snippets}/delete-image/path-parameters.adoc[]
+include::{snippets}/add-item-tag/path-parameters.adoc[]
+
+===== Fields
+include::{snippets}/add-item-tag/request-fields.adoc[]
 
 ===== Example
-include::{snippets}/delete-image/http-request.adoc[]
+include::{snippets}/add-item-tag/http-request.adoc[]
 
 ===== CURL request
-include::{snippets}/delete-image/curl-request.adoc[]
+include::{snippets}/add-item-tag/curl-request.adoc[]
 
 ==== Response
 
-===== Example
-include::{snippets}/delete-image/http-response.adoc[]
+===== Fields
+include::{snippets}/add-item-tag/response-fields.adoc[]
 
-[[resources-dataset-deleteimagetag]]
-=== Delete image tag 
-Deletes a tag from an image.
+===== Example
+include::{snippets}/add-item-tag/http-response.adoc[]
+
+[[resources-dataset-deleteitem]]
+=== Delete item 
+Deletes an item from a dataset.
 
 ==== Request
 
 ===== Path parameters
-include::{snippets}/delete-image-tag/path-parameters.adoc[]
+include::{snippets}/delete-item/path-parameters.adoc[]
 
 ===== Example
-include::{snippets}/delete-image-tag/http-request.adoc[]
+include::{snippets}/delete-item/http-request.adoc[]
 
 ===== CURL request
-include::{snippets}/delete-image-tag/curl-request.adoc[]
+include::{snippets}/delete-item/curl-request.adoc[]
 
 ==== Response
 
 ===== Example
-include::{snippets}/delete-image-tag/http-response.adoc[]
+include::{snippets}/delete-item/http-response.adoc[]
+
+[[resources-dataset-deleteitemtag]]
+=== Delete item tag 
+Deletes a tag from an item.
+
+==== Request
+
+===== Path parameters
+include::{snippets}/delete-item-tag/path-parameters.adoc[]
+
+===== Example
+include::{snippets}/delete-item-tag/http-request.adoc[]
+
+===== CURL request
+include::{snippets}/delete-item-tag/curl-request.adoc[]
+
+==== Response
+
+===== Example
+include::{snippets}/delete-item-tag/http-response.adoc[]

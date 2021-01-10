@@ -1,9 +1,7 @@
 package org.atypical.carabassa.core.component.tagger.impl;
 
 import java.awt.image.BufferedImage;
-import java.io.ByteArrayInputStream;
 import java.io.IOException;
-import java.io.InputStream;
 import java.time.ZoneId;
 import java.time.ZonedDateTime;
 import java.util.HashSet;
@@ -13,18 +11,17 @@ import java.util.stream.IntStream;
 import javax.imageio.ImageIO;
 
 import org.apache.commons.codec.binary.Hex;
-import org.apache.commons.io.IOUtils;
 import org.apache.commons.text.WordUtils;
 import org.atypical.carabassa.core.component.tagger.Tagger;
 import org.atypical.carabassa.core.component.util.LocalizedMessage;
 import org.atypical.carabassa.core.model.Tag;
 import org.atypical.carabassa.core.model.impl.TagImpl;
+import org.atypical.carabassa.core.util.HashGenerator;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.io.Resource;
 import org.springframework.stereotype.Component;
-import org.springframework.util.DigestUtils;
 
 import com.drew.imaging.ImageMetadataReader;
 import com.drew.imaging.ImageProcessingException;
@@ -41,27 +38,22 @@ public class ImageMetadataTagger implements Tagger {
 
 	private static final Logger logger = LoggerFactory.getLogger(ImageMetadataTagger.class);
 
+	public static final String TAG_DHASH = TAG_PREFIX + "Dhash";
+
 	private static final String IMAGE_ERROR_META_MESSAGE_KEY = "core.tagger.meta.image.error";
 	private static final String IMAGE_ERROR_PHASH_MESSAGE_KEY = "core.tagger.phash.error";
-
-	public static final String TAG_PREFIX = "meta.";
-	public static final String TAG_HASH = TAG_PREFIX + "Hash";
-	public static final String TAG_DHASH = TAG_PREFIX + "Dhash";
-	public static final String TAG_ARCHIVE_TIME = TAG_PREFIX + "ArchiveTime";
-	public static final String TAG_FILE_TYPE = TAG_PREFIX + "FileType";
 
 	@Autowired
 	private LocalizedMessage localizedMessage;
 
 	@Override
-	public Set<Tag> getTags(Resource inputImage) throws IOException {
+	public Set<Tag> getTags(Resource inputItem) throws IOException {
 		Set<Tag> tags = new HashSet<>();
 
-		byte[] content = IOUtils.toByteArray(inputImage.getInputStream());
-		Metadata metadata = getMetaData(content);
+		Metadata metadata = getMetaData(inputItem);
 		if (metadata != null) {
 			tags.addAll(getMetaTags(metadata));
-			tags.addAll(getCustomTags(content, metadata));
+			tags.addAll(getCustomTags(inputItem, metadata));
 		}
 
 		tags.forEach(t -> logger.debug("Tag {} = {}", t.getName(), t.getValue()));
@@ -69,12 +61,12 @@ public class ImageMetadataTagger implements Tagger {
 		return tags;
 	}
 
-	private Set<Tag> getCustomTags(byte[] content, Metadata metadata) throws IOException {
+	private Set<Tag> getCustomTags(Resource inputItem, Metadata metadata) throws IOException {
 		Set<Tag> tags = new HashSet<>();
 
-		tags.add((Tag) new TagImpl(TAG_HASH, getHash(content)));
+		tags.add((Tag) new TagImpl(TAG_HASH, HashGenerator.generate(inputItem)));
 		try {
-			tags.add((Tag) new TagImpl(TAG_DHASH, getPerceptualHash(content)));
+			tags.add((Tag) new TagImpl(TAG_DHASH, getPerceptualHash(inputItem)));
 		} catch (IOException e) {
 			logger.error(e.getMessage(), e);
 		}
@@ -87,20 +79,10 @@ public class ImageMetadataTagger implements Tagger {
 		return tags;
 	}
 
-	public String getHash(Resource inputImage) throws IOException {
-		byte[] content = IOUtils.toByteArray(inputImage.getInputStream());
-		return getHash(content);
-	}
-
-	public String getHash(byte[] content) throws IOException {
-		return DigestUtils.md5DigestAsHex(content);
-	}
-
-	private Metadata getMetaData(byte[] content) throws IOException {
+	private Metadata getMetaData(Resource inputItem) throws IOException {
 		Metadata metadata = null;
-		InputStream imageStream = new ByteArrayInputStream(content);
 		try {
-			metadata = ImageMetadataReader.readMetadata(imageStream);
+			metadata = ImageMetadataReader.readMetadata(inputItem.getInputStream());
 		} catch (ImageProcessingException | IOException e) {
 			throw new IOException(localizedMessage.getText(IMAGE_ERROR_META_MESSAGE_KEY, e.getMessage()), e);
 		}
@@ -162,13 +144,12 @@ public class ImageMetadataTagger implements Tagger {
 		}
 	}
 
-	private String getPerceptualHash(byte[] content) throws IOException {
+	private String getPerceptualHash(Resource inputItem) throws IOException {
 		DifferenceHash differenceHash = new DifferenceHash(64, Precision.Double);
 
-		InputStream in = new ByteArrayInputStream(content);
 		BufferedImage image;
 		try {
-			image = ImageIO.read(in);
+			image = ImageIO.read(inputItem.getInputStream());
 		} catch (IOException e) {
 			throw new IOException(localizedMessage.getText(IMAGE_ERROR_PHASH_MESSAGE_KEY, e.getMessage()), e);
 		}

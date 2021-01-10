@@ -1,14 +1,19 @@
 {
 	"properties": [
 		{
-			"name": "carabassa.repodir",
-			"type": "java.lang.String",
-			"description": "Base repository dir for datasets"
-		},
-		{
 			"name": "carabassa.version",
 			"type": "java.lang.String",
 			"description": "Project version"
+		},
+		{
+			"name": "carabassa.repodir",
+			"type": "java.lang.String",
+			"description": "Base carabassa directory"
+		},
+		{
+			"name": "carabassa.tempdir",
+			"type": "java.lang.String",
+			"description": "Temporal directory for uploaded files"
 		}
 	]
 }

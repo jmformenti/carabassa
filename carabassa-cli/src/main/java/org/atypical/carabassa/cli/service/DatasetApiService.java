@@ -1,11 +1,11 @@
 package org.atypical.carabassa.cli.service;
 
 import java.io.IOException;
-import java.nio.file.Path;
 import java.util.List;
 
+import org.atypical.carabassa.cli.dto.ItemToUpload;
 import org.atypical.carabassa.cli.exception.ApiException;
-import org.atypical.carabassa.cli.exception.ImageAlreadyExists;
+import org.atypical.carabassa.cli.exception.ItemAlreadyExists;
 import org.atypical.carabassa.restapi.representation.model.DatasetEntityRepresentation;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
@@ -13,7 +13,7 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 // TODO Do junits
 public interface DatasetApiService {
 
-	public Long addImage(Long datasetId, Path imagePath) throws ImageAlreadyExists, ApiException, IOException;
+	public Long addItem(Long datasetId, ItemToUpload itemToUpload) throws ItemAlreadyExists, ApiException, IOException;
 
 	public Long create(String name, String description) throws ApiException, JsonProcessingException;
 

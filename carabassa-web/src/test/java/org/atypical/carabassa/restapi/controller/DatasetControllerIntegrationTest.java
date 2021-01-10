@@ -17,6 +17,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
+import java.io.InputStream;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -24,11 +25,12 @@ import java.util.Arrays;
 import org.atypical.carabassa.core.exception.EntityExistsException;
 import org.atypical.carabassa.core.exception.EntityNotFoundException;
 import org.atypical.carabassa.core.model.Dataset;
-import org.atypical.carabassa.core.model.IndexedImage;
-import org.atypical.carabassa.core.model.StoredImage;
+import org.atypical.carabassa.core.model.IndexedItem;
+import org.atypical.carabassa.core.model.StoredItem;
 import org.atypical.carabassa.core.model.Tag;
-import org.atypical.carabassa.core.model.impl.StoredImageImpl;
-import org.atypical.carabassa.core.model.impl.StoredImageInfoImpl;
+import org.atypical.carabassa.core.model.enums.ItemType;
+import org.atypical.carabassa.core.model.impl.StoredItemImpl;
+import org.atypical.carabassa.core.model.impl.StoredItemInfoImpl;
 import org.atypical.carabassa.core.service.DatasetService;
 import org.atypical.carabassa.restapi.configuration.RestApiConfiguration;
 import org.atypical.carabassa.restapi.rdbms.configuration.RestApiRdbmsMapperConfiguration;
@@ -41,7 +43,6 @@ import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
-import org.springframework.core.io.Resource;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.Pageable;
@@ -215,15 +216,15 @@ public class DatasetControllerIntegrationTest extends DatasetControllerHelper {
 	}
 
 	@Test
-	void getImagesOK() throws Exception {
+	void getItemsOK() throws Exception {
 		when(datasetService.findById(DATASET_ID)).thenReturn(dataset);
-		Page<IndexedImage> page = new PageImpl<>(new ArrayList<>(dataset.getImages()));
-		when(datasetService.findImages(isA(Dataset.class), isA(Pageable.class))).thenReturn(page);
+		Page<IndexedItem> page = new PageImpl<>(new ArrayList<>(dataset.getItems()));
+		when(datasetService.findItems(isA(Dataset.class), isA(Pageable.class))).thenReturn(page);
 
-		mvc.perform(get("/api/dataset/{datasetId}/image?page=0&size=10", DATASET_ID)) //
+		mvc.perform(get("/api/dataset/{datasetId}/item?page=0&size=10", DATASET_ID)) //
 				.andExpect(status().isOk()) //
-				.andExpect(jsonPath("$._embedded.imageRepresentationList", hasSize(1))) //
-				.andExpect(jsonPath("$._embedded.imageRepresentationList.[0].id", is(IMAGE_ID.intValue()))) //
+				.andExpect(jsonPath("$._embedded.itemRepresentationList", hasSize(1))) //
+				.andExpect(jsonPath("$._embedded.itemRepresentationList.[0].id", is(ITEM_ID.intValue()))) //
 				.andExpect(jsonPath("$.page.size", is(1))) //
 				.andExpect(jsonPath("$.page.totalElements", is(1))) //
 				.andExpect(jsonPath("$._links").exists()) //
@@ -231,30 +232,31 @@ public class DatasetControllerIntegrationTest extends DatasetControllerHelper {
 	}
 
 	@Test
-	void getImagesDatasetNotFound() throws Exception {
+	void getItemsDatasetNotFound() throws Exception {
 		when(datasetService.findById(DATASET_ID)).thenThrow(EntityNotFoundException.class);
 
-		mvc.perform(get("/api/dataset/{datasetId}/image", DATASET_ID)) //
+		mvc.perform(get("/api/dataset/{datasetId}/item", DATASET_ID)) //
 				.andExpect(status().isNotFound()).andDo(log());
 	}
 
 	@Test
-	void getImageOK() throws Exception {
+	void getItemOK() throws Exception {
 		when(datasetService.findById(DATASET_ID)).thenReturn(dataset);
-		when(datasetService.findImageById(dataset, IMAGE_ID)).thenReturn(indexedImage);
+		when(datasetService.findItemById(dataset, ITEM_ID)).thenReturn(indexedItem);
 
-		mvc.perform(get("/api/dataset/{datasetId}/image/{imageId}", DATASET_ID, IMAGE_ID)) //
+		mvc.perform(get("/api/dataset/{datasetId}/item/{itemId}", DATASET_ID, ITEM_ID)) //
 				.andExpect(status().isOk()) //
-				.andExpect(jsonPath("$.id", is(IMAGE_ID.intValue())))
-				.andExpect(jsonPath("$.filename", is(indexedImage.getFilename())))
-				.andExpect(jsonPath("$.fileType", is(indexedImage.getFileType())))
-				.andExpect(jsonPath("$.hash", is(indexedImage.getHash())))
+				.andExpect(jsonPath("$.id", is(ITEM_ID.intValue())))
+				.andExpect(jsonPath("$.type", is(indexedItem.getType().normalized())))
+				.andExpect(jsonPath("$.filename", is(indexedItem.getFilename())))
+				.andExpect(jsonPath("$.format", is(indexedItem.getFormat())))
+				.andExpect(jsonPath("$.hash", is(indexedItem.getHash())))
 				.andExpect(jsonPath("$.creation",
-						is(indexedImage.getCreation().format(DateTimeFormatter.ISO_OFFSET_DATE_TIME))))
+						is(indexedItem.getCreation().format(DateTimeFormatter.ISO_OFFSET_DATE_TIME))))
 				.andExpect(jsonPath("$.modification",
-						is(indexedImage.getModification().format(DateTimeFormatter.ISO_OFFSET_DATE_TIME))))
+						is(indexedItem.getModification().format(DateTimeFormatter.ISO_OFFSET_DATE_TIME))))
 				.andExpect(jsonPath("$.archiveTime",
-						is(indexedImage.getArchiveTime().format(DateTimeFormatter.ISO_OFFSET_DATE_TIME))))
+						is(indexedItem.getArchiveTime().format(DateTimeFormatter.ISO_OFFSET_DATE_TIME))))
 				.andExpect(jsonPath("$.tags", hasSize(1))).andExpect(jsonPath("$.tags[0].id", is(TAG_ID.intValue())))
 				.andExpect(jsonPath("$.tags[0].name", is(tag.getName())))
 				.andExpect(jsonPath("$.tags[0].value", is(tag.getValue(String.class))))
@@ -265,117 +267,119 @@ public class DatasetControllerIntegrationTest extends DatasetControllerHelper {
 	}
 
 	@Test
-	void getImageDatasetNotFound() throws Exception {
+	void getItemDatasetNotFound() throws Exception {
 		when(datasetService.findById(DATASET_ID)).thenThrow(EntityNotFoundException.class);
 
-		mvc.perform(get("/api/dataset/{datasetId}/image/{imageId}", DATASET_ID, IMAGE_ID)) //
+		mvc.perform(get("/api/dataset/{datasetId}/item/{itemId}", DATASET_ID, ITEM_ID)) //
 				.andExpect(status().isNotFound()) //
 				.andDo(log());
 	}
 
 	@Test
-	void getImageNotFound() throws Exception {
+	void getItemNotFound() throws Exception {
 		when(datasetService.findById(DATASET_ID)).thenReturn(dataset);
-		when(datasetService.findImageById(dataset, IMAGE_ID)).thenThrow(EntityNotFoundException.class);
+		when(datasetService.findItemById(dataset, ITEM_ID)).thenThrow(EntityNotFoundException.class);
 
-		mvc.perform(get("/api/dataset/{datasetId}/image/{imageId}", DATASET_ID, IMAGE_ID)) //
+		mvc.perform(get("/api/dataset/{datasetId}/item/{itemId}", DATASET_ID, ITEM_ID)) //
 				.andExpect(status().isNotFound()) //
 				.andDo(log());
 	}
 
 	@Test
-	void existsImageOK() throws Exception {
+	void existsItemOK() throws Exception {
 		when(datasetService.findById(DATASET_ID)).thenReturn(dataset);
-		when(datasetService.findImageByHash(dataset, IMAGE_HASH)).thenReturn(indexedImage);
+		when(datasetService.findItemByHash(dataset, ITEM_HASH)).thenReturn(indexedItem);
 
-		mvc.perform(get("/api/dataset/{datasetId}/image/exists/{hash}", DATASET_ID, IMAGE_HASH)) //
+		mvc.perform(get("/api/dataset/{datasetId}/item/exists/{hash}", DATASET_ID, ITEM_HASH)) //
 				.andExpect(status().isOk()) //
 				.andDo(log());
 	}
 
 	@Test
-	void existsImageNotFound() throws Exception {
+	void existsItemNotFound() throws Exception {
 		when(datasetService.findById(DATASET_ID)).thenReturn(dataset);
-		when(datasetService.findImageByHash(dataset, IMAGE_HASH)).thenThrow(EntityNotFoundException.class);
+		when(datasetService.findItemByHash(dataset, ITEM_HASH)).thenThrow(EntityNotFoundException.class);
 
-		mvc.perform(get("/api/dataset/{datasetId}/image/exists/{hash}", DATASET_ID, IMAGE_HASH)) //
+		mvc.perform(get("/api/dataset/{datasetId}/item/exists/{hash}", DATASET_ID, ITEM_HASH)) //
 				.andExpect(status().isNotFound()) //
 				.andDo(log());
 	}
 
 	@Test
-	void getImageContentOK() throws Exception {
+	void getItemContentOK() throws Exception {
 		when(datasetService.findById(DATASET_ID)).thenReturn(dataset);
-		when(datasetService.findImageById(dataset, IMAGE_ID)).thenReturn(indexedImage);
+		when(datasetService.findItemById(dataset, ITEM_ID)).thenReturn(indexedItem);
 
-		StoredImage storedImage = new StoredImageImpl();
-		storedImage.setStoredImageInfo(new StoredImageInfoImpl("test.jpg"));
-		storedImage.setContent("test".getBytes());
-		when(datasetService.getStoredImage(dataset, indexedImage)).thenReturn(storedImage);
+		StoredItem storedItem = new StoredItemImpl();
+		storedItem.setStoredItemInfo(new StoredItemInfoImpl("test.jpg"));
+		storedItem.setContent("test".getBytes());
+		when(datasetService.getStoredItem(dataset, indexedItem)).thenReturn(storedItem);
 
-		mvc.perform(get("/api/dataset/{datasetId}/image/{imageId}/content", DATASET_ID, IMAGE_ID)) //
+		mvc.perform(get("/api/dataset/{datasetId}/item/{itemId}/content", DATASET_ID, ITEM_ID)) //
 				.andExpect(status().isOk()) //
-				.andExpect(content().contentType("image/" + indexedImage.getFileType()))
+				.andExpect(content().contentType(indexedItem.getType().name() + "/" + indexedItem.getFormat()))
 				.andExpect(header().string(HttpHeaders.CONTENT_DISPOSITION,
-						"attachment; filename=\"" + indexedImage.getFilename() + "\""))
+						"attachment; filename=\"" + indexedItem.getFilename() + "\""))
 				.andExpect(content().string("test")) //
 				.andDo(log());
 	}
 
 	@Test
-	void addImageOK() throws Exception {
+	void addItemOK() throws Exception {
 		final byte[] CONTENT = "test".getBytes();
 
 		when(datasetService.findById(DATASET_ID)).thenReturn(dataset);
-		when(datasetService.addImage(isA(Dataset.class), isA(Resource.class))).thenReturn(indexedImage);
+		when(datasetService.addItem(isA(Dataset.class), isA(ItemType.class), isA(String.class), isA(InputStream.class)))
+				.thenReturn(indexedItem);
 
-		MockMultipartFile file = new MockMultipartFile("file", indexedImage.getFilename(), null, CONTENT);
+		MockMultipartFile file = new MockMultipartFile("file", indexedItem.getFilename(), "image/jpg", CONTENT);
 
-		mvc.perform(multipart("/api/dataset/{datasetId}/image", DATASET_ID).file(file)) //
+		mvc.perform(multipart("/api/dataset/{datasetId}/item", DATASET_ID).file(file)) //
 				.andExpect(status().isCreated()) //
-				.andExpect(jsonPath("$.id", is(indexedImage.getId().intValue()))) //
+				.andExpect(jsonPath("$.id", is(indexedItem.getId().intValue()))) //
 				.andDo(log());
 	}
 
 	@Test
-	void addImageExisting() throws Exception {
+	void addItemExisting() throws Exception {
 		final byte[] CONTENT = "test".getBytes();
 
 		when(datasetService.findById(DATASET_ID)).thenReturn(dataset);
-		when(datasetService.addImage(isA(Dataset.class), isA(Resource.class))).thenThrow(EntityExistsException.class);
+		when(datasetService.addItem(isA(Dataset.class), isA(ItemType.class), isA(String.class), isA(InputStream.class)))
+				.thenThrow(EntityExistsException.class);
 
-		MockMultipartFile file = new MockMultipartFile("file", indexedImage.getFilename(), null, CONTENT);
+		MockMultipartFile file = new MockMultipartFile("file", indexedItem.getFilename(), "image/jpg", CONTENT);
 
-		mvc.perform(multipart("/api/dataset/{datasetId}/image", DATASET_ID).file(file)) //
+		mvc.perform(multipart("/api/dataset/{datasetId}/item", DATASET_ID).file(file)) //
 				.andExpect(status().isConflict()) //
 				.andDo(log());
 	}
 
 	@Test
-	void addImageInvalid() throws Exception {
+	void addItemInvalid() throws Exception {
 		final byte[] CONTENT = "test".getBytes();
 
 		when(datasetService.findById(DATASET_ID)).thenReturn(dataset);
-		when(datasetService.addImage(isA(Dataset.class), isA(Resource.class)))
+		when(datasetService.addItem(isA(Dataset.class), isA(ItemType.class), isA(String.class), isA(InputStream.class)))
 				.thenThrow(IllegalArgumentException.class);
 
-		MockMultipartFile file = new MockMultipartFile("file", indexedImage.getFilename(), null, CONTENT);
+		MockMultipartFile file = new MockMultipartFile("file", indexedItem.getFilename(), "image/jpg", CONTENT);
 
-		mvc.perform(multipart("/api/dataset/{datasetId}/image", DATASET_ID).file(file)) //
+		mvc.perform(multipart("/api/dataset/{datasetId}/item", DATASET_ID).file(file)) //
 				.andExpect(status().isConflict()) //
 				.andDo(log());
 	}
 
 	@Test
-	void addImageTagOK() throws Exception {
+	void addItemTagOK() throws Exception {
 		String json = objectMapper
 				.writeValueAsString(new TagEntityRepresentation(TAG_ID, tag.getName(), tag.getValue()));
 
 		when(datasetService.findById(DATASET_ID)).thenReturn(dataset);
-		when(datasetService.findImageById(dataset, IMAGE_ID)).thenReturn(indexedImage);
-		when(datasetService.addImageTag(isA(Dataset.class), isA(Long.class), isA(Tag.class))).thenReturn(TAG_ID);
+		when(datasetService.findItemById(dataset, ITEM_ID)).thenReturn(indexedItem);
+		when(datasetService.addItemTag(isA(Dataset.class), isA(Long.class), isA(Tag.class))).thenReturn(TAG_ID);
 
-		mvc.perform(post("/api/dataset/{datasetId}/image/{imageId}/tag", DATASET_ID, IMAGE_ID) //
+		mvc.perform(post("/api/dataset/{datasetId}/item/{itemId}/tag", DATASET_ID, ITEM_ID) //
 				.contentType(MediaType.APPLICATION_JSON).content(json)) //
 				.andExpect(status().isCreated()) //
 				.andExpect(jsonPath("$.id", is(TAG_ID.intValue()))) //
@@ -383,60 +387,60 @@ public class DatasetControllerIntegrationTest extends DatasetControllerHelper {
 	}
 
 	@Test
-	void addImageTagInvalid() throws Exception {
+	void addItemTagInvalid() throws Exception {
 		String json = objectMapper.writeValueAsString(new TagEntityRepresentation(TAG_ID, null, tag.getValue()));
 
 		when(datasetService.findById(DATASET_ID)).thenReturn(dataset);
-		when(datasetService.findImageById(dataset, IMAGE_ID)).thenReturn(indexedImage);
-		when(datasetService.addImageTag(isA(Dataset.class), isA(Long.class), isA(Tag.class)))
+		when(datasetService.findItemById(dataset, ITEM_ID)).thenReturn(indexedItem);
+		when(datasetService.addItemTag(isA(Dataset.class), isA(Long.class), isA(Tag.class)))
 				.thenThrow(IllegalArgumentException.class);
 
-		mvc.perform(post("/api/dataset/{datasetId}/image/{imageId}/tag", DATASET_ID, IMAGE_ID) //
+		mvc.perform(post("/api/dataset/{datasetId}/item/{itemId}/tag", DATASET_ID, ITEM_ID) //
 				.contentType(MediaType.APPLICATION_JSON).content(json)) //
 				.andExpect(status().isBadRequest()) //
 				.andDo(MockMvcResultHandlers.log());
 	}
 
 	@Test
-	void deleteImageOK() throws Exception {
+	void deleteItemOK() throws Exception {
 		when(datasetService.findById(DATASET_ID)).thenReturn(dataset);
-		when(datasetService.findImageById(dataset, IMAGE_ID)).thenReturn(indexedImage);
-		doNothing().when(datasetService).deleteImage(dataset, IMAGE_ID);
+		when(datasetService.findItemById(dataset, ITEM_ID)).thenReturn(indexedItem);
+		doNothing().when(datasetService).deleteItem(dataset, ITEM_ID);
 
-		mvc.perform(delete("/api/dataset/{datasetId}/image/{imageId}", DATASET_ID, IMAGE_ID)) //
+		mvc.perform(delete("/api/dataset/{datasetId}/item/{itemId}", DATASET_ID, ITEM_ID)) //
 				.andExpect(status().isNoContent()) //
 				.andDo(MockMvcResultHandlers.log());
 	}
 
 	@Test
-	void deleteImageNotFound() throws Exception {
+	void deleteItemNotFound() throws Exception {
 		when(datasetService.findById(DATASET_ID)).thenReturn(dataset);
-		when(datasetService.findImageById(dataset, IMAGE_ID)).thenReturn(indexedImage);
-		doNothing().when(datasetService).deleteImage(dataset, IMAGE_ID);
+		when(datasetService.findItemById(dataset, ITEM_ID)).thenReturn(indexedItem);
+		doNothing().when(datasetService).deleteItem(dataset, ITEM_ID);
 
-		mvc.perform(delete("/api/dataset/{datasetId}/image/{imageId}", DATASET_ID, IMAGE_ID)) //
+		mvc.perform(delete("/api/dataset/{datasetId}/item/{itemId}", DATASET_ID, ITEM_ID)) //
 				.andExpect(status().isNoContent()) //
 				.andDo(MockMvcResultHandlers.log());
 	}
 
 	@Test
-	void deleteImageTagOK() throws Exception {
+	void deleteItemTagOK() throws Exception {
 		when(datasetService.findById(DATASET_ID)).thenReturn(dataset);
-		when(datasetService.findImageById(dataset, IMAGE_ID)).thenReturn(indexedImage);
-		doNothing().when(datasetService).deleteImageTag(dataset, IMAGE_ID, TAG_ID);
+		when(datasetService.findItemById(dataset, ITEM_ID)).thenReturn(indexedItem);
+		doNothing().when(datasetService).deleteItemTag(dataset, ITEM_ID, TAG_ID);
 
-		mvc.perform(delete("/api/dataset/{datasetId}/image/{imageId}/tag/{tagId}", DATASET_ID, IMAGE_ID, TAG_ID)) //
+		mvc.perform(delete("/api/dataset/{datasetId}/item/{itemId}/tag/{tagId}", DATASET_ID, ITEM_ID, TAG_ID)) //
 				.andExpect(status().isNoContent()) //
 				.andDo(MockMvcResultHandlers.log());
 	}
 
 	@Test
-	void deleteImageTagNotFound() throws Exception {
+	void deleteItemTagNotFound() throws Exception {
 		when(datasetService.findById(DATASET_ID)).thenReturn(dataset);
-		when(datasetService.findImageById(dataset, IMAGE_ID)).thenReturn(indexedImage);
-		doThrow(EntityNotFoundException.class).when(datasetService).deleteImageTag(dataset, IMAGE_ID, TAG_ID);
+		when(datasetService.findItemById(dataset, ITEM_ID)).thenReturn(indexedItem);
+		doThrow(EntityNotFoundException.class).when(datasetService).deleteItemTag(dataset, ITEM_ID, TAG_ID);
 
-		mvc.perform(delete("/api/dataset/{datasetId}/image/{imageId}/tag/{tagId}", DATASET_ID, IMAGE_ID, TAG_ID)) //
+		mvc.perform(delete("/api/dataset/{datasetId}/item/{itemId}/tag/{tagId}", DATASET_ID, ITEM_ID, TAG_ID)) //
 				.andExpect(status().isNotFound()) //
 				.andDo(MockMvcResultHandlers.log());
 	}

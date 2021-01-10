@@ -5,19 +5,21 @@ import java.io.IOException;
 import org.atypical.carabassa.core.exception.EntityExistsException;
 import org.atypical.carabassa.core.exception.EntityNotFoundException;
 import org.atypical.carabassa.core.model.Dataset;
-import org.atypical.carabassa.core.model.IndexedImage;
-import org.atypical.carabassa.core.model.StoredImage;
+import org.atypical.carabassa.core.model.IndexedItem;
+import org.atypical.carabassa.core.model.StoredItem;
+import org.atypical.carabassa.core.model.enums.ItemType;
 import org.atypical.carabassa.core.service.DatasetService;
+import org.atypical.carabassa.core.util.MediaTypeDetector;
 import org.atypical.carabassa.restapi.controller.DatasetController;
 import org.atypical.carabassa.restapi.representation.assembler.DatasetModelAssembler;
-import org.atypical.carabassa.restapi.representation.assembler.ImageModelAssembler;
+import org.atypical.carabassa.restapi.representation.assembler.ItemModelAssembler;
 import org.atypical.carabassa.restapi.representation.mapper.DatasetMapper;
-import org.atypical.carabassa.restapi.representation.mapper.ImageMapper;
+import org.atypical.carabassa.restapi.representation.mapper.ItemMapper;
 import org.atypical.carabassa.restapi.representation.mapper.TagMapper;
 import org.atypical.carabassa.restapi.representation.model.DatasetEditableRepresentation;
 import org.atypical.carabassa.restapi.representation.model.DatasetEntityRepresentation;
 import org.atypical.carabassa.restapi.representation.model.IdRepresentation;
-import org.atypical.carabassa.restapi.representation.model.ImageRepresentation;
+import org.atypical.carabassa.restapi.representation.model.ItemRepresentation;
 import org.atypical.carabassa.restapi.representation.model.TagEditableRepresentation;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -46,7 +48,7 @@ public class DatasetControllerImpl implements DatasetController {
 	private DatasetMapper datasetMapper;
 
 	@Autowired
-	private ImageMapper imageMapper;
+	private ItemMapper itemMapper;
 
 	@Autowired
 	private TagMapper tagMapper;
@@ -55,13 +57,13 @@ public class DatasetControllerImpl implements DatasetController {
 	private DatasetModelAssembler datasetModelAssembler;
 
 	@Autowired
-	private ImageModelAssembler imageModelAssembler;
+	private ItemModelAssembler itemModelAssembler;
 
 	@Autowired
 	private PagedResourcesAssembler<Dataset> datasetPagedResourcesAssembler;
 
 	@Autowired
-	private PagedResourcesAssembler<IndexedImage> imagePagedResourcesAssembler;
+	private PagedResourcesAssembler<IndexedItem> itemPagedResourcesAssembler;
 
 	@Override
 	public IdRepresentation create(DatasetEditableRepresentation datasetRepresentation) {
@@ -131,35 +133,35 @@ public class DatasetControllerImpl implements DatasetController {
 	}
 
 	@Override
-	public PagedModel<ImageRepresentation> getImages(Long datasetId, Pageable pageable) {
+	public PagedModel<ItemRepresentation> getItems(Long datasetId, Pageable pageable) {
 		Dataset dataset = getDataset(datasetId);
-		Page<IndexedImage> page = datasetService.findImages(dataset, pageable);
-		return imagePagedResourcesAssembler.toModel(page, imageModelAssembler);
+		Page<IndexedItem> page = datasetService.findItems(dataset, pageable);
+		return itemPagedResourcesAssembler.toModel(page, itemModelAssembler);
 	}
 
 	@Override
-	public ImageRepresentation getImage(Long datasetId, Long imageId) {
-		IndexedImage indexedImage = getIndexedImage(getDataset(datasetId), imageId);
-		return imageMapper.toRepresentation(indexedImage);
+	public ItemRepresentation getItem(Long datasetId, Long itemId) {
+		IndexedItem indexedItem = getIndexedItem(getDataset(datasetId), itemId);
+		return itemMapper.toRepresentation(indexedItem);
 	}
 
 	@Override
-	public void existsImage(Long datasetId, String hash) {
+	public void existsItem(Long datasetId, String hash) {
 		try {
-			datasetService.findImageByHash(getDataset(datasetId), hash);
+			datasetService.findItemByHash(getDataset(datasetId), hash);
 		} catch (EntityNotFoundException e) {
 			throw new ResponseStatusException(HttpStatus.NOT_FOUND, e.getMessage());
 		}
 	}
 
 	@Override
-	public ResponseEntity<byte[]> getImageContent(Long datasetId, Long imageId) {
+	public ResponseEntity<byte[]> getItemContent(Long datasetId, Long itemId) {
 		Dataset dataset = getDataset(datasetId);
-		IndexedImage indexedImage = getIndexedImage(dataset, imageId);
+		IndexedItem indexedItem = getIndexedItem(dataset, itemId);
 
-		StoredImage storedImage;
+		StoredItem storedItem;
 		try {
-			storedImage = datasetService.getStoredImage(dataset, indexedImage);
+			storedItem = datasetService.getStoredItem(dataset, indexedItem);
 		} catch (EntityNotFoundException e) {
 			logger.error(e.getMessage(), e);
 			throw new ResponseStatusException(HttpStatus.NOT_FOUND, e.getMessage());
@@ -169,17 +171,18 @@ public class DatasetControllerImpl implements DatasetController {
 		}
 
 		return ResponseEntity.ok() //
-				.contentType(MediaType.parseMediaType("image/" + indexedImage.getFileType()))
-				.header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=\"" + indexedImage.getFilename() + "\"")
-				.body(storedImage.getContent());
+				.contentType(MediaType.parseMediaType(ItemType.IMAGE.normalized() + "/" + indexedItem.getFormat()))
+				.header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=\"" + indexedItem.getFilename() + "\"")
+				.body(storedItem.getContent());
 	}
 
 	@Override
-	public IdRepresentation addImage(Long datasetId, MultipartFile file) {
+	public IdRepresentation addItem(Long datasetId, MultipartFile file) {
 		Dataset dataset = getDataset(datasetId);
 		try {
-			IndexedImage indexedImage = datasetService.addImage(dataset, file.getResource());
-			return new IdRepresentation(indexedImage.getId());
+			IndexedItem indexedItem = datasetService.addItem(dataset, MediaTypeDetector.convert(file.getContentType()),
+					file.getOriginalFilename(), file.getInputStream());
+			return new IdRepresentation(indexedItem.getId());
 		} catch (IllegalArgumentException e) {
 			logger.error(String.format("Error adding file %s.", file.getOriginalFilename()), e);
 			throw new ResponseStatusException(HttpStatus.CONFLICT, e.getMessage());
@@ -193,10 +196,10 @@ public class DatasetControllerImpl implements DatasetController {
 	}
 
 	@Override
-	public IdRepresentation addImageTag(Long datasetId, Long imageId, TagEditableRepresentation tagRepresentation) {
+	public IdRepresentation addItemTag(Long datasetId, Long itemId, TagEditableRepresentation tagRepresentation) {
 		Dataset dataset = getDataset(datasetId);
 		try {
-			Long tagId = datasetService.addImageTag(dataset, imageId, tagMapper.toEntity(tagRepresentation));
+			Long tagId = datasetService.addItemTag(dataset, itemId, tagMapper.toEntity(tagRepresentation));
 			return new IdRepresentation(tagId);
 		} catch (IllegalArgumentException e) {
 			logger.error(e.getMessage(), e);
@@ -208,10 +211,10 @@ public class DatasetControllerImpl implements DatasetController {
 	}
 
 	@Override
-	public void deleteImage(Long datasetId, Long imageId) {
+	public void deleteItem(Long datasetId, Long itemId) {
 		Dataset dataset = getDataset(datasetId);
 		try {
-			datasetService.deleteImage(dataset, imageId);
+			datasetService.deleteItem(dataset, itemId);
 		} catch (IOException e) {
 			logger.error(e.getMessage(), e);
 			throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, e.getMessage());
@@ -219,10 +222,10 @@ public class DatasetControllerImpl implements DatasetController {
 	}
 
 	@Override
-	public void deleteImageTag(Long datasetId, Long imageId, Long tagId) {
+	public void deleteItemTag(Long datasetId, Long itemId, Long tagId) {
 		Dataset dataset = getDataset(datasetId);
 		try {
-			datasetService.deleteImageTag(dataset, imageId, tagId);
+			datasetService.deleteItemTag(dataset, itemId, tagId);
 		} catch (EntityNotFoundException e) {
 			logger.error(e.getMessage(), e);
 			throw new ResponseStatusException(HttpStatus.NOT_FOUND, e.getMessage());
@@ -240,15 +243,15 @@ public class DatasetControllerImpl implements DatasetController {
 		return dataset;
 	}
 
-	private IndexedImage getIndexedImage(Dataset dataset, Long imageId) {
-		IndexedImage indexedImage;
+	private IndexedItem getIndexedItem(Dataset dataset, Long itemId) {
+		IndexedItem indexedItem;
 		try {
-			indexedImage = datasetService.findImageById(dataset, imageId);
+			indexedItem = datasetService.findItemById(dataset, itemId);
 		} catch (EntityNotFoundException e) {
 			logger.error(e.getMessage(), e);
 			throw new ResponseStatusException(HttpStatus.NOT_FOUND, e.getMessage());
 		}
-		return indexedImage;
+		return indexedItem;
 	}
 
 }

@@ -5,6 +5,7 @@ import java.util.Set;
 
 import javax.persistence.CascadeType;
 import javax.persistence.Column;
+import javax.persistence.Convert;
 import javax.persistence.Entity;
 import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
@@ -19,23 +20,29 @@ import javax.persistence.Table;
 
 import org.apache.commons.lang3.builder.ToStringBuilder;
 import org.atypical.carabassa.core.model.Dataset;
-import org.atypical.carabassa.core.model.IndexedImage;
+import org.atypical.carabassa.core.model.IndexedItem;
 import org.atypical.carabassa.core.model.Tag;
+import org.atypical.carabassa.core.model.enums.ItemType;
+import org.atypical.carabassa.indexer.rdbms.entity.converter.ItemTypeConverter;
 
 @Entity
-@Table(name = "IMAGE")
-@SequenceGenerator(initialValue = 1, name = "image_id_gen", sequenceName = "image_sequence")
-public class IndexedImageEntity implements IndexedImage {
+@Table(name = "ITEM")
+@SequenceGenerator(initialValue = 1, name = "item_id_gen", sequenceName = "item_sequence")
+public class IndexedItemEntity implements IndexedItem {
 
 	@Id
-	@GeneratedValue(strategy = GenerationType.AUTO, generator = "image_id_gen")
+	@GeneratedValue(strategy = GenerationType.AUTO, generator = "item_id_gen")
 	private Long id;
+
+	@Column(length = 1)
+	@Convert(converter = ItemTypeConverter.class)
+	private ItemType type;
 
 	@Column(nullable = false)
 	private String filename;
 
 	@Column(length = 10)
-	private String fileType;
+	private String format;
 
 	@Column(unique = true, nullable = false)
 	private String hash;
@@ -48,7 +55,7 @@ public class IndexedImageEntity implements IndexedImage {
 	private ZonedDateTime archiveTime;
 
 	@OneToMany(targetEntity = TagEntity.class, cascade = CascadeType.ALL, orphanRemoval = true)
-	@JoinColumn(name = "IMAGE_ID")
+	@JoinColumn(name = "ITEM_ID")
 	private Set<Tag> tags;
 
 	@ManyToOne(targetEntity = DatasetEntity.class)
@@ -75,6 +82,16 @@ public class IndexedImageEntity implements IndexedImage {
 	}
 
 	@Override
+	public ItemType getType() {
+		return type;
+	}
+
+	@Override
+	public void setType(ItemType type) {
+		this.type = type;
+	}
+
+	@Override
 	public String getFilename() {
 		return filename;
 	}
@@ -85,13 +102,13 @@ public class IndexedImageEntity implements IndexedImage {
 	}
 
 	@Override
-	public String getFileType() {
-		return fileType;
+	public String getFormat() {
+		return format;
 	}
 
 	@Override
-	public void setFileType(String fileType) {
-		this.fileType = fileType;
+	public void setFormat(String format) {
+		this.format = format;
 	}
 
 	@Override
@@ -171,7 +188,7 @@ public class IndexedImageEntity implements IndexedImage {
 			return false;
 		if (getClass() != obj.getClass())
 			return false;
-		IndexedImageEntity other = (IndexedImageEntity) obj;
+		IndexedItemEntity other = (IndexedItemEntity) obj;
 		if (filename == null) {
 			if (other.filename != null)
 				return false;

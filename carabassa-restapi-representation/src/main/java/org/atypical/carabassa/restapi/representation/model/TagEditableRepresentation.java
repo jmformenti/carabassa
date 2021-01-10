@@ -8,9 +8,9 @@ import com.fasterxml.jackson.annotation.JsonInclude.Include;
 
 public class TagEditableRepresentation {
 
-	@NotEmpty(message = "{api.dataset.image.tag.name.notEmpty}")
+	@NotEmpty(message = "{api.dataset.item.tag.name.notEmpty}")
 	private String name;
-	@NotNull(message = "{api.dataset.image.tag.value.notNull}")
+	@NotNull(message = "{api.dataset.item.tag.value.notNull}")
 	private Object value;
 	@JsonInclude(Include.NON_NULL)
 	private BoundingBoxRepresentation boundingBox;
