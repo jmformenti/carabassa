@@ -1,7 +1,6 @@
 package org.atypical.carabassa.cli.service.impl;
 
 import java.io.IOException;
-import java.nio.file.Files;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -30,6 +29,7 @@ import org.springframework.http.HttpMethod;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
+import org.springframework.http.client.SimpleClientHttpRequestFactory;
 import org.springframework.stereotype.Service;
 import org.springframework.util.Assert;
 import org.springframework.util.LinkedMultiValueMap;
@@ -71,20 +71,7 @@ public class DatasetApiServiceImpl implements DatasetApiService {
 		Resource item = new FileSystemResource(itemToUpload.getPath());
 
 		if (!findItemByHash(datasetId, item)) {
-			HttpHeaders headers = new HttpHeaders();
-			headers.setContentType(MediaType.MULTIPART_FORM_DATA);
-
-			MultiValueMap<String, String> fileMap = new LinkedMultiValueMap<>();
-			ContentDisposition contentDisposition = ContentDisposition.builder("form-data").name("file")
-					.filename(itemToUpload.getFilename().toString()).build();
-			fileMap.add(HttpHeaders.CONTENT_DISPOSITION, contentDisposition.toString());
-			fileMap.add(HttpHeaders.CONTENT_TYPE, itemToUpload.getContentType());
-			HttpEntity<byte[]> entity = new HttpEntity<>(Files.readAllBytes(itemToUpload.getPath()), fileMap);
-
-			MultiValueMap<String, Object> body = new LinkedMultiValueMap<>();
-			body.add("file", entity);
-
-			HttpEntity<MultiValueMap<String, Object>> request = new HttpEntity<>(body, headers);
+			HttpEntity<MultiValueMap<String, Object>> request = buildFileRequest(itemToUpload);
 
 			ResponseEntity<IdRepresentation> response = null;
 			try {
@@ -99,6 +86,33 @@ public class DatasetApiServiceImpl implements DatasetApiService {
 		} else {
 			throw new ItemAlreadyExists("Item already exists.");
 		}
+	}
+
+	private HttpEntity<MultiValueMap<String, Object>> buildFileRequest(ItemToUpload itemToUpload) {
+		Resource item = new FileSystemResource(itemToUpload.getPath());
+
+		// multi from data request
+		HttpHeaders headers = new HttpHeaders();
+		headers.setContentType(MediaType.MULTIPART_FORM_DATA);
+
+		// no buffer to avoid OOM in large files
+		SimpleClientHttpRequestFactory requestFactory = new SimpleClientHttpRequestFactory();
+		requestFactory.setBufferRequestBody(false);
+		restTemplate.setRequestFactory(requestFactory);
+
+		// manually sets file and content type, this content type will be used in server
+		// to index this file inside the dataset
+		MultiValueMap<String, String> fileMap = new LinkedMultiValueMap<>();
+		ContentDisposition contentDisposition = ContentDisposition.builder("form-data").name("file")
+				.filename(itemToUpload.getFilename().toString()).build();
+		fileMap.add(HttpHeaders.CONTENT_DISPOSITION, contentDisposition.toString());
+		fileMap.add(HttpHeaders.CONTENT_TYPE, itemToUpload.getContentType());
+		HttpEntity<Resource> entity = new HttpEntity<>(item, fileMap);
+
+		MultiValueMap<String, Object> body = new LinkedMultiValueMap<>();
+		body.add("file", entity);
+
+		return new HttpEntity<>(body, headers);
 	}
 
 	private boolean findItemByHash(Long datasetId, Resource item) throws IOException {
