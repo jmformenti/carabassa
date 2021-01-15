@@ -9,7 +9,9 @@ import org.springframework.util.DigestUtils;
 public class HashGenerator {
 
 	public static String generate(Resource resource) throws IOException {
-		return generate(resource.getInputStream());
+		try (InputStream inputStream = resource.getInputStream()) {
+			return generate(inputStream);
+		}
 	}
 
 	public static String generate(InputStream inputStream) throws IOException {
