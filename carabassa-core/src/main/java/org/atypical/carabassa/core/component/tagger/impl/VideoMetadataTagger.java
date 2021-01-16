@@ -39,15 +39,20 @@ public class VideoMetadataTagger implements Tagger {
 			tags.add((Tag) new TagImpl(TAG_ARCHIVE_TIME,
 					ZonedDateTime.parse(info.getMetadata().get(METADATA_CREATION_TIME_FIELD))));
 		}
-		tags.add((Tag) new TagImpl(TAG_PREFIX + "VideoBitRate", info.getVideo().getBitRate()));
-		tags.add((Tag) new TagImpl(TAG_PREFIX + "VideoDecoder", info.getVideo().getDecoder()));
-		tags.add((Tag) new TagImpl(TAG_PREFIX + "VideoFrameRate", info.getVideo().getFrameRate()));
-		tags.add((Tag) new TagImpl(TAG_PREFIX + "VideoSizeHeight", info.getVideo().getSize().getHeight()));
-		tags.add((Tag) new TagImpl(TAG_PREFIX + "VideoSizeWidth", info.getVideo().getSize().getWidth()));
-		tags.add((Tag) new TagImpl(TAG_PREFIX + "AudioBitRate", info.getAudio().getBitRate()));
-		tags.add((Tag) new TagImpl(TAG_PREFIX + "AudioChannels", info.getAudio().getChannels()));
-		tags.add((Tag) new TagImpl(TAG_PREFIX + "AudioDecoder", info.getAudio().getDecoder()));
-		tags.add((Tag) new TagImpl(TAG_PREFIX + "AudioSamplingRate", info.getAudio().getSamplingRate()));
+
+		if (info.getVideo() != null) {
+			tags.add((Tag) new TagImpl(TAG_PREFIX + "VideoBitRate", info.getVideo().getBitRate()));
+			tags.add((Tag) new TagImpl(TAG_PREFIX + "VideoDecoder", info.getVideo().getDecoder()));
+			tags.add((Tag) new TagImpl(TAG_PREFIX + "VideoFrameRate", info.getVideo().getFrameRate()));
+			tags.add((Tag) new TagImpl(TAG_PREFIX + "VideoSizeHeight", info.getVideo().getSize().getHeight()));
+			tags.add((Tag) new TagImpl(TAG_PREFIX + "VideoSizeWidth", info.getVideo().getSize().getWidth()));
+		}
+		if (info.getAudio() != null) {
+			tags.add((Tag) new TagImpl(TAG_PREFIX + "AudioBitRate", info.getAudio().getBitRate()));
+			tags.add((Tag) new TagImpl(TAG_PREFIX + "AudioChannels", info.getAudio().getChannels()));
+			tags.add((Tag) new TagImpl(TAG_PREFIX + "AudioDecoder", info.getAudio().getDecoder()));
+			tags.add((Tag) new TagImpl(TAG_PREFIX + "AudioSamplingRate", info.getAudio().getSamplingRate()));
+		}
 
 		tags.add((Tag) new TagImpl(TAG_HASH, HashGenerator.generate(inputItem)));
 
