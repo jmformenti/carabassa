@@ -5,7 +5,7 @@
 	<parent>
 		<groupId>org.atypical</groupId>
 		<artifactId>carabassa</artifactId>
-		<version>0.1.0-SNAPSHOT</version>
+		<version>${revision}</version>
 	</parent>
 	<artifactId>carabassa-web</artifactId>
 
@@ -13,17 +13,17 @@
 		<dependency>
 			<groupId>org.atypical</groupId>
 			<artifactId>carabassa-restapi</artifactId>
-			<version>0.1.0-SNAPSHOT</version>
+			<version>${project.version}</version>
 		</dependency>
 		<dependency>
 			<groupId>org.atypical</groupId>
 			<artifactId>carabassa-restapi-rdbms-mapper</artifactId>
-			<version>0.1.0-SNAPSHOT</version>
+			<version>${project.version}</version>
 		</dependency>
 		<dependency>
 			<groupId>org.atypical</groupId>
 			<artifactId>carabassa-storage-fs</artifactId>
-			<version>0.1.0-SNAPSHOT</version>
+			<version>${project.version}</version>
 		</dependency>
 		<dependency>
 			<groupId>org.springframework.boot</groupId>

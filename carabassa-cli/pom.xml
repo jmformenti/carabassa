@@ -5,15 +5,19 @@
 	<parent>
 		<groupId>org.atypical</groupId>
 		<artifactId>carabassa</artifactId>
-		<version>0.1.0-SNAPSHOT</version>
+		<version>${revision}</version>
 	</parent>
 	<artifactId>carabassa-cli</artifactId>
+
+	<properties>
+		<picocli.version>4.6.3</picocli.version>
+	</properties>
 
 	<dependencies>
 		<dependency>
 			<groupId>org.atypical</groupId>
 			<artifactId>carabassa-restapi-representation</artifactId>
-			<version>0.1.0-SNAPSHOT</version>
+			<version>${revision}</version>
 		</dependency>
 		<dependency>
 			<groupId>org.springframework.boot</groupId>
@@ -22,7 +26,7 @@
 		<dependency>
 			<groupId>info.picocli</groupId>
 			<artifactId>picocli-spring-boot-starter</artifactId>
-			<version>4.1.4</version>
+			<version>${picocli.version}</version>
 		</dependency>
 		<dependency>
 			<groupId>org.springframework</groupId>

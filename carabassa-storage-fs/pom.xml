@@ -5,20 +5,28 @@
 	<parent>
 		<groupId>org.atypical</groupId>
 		<artifactId>carabassa</artifactId>
-		<version>0.1.0-SNAPSHOT</version>
+		<version>${revision}</version>
 	</parent>
 	<artifactId>carabassa-storage-fs</artifactId>
+
+	<properties>
+		<thumbnailator.version>0.4.17</thumbnailator.version>
+	</properties>
 
 	<dependencies>
 		<dependency>
 			<groupId>org.atypical</groupId>
 			<artifactId>carabassa-core</artifactId>
-			<version>0.1.0-SNAPSHOT</version>
+			<version>${revision}</version>
+		</dependency>
+		<dependency>
+			<groupId>javax.annotation</groupId>
+			<artifactId>javax.annotation-api</artifactId>
 		</dependency>
 		<dependency>
 			<groupId>net.coobird</groupId>
 			<artifactId>thumbnailator</artifactId>
-			<version>0.4.14</version>
+			<version>${thumbnailator.version}</version>
 		</dependency>
 	</dependencies>
 </project>

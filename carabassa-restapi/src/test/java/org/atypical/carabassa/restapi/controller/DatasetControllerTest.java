@@ -8,8 +8,8 @@ import static org.springframework.restdocs.hypermedia.HypermediaDocumentation.li
 import static org.springframework.restdocs.mockmvc.MockMvcRestDocumentation.document;
 import static org.springframework.restdocs.mockmvc.MockMvcRestDocumentation.documentationConfiguration;
 import static org.springframework.restdocs.mockmvc.RestDocumentationRequestBuilders.delete;
-import static org.springframework.restdocs.mockmvc.RestDocumentationRequestBuilders.fileUpload;
 import static org.springframework.restdocs.mockmvc.RestDocumentationRequestBuilders.get;
+import static org.springframework.restdocs.mockmvc.RestDocumentationRequestBuilders.multipart;
 import static org.springframework.restdocs.mockmvc.RestDocumentationRequestBuilders.post;
 import static org.springframework.restdocs.mockmvc.RestDocumentationRequestBuilders.put;
 import static org.springframework.restdocs.operation.preprocess.Preprocessors.prettyPrint;
@@ -341,7 +341,7 @@ public class DatasetControllerTest extends DatasetControllerHelper {
 
 		MockMultipartFile file = new MockMultipartFile("file", indexedItem.getFilename(), "image/jpg", sampleContent);
 
-		mvc.perform(fileUpload("/api/dataset/{datasetId}/item", DATASET_ID).file(file)) //
+		mvc.perform(multipart("/api/dataset/{datasetId}/item", DATASET_ID).file(file)) //
 				.andExpect(status().isCreated()) //
 				.andDo(document("add-item",
 						pathParameters(parameterWithName("datasetId").description("Dataset identifier")),
