@@ -19,10 +19,14 @@ import org.atypical.carabassa.core.exception.EntityExistsException;
 import org.atypical.carabassa.core.exception.EntityNotFoundException;
 import org.atypical.carabassa.core.model.Dataset;
 import org.atypical.carabassa.core.model.IndexedItem;
+import org.atypical.carabassa.core.model.SearchCriteria;
 import org.atypical.carabassa.core.model.StoredItem;
 import org.atypical.carabassa.core.model.Tag;
 import org.atypical.carabassa.core.model.enums.ItemType;
+import org.atypical.carabassa.core.model.enums.SearchOperator;
 import org.atypical.carabassa.core.model.impl.DatasetImpl;
+import org.atypical.carabassa.core.model.impl.SearchConditionImpl;
+import org.atypical.carabassa.core.model.impl.SearchCriteriaImpl;
 import org.atypical.carabassa.core.model.impl.TagImpl;
 import org.atypical.carabassa.core.service.DatasetService;
 import org.atypical.carabassa.indexer.rdbms.configuration.IndexerRdbmsConfiguration;
@@ -488,6 +492,26 @@ public class DatasetServiceTest {
 		assertEquals(1, indexedItems.getNumberOfElements());
 		assertEquals("c90dc72d18cb6c62d8923fc2f276f94f", indexedItems.getContent().get(0).getHash());
 		assertEquals(2, indexedItems.getTotalElements());
+	}
+
+	@Test
+	void findItemsSearch() throws EntityNotFoundException, IOException, EntityExistsException {
+		final String FILENAME1 = "IMG_VALID.jpg";
+		final String FILENAME2 = "IMG_NO_DATE.jpg";
+
+		Dataset dataset = datasetService.findByName(DATASET_TEST_NAME);
+		datasetService.addItem(dataset, ItemType.IMAGE, FILENAME1, TestHelper.getImageResource(FILENAME1));
+		datasetService.addItem(dataset, ItemType.IMAGE, FILENAME2, TestHelper.getImageResource(FILENAME2));
+
+		// required to save item in db
+		entityManager.flush();
+
+		SearchCriteria searchCriteria = new SearchCriteriaImpl(
+				new SearchConditionImpl("meta.YearCreated", SearchOperator.EQUAL, "2005"));
+		Page<IndexedItem> indexedItems = datasetService.findItems(dataset, searchCriteria, PageRequest.of(0, 10));
+		assertNotNull(indexedItems);
+		assertEquals(1, indexedItems.getNumberOfElements());
+		assertEquals(1, indexedItems.getTotalElements());
 	}
 
 	@Test

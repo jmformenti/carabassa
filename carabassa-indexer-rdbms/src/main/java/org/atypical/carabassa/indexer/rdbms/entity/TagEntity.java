@@ -1,5 +1,8 @@
 package org.atypical.carabassa.indexer.rdbms.entity;
 
+import java.text.DateFormat;
+import java.text.DecimalFormat;
+import java.text.SimpleDateFormat;
 import java.time.LocalDate;
 import java.time.ZoneId;
 import java.time.ZonedDateTime;
@@ -17,6 +20,7 @@ import javax.persistence.PrePersist;
 import javax.persistence.SequenceGenerator;
 import javax.persistence.Table;
 
+import org.apache.commons.lang3.BooleanUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.builder.ToStringBuilder;
 import org.atypical.carabassa.core.model.BoundingBox;
@@ -30,6 +34,9 @@ import org.atypical.carabassa.indexer.rdbms.entity.enums.ValueType;
 public class TagEntity implements Tag {
 
 	private static final int MAX_TEXT_LENGTH = 255;
+
+	private static final DecimalFormat df = new DecimalFormat("#,###.##");
+	private static final DateFormat formatter = new SimpleDateFormat("yyyy-MM-dd");
 
 	@Id
 	@GeneratedValue(strategy = GenerationType.AUTO, generator = "tag_id_gen")
@@ -164,27 +171,35 @@ public class TagEntity implements Tag {
 		} else if (value instanceof Long) {
 			this.valueType = ValueType.LONG;
 			this.longValue = (Long) value;
+			this.textValue = String.valueOf(this.longValue);
 		} else if (value instanceof Integer) {
 			this.valueType = ValueType.LONG;
 			this.longValue = ((Integer) value).longValue();
+			this.textValue = String.valueOf(this.longValue);
 		} else if (value instanceof Double) {
 			this.valueType = ValueType.DOUBLE;
 			this.doubleValue = (Double) value;
+			this.textValue = df.format(this.doubleValue);
 		} else if (value instanceof Float) {
 			this.valueType = ValueType.DOUBLE;
 			this.doubleValue = ((Float) value).doubleValue();
+			this.textValue = df.format(this.doubleValue);
 		} else if (value instanceof Boolean) {
 			this.valueType = ValueType.BOOLEAN;
 			this.booleanValue = (Boolean) value;
+			this.textValue = BooleanUtils.toStringTrueFalse(this.booleanValue);
 		} else if (value instanceof ZonedDateTime) {
 			this.valueType = ValueType.DATE;
 			this.dateValue = (ZonedDateTime) value;
+			this.textValue = formatter.format(Date.from(((ZonedDateTime) this.dateValue).toInstant()));
 		} else if (value instanceof LocalDate) {
 			this.valueType = ValueType.DATE;
 			this.dateValue = ((LocalDate) value).atStartOfDay(ZoneId.systemDefault());
+			this.textValue = formatter.format(Date.from(((ZonedDateTime) this.dateValue).toInstant()));
 		} else if (value instanceof Date) {
 			this.valueType = ValueType.DATE;
 			this.dateValue = ((Date) value).toInstant().atZone(ZoneId.systemDefault());
+			this.textValue = formatter.format(this.dateValue);
 		} else {
 			// if not supported type save as string
 			this.valueType = ValueType.STRING;

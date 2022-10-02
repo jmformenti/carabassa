@@ -7,6 +7,7 @@ import org.atypical.carabassa.core.exception.EntityExistsException;
 import org.atypical.carabassa.core.exception.EntityNotFoundException;
 import org.atypical.carabassa.core.model.Dataset;
 import org.atypical.carabassa.core.model.IndexedItem;
+import org.atypical.carabassa.core.model.SearchCriteria;
 import org.atypical.carabassa.core.model.Tag;
 import org.atypical.carabassa.core.model.enums.ItemType;
 import org.springframework.core.io.Resource;
@@ -43,6 +44,8 @@ public interface DatasetIndexer {
 	public IndexedItem findItemById(Dataset dataset, Long itemId) throws EntityNotFoundException;
 
 	public Page<IndexedItem> findItems(Dataset dataset, Pageable pageable);
+
+	public Page<IndexedItem> findItems(Dataset dataset, SearchCriteria searchCriteria, Pageable pageable);
 
 	public Tag findItemTagById(Dataset dataset, Long itemId, Long tagId) throws EntityNotFoundException;
 

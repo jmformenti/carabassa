@@ -11,7 +11,9 @@ import org.atypical.carabassa.core.exception.EntityExistsException;
 import org.atypical.carabassa.core.exception.EntityNotFoundException;
 import org.atypical.carabassa.core.model.Dataset;
 import org.atypical.carabassa.core.model.IndexedItem;
+import org.atypical.carabassa.core.model.SearchCriteria;
 import org.atypical.carabassa.core.model.StoredItem;
+import org.atypical.carabassa.core.model.StoredItemThumbnail;
 import org.atypical.carabassa.core.model.Tag;
 import org.atypical.carabassa.core.model.enums.ItemType;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -105,6 +107,11 @@ public class DatasetServiceImpl implements org.atypical.carabassa.core.service.D
 	}
 
 	@Override
+	public Page<IndexedItem> findItems(Dataset dataset, SearchCriteria searchCriteria, Pageable pageable) {
+		return datasetIndexer.findItems(dataset, searchCriteria, pageable);
+	}
+
+	@Override
 	public Dataset findByName(String datasetName) throws EntityNotFoundException {
 		return datasetIndexer.findByName(datasetName);
 	}
@@ -127,6 +134,11 @@ public class DatasetServiceImpl implements org.atypical.carabassa.core.service.D
 	@Override
 	public StoredItem getStoredItem(Dataset dataset, IndexedItem item) throws IOException, EntityNotFoundException {
 		return datasetStorage.getItem(dataset, item);
+	}
+
+	@Override
+	public StoredItemThumbnail getStoredItemThumbnail(Dataset dataset, IndexedItem item) throws IOException, EntityNotFoundException {
+		return datasetStorage.getItemThumbnail(dataset, item);
 	}
 
 	@Override

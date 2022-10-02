@@ -1,5 +1,6 @@
 package org.atypical.carabassa.storage.fs.component;
 
+import java.io.ByteArrayOutputStream;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.nio.file.Files;
@@ -22,9 +23,11 @@ import org.atypical.carabassa.core.model.Dataset;
 import org.atypical.carabassa.core.model.IndexedItem;
 import org.atypical.carabassa.core.model.StoredItem;
 import org.atypical.carabassa.core.model.StoredItemInfo;
+import org.atypical.carabassa.core.model.StoredItemThumbnail;
 import org.atypical.carabassa.core.model.enums.ItemType;
 import org.atypical.carabassa.core.model.impl.StoredItemImpl;
 import org.atypical.carabassa.core.model.impl.StoredItemInfoImpl;
+import org.atypical.carabassa.core.model.impl.StoredItemThumbnailImpl;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.core.io.Resource;
@@ -35,6 +38,8 @@ import com.fasterxml.jackson.core.JsonGenerationException;
 import com.fasterxml.jackson.core.JsonParseException;
 import com.fasterxml.jackson.databind.JsonMappingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
+
+import net.coobird.thumbnailator.Thumbnails;
 
 @Component
 public class DatasetFSStorage implements DatasetStorage {
@@ -48,6 +53,8 @@ public class DatasetFSStorage implements DatasetStorage {
 
 	private static final String ARCHIVED_DIR = "archived";
 	private static final String NOT_ARCHIVED_DIR = "not_archived";
+
+	private static final String THUMBNAIL_SUFFIX = "_thumb";
 
 	@Value("${carabassa.repodir}")
 	private String repoDir;
@@ -111,6 +118,47 @@ public class DatasetFSStorage implements DatasetStorage {
 	}
 
 	@Override
+	public StoredItemThumbnail getItemThumbnail(Dataset dataset, IndexedItem item)
+			throws IOException, EntityNotFoundException {
+		if (item.getType() == ItemType.IMAGE) {
+			Path repoPath = getArchivePath(dataset, item);
+			Path itemPath = repoPath.resolve(getArchiveFilename(item));
+
+			if (Files.exists(itemPath)) {
+				String thumbnailFilename = getThumbnailFilename(item);
+				Path thumbnailPath = repoPath.resolve(thumbnailFilename);
+
+				byte[] contents;
+				if (Files.exists(thumbnailPath)) {
+					contents = Files.readAllBytes(thumbnailPath);
+				} else {
+					contents = createThumbnail(itemPath);
+					Files.write(thumbnailPath, contents);
+				}
+
+				return new StoredItemThumbnailImpl(thumbnailFilename, contents);
+			} else {
+				throw new EntityNotFoundException(localizedMessage.getText(ITEM_NOT_EXISTS_MESSAGE_KEY, item.getId()));
+			}
+		} else {
+			throw new IllegalArgumentException("Thumbnail implemented only for images");
+		}
+	}
+
+	private byte[] createThumbnail(Path itemPath) throws IOException {
+//		BufferedImage img = ImageIO.read(itemPath.toFile());
+//		BufferedImage thumb = new FixedSizeThumbnailMaker() //
+//				.size(200, 200) //
+//				.keepAspectRatio(true) //
+//				.fitWithinDimensions(false) //
+//				.make(img);
+//		ImageIO.write(thumb, StoredItemThumbnail.THUMBNAIL_FORMAT, thumbnailPath.toFile());
+		ByteArrayOutputStream baos = new ByteArrayOutputStream();
+		Thumbnails.of(itemPath.toFile()).size(200, 200).keepAspectRatio(true).toOutputStream(baos);
+		return baos.toByteArray();
+	}
+
+	@Override
 	public void deleteAll() throws IOException {
 		FileUtils.deleteDirectory(Paths.get(repoDir).toFile());
 	}
@@ -147,6 +195,10 @@ public class DatasetFSStorage implements DatasetStorage {
 	private String getArchiveFilename(IndexedItem item) {
 		String extension = getArchiveExtension(item);
 		return getArchiveBasename(item) + (StringUtils.isBlank(extension) ? "" : "." + extension.toLowerCase());
+	}
+
+	private String getThumbnailFilename(IndexedItem item) {
+		return "." + getArchiveBasename(item) + THUMBNAIL_SUFFIX + "." + StoredItemThumbnail.THUMBNAIL_FORMAT;
 	}
 
 	private String getArchiveBasename(IndexedItem item) {

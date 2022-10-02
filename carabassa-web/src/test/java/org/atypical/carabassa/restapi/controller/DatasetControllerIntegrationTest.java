@@ -26,10 +26,12 @@ import org.atypical.carabassa.core.exception.EntityNotFoundException;
 import org.atypical.carabassa.core.model.Dataset;
 import org.atypical.carabassa.core.model.IndexedItem;
 import org.atypical.carabassa.core.model.StoredItem;
+import org.atypical.carabassa.core.model.StoredItemThumbnail;
 import org.atypical.carabassa.core.model.Tag;
 import org.atypical.carabassa.core.model.enums.ItemType;
 import org.atypical.carabassa.core.model.impl.StoredItemImpl;
 import org.atypical.carabassa.core.model.impl.StoredItemInfoImpl;
+import org.atypical.carabassa.core.model.impl.StoredItemThumbnailImpl;
 import org.atypical.carabassa.core.service.DatasetService;
 import org.atypical.carabassa.restapi.configuration.RestApiConfiguration;
 import org.atypical.carabassa.restapi.rdbms.configuration.RestApiRdbmsMapperConfiguration;
@@ -86,7 +88,6 @@ public class DatasetControllerIntegrationTest extends DatasetControllerHelper {
 		String json = objectMapper.writeValueAsString(new DatasetEditableRepresentation(DATASET_NAME, "desc"));
 
 		when(datasetService.create(isA(Dataset.class))).thenThrow(new EntityExistsException());
-
 		mvc.perform(post("/api/dataset") //
 				.contentType(MediaType.APPLICATION_JSON).content(json)) //
 				.andExpect(status().isConflict()) //
@@ -216,7 +217,7 @@ public class DatasetControllerIntegrationTest extends DatasetControllerHelper {
 	}
 
 	@Test
-	void getItemsOK() throws Exception {
+	void findItemsOK() throws Exception {
 		when(datasetService.findById(DATASET_ID)).thenReturn(dataset);
 		Page<IndexedItem> page = new PageImpl<>(new ArrayList<>(dataset.getItems()));
 		when(datasetService.findItems(isA(Dataset.class), isA(Pageable.class))).thenReturn(page);
@@ -232,7 +233,7 @@ public class DatasetControllerIntegrationTest extends DatasetControllerHelper {
 	}
 
 	@Test
-	void getItemsDatasetNotFound() throws Exception {
+	void findItemsDatasetNotFound() throws Exception {
 		when(datasetService.findById(DATASET_ID)).thenThrow(EntityNotFoundException.class);
 
 		mvc.perform(get("/api/dataset/{datasetId}/item", DATASET_ID)) //
@@ -240,7 +241,7 @@ public class DatasetControllerIntegrationTest extends DatasetControllerHelper {
 	}
 
 	@Test
-	void getItemOK() throws Exception {
+	void findItemOK() throws Exception {
 		when(datasetService.findById(DATASET_ID)).thenReturn(dataset);
 		when(datasetService.findItemById(dataset, ITEM_ID)).thenReturn(indexedItem);
 
@@ -267,7 +268,7 @@ public class DatasetControllerIntegrationTest extends DatasetControllerHelper {
 	}
 
 	@Test
-	void getItemDatasetNotFound() throws Exception {
+	void findItemDatasetNotFound() throws Exception {
 		when(datasetService.findById(DATASET_ID)).thenThrow(EntityNotFoundException.class);
 
 		mvc.perform(get("/api/dataset/{datasetId}/item/{itemId}", DATASET_ID, ITEM_ID)) //
@@ -276,7 +277,7 @@ public class DatasetControllerIntegrationTest extends DatasetControllerHelper {
 	}
 
 	@Test
-	void getItemNotFound() throws Exception {
+	void findItemNotFound() throws Exception {
 		when(datasetService.findById(DATASET_ID)).thenReturn(dataset);
 		when(datasetService.findItemById(dataset, ITEM_ID)).thenThrow(EntityNotFoundException.class);
 
@@ -306,7 +307,7 @@ public class DatasetControllerIntegrationTest extends DatasetControllerHelper {
 	}
 
 	@Test
-	void getItemContentOK() throws Exception {
+	void findItemContentOK() throws Exception {
 		when(datasetService.findById(DATASET_ID)).thenReturn(dataset);
 		when(datasetService.findItemById(dataset, ITEM_ID)).thenReturn(indexedItem);
 
@@ -316,6 +317,23 @@ public class DatasetControllerIntegrationTest extends DatasetControllerHelper {
 		when(datasetService.getStoredItem(dataset, indexedItem)).thenReturn(storedItem);
 
 		mvc.perform(get("/api/dataset/{datasetId}/item/{itemId}/content", DATASET_ID, ITEM_ID)) //
+				.andExpect(status().isOk()) //
+				.andExpect(content().contentType(indexedItem.getType().name() + "/" + indexedItem.getFormat()))
+				.andExpect(header().string(HttpHeaders.CONTENT_DISPOSITION,
+						"attachment; filename=\"" + indexedItem.getFilename() + "\""))
+				.andExpect(content().string("test")) //
+				.andDo(log());
+	}
+
+	@Test
+	void findItemThumbnailOK() throws Exception {
+		when(datasetService.findById(DATASET_ID)).thenReturn(dataset);
+		when(datasetService.findItemById(dataset, ITEM_ID)).thenReturn(indexedItem);
+
+		StoredItemThumbnail storedItemThumbnail = new StoredItemThumbnailImpl("test.jpg", "test".getBytes());
+		when(datasetService.getStoredItemThumbnail(dataset, indexedItem)).thenReturn(storedItemThumbnail);
+
+		mvc.perform(get("/api/dataset/{datasetId}/item/{itemId}/thumbnail", DATASET_ID, ITEM_ID)) //
 				.andExpect(status().isOk()) //
 				.andExpect(content().contentType(indexedItem.getType().name() + "/" + indexedItem.getFormat()))
 				.andExpect(header().string(HttpHeaders.CONTENT_DISPOSITION,

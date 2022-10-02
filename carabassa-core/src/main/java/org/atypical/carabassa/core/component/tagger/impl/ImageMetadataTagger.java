@@ -25,13 +25,18 @@ import org.springframework.stereotype.Component;
 
 import com.drew.imaging.ImageMetadataReader;
 import com.drew.imaging.ImageProcessingException;
+import com.drew.lang.GeoLocation;
 import com.drew.metadata.Directory;
 import com.drew.metadata.Metadata;
 import com.drew.metadata.exif.ExifSubIFDDirectory;
+import com.drew.metadata.exif.GpsDirectory;
 import com.drew.metadata.file.FileTypeDirectory;
 import com.github.kilianB.hash.Hash;
 import com.github.kilianB.hashAlgorithms.DifferenceHash;
 import com.github.kilianB.hashAlgorithms.DifferenceHash.Precision;
+
+import atlas.Atlas;
+import atlas.City;
 
 @Component
 public class ImageMetadataTagger implements Tagger {
@@ -39,12 +44,17 @@ public class ImageMetadataTagger implements Tagger {
 	private static final Logger logger = LoggerFactory.getLogger(ImageMetadataTagger.class);
 
 	public static final String TAG_DHASH = TAG_PREFIX + "Dhash";
+	public static final String TAG_GEO_LATITUDE = TAG_PREFIX + "GeoLatitude";
+	public static final String TAG_GEO_LONGITUDE = TAG_PREFIX + "GeoLongitude";
+	public static final String TAG_CITY = TAG_PREFIX + "City";
 
 	private static final String IMAGE_ERROR_META_MESSAGE_KEY = "core.tagger.meta.image.error";
 	private static final String IMAGE_ERROR_PHASH_MESSAGE_KEY = "core.tagger.phash.error";
 
 	@Autowired
 	private LocalizedMessage localizedMessage;
+	
+	private Atlas atlas = new Atlas();
 
 	@Override
 	public Set<Tag> getTags(Resource inputItem) throws IOException {
@@ -56,7 +66,9 @@ public class ImageMetadataTagger implements Tagger {
 			tags.addAll(getCustomTags(inputItem, metadata));
 		}
 
-		tags.forEach(t -> logger.debug("Tag {} = {}", t.getName(), t.getValue()));
+		if (logger.isDebugEnabled()) {
+			tags.forEach(t -> logger.debug("Tag {} = {}", t.getName(), t.getValue()));
+		}
 
 		return tags;
 	}
@@ -92,9 +104,12 @@ public class ImageMetadataTagger implements Tagger {
 	private Set<Tag> getMetaTags(Metadata metadata) {
 		Set<Tag> metaTags = new HashSet<>();
 		for (Directory directory : metadata.getDirectories()) {
+			if (directory instanceof GpsDirectory) {
+				addGeoTags((GpsDirectory) directory, metaTags);
+			}
 			for (com.drew.metadata.Tag metaTag : directory.getTags()) {
 				Object tagValue = directory.getObject(metaTag.getTagType());
-				if (isValidValue(tagValue)) {
+				if (isValidTag(metaTag.getTagName(), tagValue)) {
 					Tag tag = new TagImpl(TAG_PREFIX + toCamelCase(metaTag.getTagName()), tagValue);
 					metaTags.add((Tag) tag);
 				}
@@ -103,8 +118,24 @@ public class ImageMetadataTagger implements Tagger {
 		return metaTags;
 	}
 
-	private boolean isValidValue(Object value) {
-		if (value == null) {
+	private void addGeoTags(GpsDirectory directory, Set<Tag> metaTags) {
+		GeoLocation geoLocation = ((GpsDirectory) directory).getGeoLocation();
+		if (geoLocation != null && !geoLocation.isZero()) {
+			metaTags.add(new TagImpl(TAG_GEO_LATITUDE, geoLocation.getLatitude()));
+			metaTags.add(new TagImpl(TAG_GEO_LONGITUDE, geoLocation.getLongitude()));
+			City city = atlas.find(geoLocation.getLatitude(), geoLocation.getLongitude());
+			if (city != null) {
+				metaTags.add(new TagImpl(TAG_CITY, city.name));
+			}
+		}
+	}
+
+	private boolean isValidTag(String tagName, Object value) {
+		if (tagName == null) {
+			return false;
+		} else if (tagName.startsWith("Unknown tag")) {
+			return false;
+		} else if (value == null) {
 			return false;
 		} else if (value instanceof String) {
 			if (((String) value).isEmpty()) {

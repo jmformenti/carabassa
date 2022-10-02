@@ -7,12 +7,14 @@ import org.atypical.carabassa.core.model.IndexedItem;
 import org.atypical.carabassa.indexer.rdbms.entity.IndexedItemEntity;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.jpa.repository.JpaSpecificationExecutor;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.CrudRepository;
 import org.springframework.stereotype.Repository;
 
 @Repository
-public interface IndexedItemRepository extends CrudRepository<IndexedItemEntity, Long> {
+public interface IndexedItemRepository
+		extends CrudRepository<IndexedItemEntity, Long>, JpaSpecificationExecutor<IndexedItemEntity> {
 
 	@Query("from IndexedItemEntity i where i.dataset=:dataset")
 	public Page<IndexedItem> findItems(Dataset dataset, Pageable pageable);

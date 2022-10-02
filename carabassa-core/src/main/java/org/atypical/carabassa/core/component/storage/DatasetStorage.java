@@ -7,6 +7,7 @@ import org.atypical.carabassa.core.exception.EntityNotFoundException;
 import org.atypical.carabassa.core.model.Dataset;
 import org.atypical.carabassa.core.model.IndexedItem;
 import org.atypical.carabassa.core.model.StoredItem;
+import org.atypical.carabassa.core.model.StoredItemThumbnail;
 import org.springframework.core.io.Resource;
 
 public interface DatasetStorage {
@@ -17,6 +18,9 @@ public interface DatasetStorage {
 			throws IOException, EntityExistsException;
 
 	public StoredItem getItem(Dataset dataset, IndexedItem item) throws IOException, EntityNotFoundException;
+
+	public StoredItemThumbnail getItemThumbnail(Dataset dataset, IndexedItem item)
+			throws IOException, EntityNotFoundException;
 
 	public void deleteAll() throws IOException;
 

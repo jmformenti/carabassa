@@ -12,6 +12,7 @@ import org.springframework.hateoas.PagedModel;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -26,6 +27,7 @@ import org.springframework.web.multipart.MultipartFile;
 
 @RestController
 @RequestMapping(value = { "/api/dataset" })
+@CrossOrigin
 // TODO add authentication
 public interface DatasetController {
 
@@ -52,16 +54,21 @@ public interface DatasetController {
 	public void delete(@PathVariable("datasetId") Long datasetId);
 
 	@GetMapping(value = "/{datasetId}/item")
-	public PagedModel<ItemRepresentation> getItems(@PathVariable("datasetId") Long datasetId, Pageable pageable);
+	public PagedModel<ItemRepresentation> findItems(@PathVariable("datasetId") Long datasetId,
+			@RequestParam(value = "search", required = false) String search, Pageable pageable);
 
 	@GetMapping(value = "/{datasetId}/item/{id}")
-	public ItemRepresentation getItem(@PathVariable("datasetId") Long datasetId, @PathVariable("id") Long itemId);
+	public ItemRepresentation findItem(@PathVariable("datasetId") Long datasetId, @PathVariable("id") Long itemId);
 
 	@GetMapping(value = "/{datasetId}/item/exists/{hash}")
 	public void existsItem(@PathVariable("datasetId") Long datasetId, @PathVariable("hash") String hash);
 
 	@GetMapping(value = "/{datasetId}/item/{id}/content")
-	public ResponseEntity<byte[]> getItemContent(@PathVariable("datasetId") Long datasetId,
+	public ResponseEntity<byte[]> findItemContent(@PathVariable("datasetId") Long datasetId,
+			@PathVariable("id") Long itemId);
+
+	@GetMapping(value = "/{datasetId}/item/{id}/thumbnail")
+	public ResponseEntity<byte[]> findItemThumbnail(@PathVariable("datasetId") Long datasetId,
 			@PathVariable("id") Long itemId);
 
 	@PostMapping(value = "/{datasetId}/item")

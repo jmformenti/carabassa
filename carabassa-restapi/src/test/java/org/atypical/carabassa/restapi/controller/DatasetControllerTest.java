@@ -27,12 +27,15 @@ import java.util.Arrays;
 
 import org.atypical.carabassa.core.model.Dataset;
 import org.atypical.carabassa.core.model.IndexedItem;
+import org.atypical.carabassa.core.model.SearchCriteria;
 import org.atypical.carabassa.core.model.StoredItem;
+import org.atypical.carabassa.core.model.StoredItemThumbnail;
 import org.atypical.carabassa.core.model.Tag;
 import org.atypical.carabassa.core.model.enums.ItemType;
 import org.atypical.carabassa.core.model.impl.DatasetImpl;
 import org.atypical.carabassa.core.model.impl.StoredItemImpl;
 import org.atypical.carabassa.core.model.impl.StoredItemInfoImpl;
+import org.atypical.carabassa.core.model.impl.StoredItemThumbnailImpl;
 import org.atypical.carabassa.core.service.DatasetService;
 import org.atypical.carabassa.restapi.configuration.RestApiConfiguration;
 import org.atypical.carabassa.restapi.representation.assembler.DatasetModelAssembler;
@@ -241,18 +244,20 @@ public class DatasetControllerTest extends DatasetControllerHelper {
 	}
 
 	@Test
-	public void getItems() throws Exception {
+	public void findItems() throws Exception {
 		when(datasetService.findById(DATASET_ID)).thenReturn(dataset);
 		Page<IndexedItem> page = new PageImpl<>(new ArrayList<>(dataset.getItems()), PageRequest.of(2, 10), 100L);
-		when(datasetService.findItems(isA(Dataset.class), isA(Pageable.class))).thenReturn(page);
+		when(datasetService.findItems(isA(Dataset.class), isA(SearchCriteria.class), isA(Pageable.class)))
+				.thenReturn(page);
 		when(itemModelAssembler.toModel(isA(IndexedItem.class))).thenReturn(itemRepresentation);
 
-		mvc.perform(get("/api/dataset/{datasetId}/item?page=0&size=10", DATASET_ID)) //
+		mvc.perform(get("/api/dataset/{datasetId}/item?page=0&size=10&search=test:4", DATASET_ID)) //
 				.andExpect(status().isOk()) //
-				.andDo(document("get-items", //
+				.andDo(document("find-items", //
 						pathParameters(parameterWithName("datasetId").description("Dataset identifier")),
 						requestParameters(parameterWithName("page").description("The page to retrieve"),
-								parameterWithName("size").description("Entries per page")),
+								parameterWithName("size").description("Entries per page"),
+								parameterWithName("search").description("Search string")),
 						pagingLinks, //
 						responseFields(
 								subsectionWithPath("_links").description("Links to other resources").type(Links.class),
@@ -261,14 +266,14 @@ public class DatasetControllerTest extends DatasetControllerHelper {
 	}
 
 	@Test
-	public void getItem() throws Exception {
+	public void findItem() throws Exception {
 		when(datasetService.findById(DATASET_ID)).thenReturn(dataset);
 		when(datasetService.findItemById(dataset, ITEM_ID)).thenReturn(indexedItem);
 		when(itemMapper.toRepresentation(indexedItem)).thenReturn(itemRepresentation);
 
 		mvc.perform(get("/api/dataset/{datasetId}/item/{itemId}", DATASET_ID, ITEM_ID)) //
 				.andExpect(status().isOk()) //
-				.andDo(document("get-item",
+				.andDo(document("find-item",
 						pathParameters(parameterWithName("datasetId").description("Dataset identifier"),
 								parameterWithName("itemId").description("Item identifier")),
 						responseFields(itemDescriptor)));
@@ -287,7 +292,7 @@ public class DatasetControllerTest extends DatasetControllerHelper {
 	}
 
 	@Test
-	public void getItemContent() throws Exception {
+	public void findItemContent() throws Exception {
 		when(datasetService.findById(DATASET_ID)).thenReturn(dataset);
 		when(datasetService.findItemById(dataset, ITEM_ID)).thenReturn(indexedItem);
 
@@ -301,7 +306,25 @@ public class DatasetControllerTest extends DatasetControllerHelper {
 
 		mvc.perform(get("/api/dataset/{datasetId}/item/{itemId}/content", DATASET_ID, ITEM_ID)) //
 				.andExpect(status().isOk()) //
-				.andDo(document("get-item-content",
+				.andDo(document("find-item-content",
+						pathParameters(parameterWithName("datasetId").description("Dataset identifier"),
+								parameterWithName("itemId").description("Item identifier"))));
+	}
+
+	@Test
+	public void findItemThumbnail() throws Exception {
+		when(datasetService.findById(DATASET_ID)).thenReturn(dataset);
+		when(datasetService.findItemById(dataset, ITEM_ID)).thenReturn(indexedItem);
+
+		Resource resource = new ClassPathResource("images/IMG_NO_DATE.jpg");
+		byte[] sampleContent = new byte[1000];
+		resource.getInputStream().read(sampleContent);
+		StoredItemThumbnail storedItemThumbnail = new StoredItemThumbnailImpl(resource.getFilename(), sampleContent);
+		when(datasetService.getStoredItemThumbnail(dataset, indexedItem)).thenReturn(storedItemThumbnail);
+
+		mvc.perform(get("/api/dataset/{datasetId}/item/{itemId}/thumbnail", DATASET_ID, ITEM_ID)) //
+				.andExpect(status().isOk()) //
+				.andDo(document("find-item-thumbnail",
 						pathParameters(parameterWithName("datasetId").description("Dataset identifier"),
 								parameterWithName("itemId").description("Item identifier"))));
 	}

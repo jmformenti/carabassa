@@ -8,11 +8,14 @@ import org.atypical.carabassa.core.exception.EntityExistsException;
 import org.atypical.carabassa.core.exception.EntityNotFoundException;
 import org.atypical.carabassa.core.model.Dataset;
 import org.atypical.carabassa.core.model.IndexedItem;
+import org.atypical.carabassa.core.model.SearchCriteria;
 import org.atypical.carabassa.core.model.StoredItem;
+import org.atypical.carabassa.core.model.StoredItemThumbnail;
 import org.atypical.carabassa.core.model.enums.ItemType;
 import org.atypical.carabassa.core.service.DatasetService;
 import org.atypical.carabassa.core.util.MediaTypeDetector;
 import org.atypical.carabassa.restapi.controller.DatasetController;
+import org.atypical.carabassa.restapi.helper.SearchCriteriaParser;
 import org.atypical.carabassa.restapi.representation.assembler.DatasetModelAssembler;
 import org.atypical.carabassa.restapi.representation.assembler.ItemModelAssembler;
 import org.atypical.carabassa.restapi.representation.mapper.DatasetMapper;
@@ -143,14 +146,26 @@ public class DatasetControllerImpl implements DatasetController {
 	}
 
 	@Override
-	public PagedModel<ItemRepresentation> getItems(Long datasetId, Pageable pageable) {
+	public PagedModel<ItemRepresentation> findItems(Long datasetId, String search, Pageable pageable) {
 		Dataset dataset = getDataset(datasetId);
-		Page<IndexedItem> page = datasetService.findItems(dataset, pageable);
+
+		SearchCriteria searchCriteria = null;
+		if (search != null) {
+			searchCriteria = SearchCriteriaParser.parse(search);
+		}
+
+		Page<IndexedItem> page;
+		if (searchCriteria == null || searchCriteria.isEmpty()) {
+			page = datasetService.findItems(dataset, pageable);
+		} else {
+			page = datasetService.findItems(dataset, searchCriteria, pageable);
+		}
+
 		return itemPagedResourcesAssembler.toModel(page, itemModelAssembler);
 	}
 
 	@Override
-	public ItemRepresentation getItem(Long datasetId, Long itemId) {
+	public ItemRepresentation findItem(Long datasetId, Long itemId) {
 		IndexedItem indexedItem = getIndexedItem(getDataset(datasetId), itemId);
 		return itemMapper.toRepresentation(indexedItem);
 	}
@@ -165,7 +180,7 @@ public class DatasetControllerImpl implements DatasetController {
 	}
 
 	@Override
-	public ResponseEntity<byte[]> getItemContent(Long datasetId, Long itemId) {
+	public ResponseEntity<byte[]> findItemContent(Long datasetId, Long itemId) {
 		Dataset dataset = getDataset(datasetId);
 		IndexedItem indexedItem = getIndexedItem(dataset, itemId);
 
@@ -184,6 +199,30 @@ public class DatasetControllerImpl implements DatasetController {
 				.contentType(MediaType.parseMediaType(ItemType.IMAGE.normalized() + "/" + indexedItem.getFormat()))
 				.header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=\"" + indexedItem.getFilename() + "\"")
 				.body(storedItem.getContent());
+	}
+
+	@Override
+	public ResponseEntity<byte[]> findItemThumbnail(Long datasetId, Long itemId) {
+		Dataset dataset = getDataset(datasetId);
+		IndexedItem indexedItem = getIndexedItem(dataset, itemId);
+
+		StoredItemThumbnail storedItemThumbnail;
+		try {
+			storedItemThumbnail = datasetService.getStoredItemThumbnail(dataset, indexedItem);
+		} catch (EntityNotFoundException e) {
+			logger.error(e.getMessage(), e);
+			throw new ResponseStatusException(HttpStatus.NOT_FOUND, e.getMessage());
+		} catch (IOException e) {
+			logger.error(e.getMessage(), e);
+			throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, e.getMessage());
+		}
+
+		return ResponseEntity.ok() //
+				.contentType(
+						MediaType.parseMediaType(ItemType.IMAGE.normalized() + "/" + storedItemThumbnail.getFormat()))
+				.header(HttpHeaders.CONTENT_DISPOSITION,
+						"attachment; filename=\"" + storedItemThumbnail.getFilename() + "\"")
+				.body(storedItemThumbnail.getContent());
 	}
 
 	@Override

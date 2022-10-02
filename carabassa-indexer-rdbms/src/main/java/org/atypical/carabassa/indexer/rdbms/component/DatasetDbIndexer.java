@@ -21,11 +21,13 @@ import org.atypical.carabassa.core.exception.EntityExistsException;
 import org.atypical.carabassa.core.exception.EntityNotFoundException;
 import org.atypical.carabassa.core.model.Dataset;
 import org.atypical.carabassa.core.model.IndexedItem;
+import org.atypical.carabassa.core.model.SearchCriteria;
 import org.atypical.carabassa.core.model.Tag;
 import org.atypical.carabassa.core.model.enums.ItemType;
 import org.atypical.carabassa.indexer.rdbms.entity.DatasetEntity;
 import org.atypical.carabassa.indexer.rdbms.entity.IndexedItemEntity;
 import org.atypical.carabassa.indexer.rdbms.entity.TagEntity;
+import org.atypical.carabassa.indexer.rdbms.entity.specification.ItemSpecification;
 import org.atypical.carabassa.indexer.rdbms.repository.DatasetRepository;
 import org.atypical.carabassa.indexer.rdbms.repository.IndexedItemRepository;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -225,6 +227,13 @@ public class DatasetDbIndexer implements DatasetIndexer {
 	@Override
 	public Page<IndexedItem> findItems(Dataset dataset, Pageable pageable) {
 		return indexedItemRepository.findItems(dataset, pageable).map(item -> (IndexedItem) item);
+	}
+
+	@Override
+	public Page<IndexedItem> findItems(Dataset dataset, SearchCriteria searchCriteria, Pageable pageable) {
+		Assert.notNull(searchCriteria, "Search criteria can not be null.");
+		return indexedItemRepository.findAll(new ItemSpecification(searchCriteria), pageable)
+				.map(item -> (IndexedItem) item);
 	}
 
 	@Override
