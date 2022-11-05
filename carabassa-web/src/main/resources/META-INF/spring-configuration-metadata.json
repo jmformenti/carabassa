@@ -14,6 +14,11 @@
 			"name": "carabassa.tempdir",
 			"type": "java.lang.String",
 			"description": "Temporal directory for uploaded files"
+		},
+		{
+			"name": "carabassa.default-tz",
+			"type": "java.lang.String",
+			"description": "Default timezone when photos it doesn't include TZ"
 		}
 	]
 }

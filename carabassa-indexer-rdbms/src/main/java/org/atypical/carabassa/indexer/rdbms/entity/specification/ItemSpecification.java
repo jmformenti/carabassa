@@ -1,10 +1,8 @@
 package org.atypical.carabassa.indexer.rdbms.entity.specification;
 
 import java.text.ParseException;
-import java.time.ZoneId;
-import java.time.ZonedDateTime;
+import java.time.Instant;
 import java.util.ArrayList;
-import java.util.Date;
 import java.util.List;
 
 import javax.persistence.criteria.CriteriaBuilder;
@@ -70,7 +68,7 @@ public class ItemSpecification implements Specification<IndexedItemEntity> {
 			return builder.like(builder.lower(tags.get(TagEntity_.TEXT_VALUE)),
 					builder.lower(builder.literal("%" + condition.getValue() + "%")));
 		} else if (condition.getOperation() == SearchOperator.EQUAL) {
-			Pair<ZonedDateTime, ZonedDateTime> periodDates = null;
+			Pair<Instant, Instant> periodDates = null;
 			switch (condition.getKey()) {
 			case ATTR_TYPE:
 				return builder.equal(root.get(IndexedItemEntity_.TYPE),
@@ -107,27 +105,23 @@ public class ItemSpecification implements Specification<IndexedItemEntity> {
 		return root.join(IndexedItemEntity_.TAGS, JoinType.LEFT);
 	}
 
-	private Pair<ZonedDateTime, ZonedDateTime> getPeriodDates(String value) {
-		ZonedDateTime startDate = null;
+	private Pair<Instant, Instant> getPeriodDates(String value) {
+		Instant startDate = null;
 		try {
-			startDate = toZonedDateTime(DateUtils.parseDateStrictly(value, FULL_DATE));
+			startDate = DateUtils.parseDateStrictly(value, FULL_DATE).toInstant();
 			return PeriodType.DAY.getPeriodDates(startDate);
 		} catch (ParseException e) {
 			try {
-				startDate = toZonedDateTime(DateUtils.parseDateStrictly(value, MONTH_DATE));
+				startDate = DateUtils.parseDateStrictly(value, MONTH_DATE).toInstant();
 				return PeriodType.MONTH.getPeriodDates(startDate);
 			} catch (ParseException e1) {
 				try {
-					startDate = toZonedDateTime(DateUtils.parseDateStrictly(value, YEAR_DATE));
+					startDate = DateUtils.parseDateStrictly(value, YEAR_DATE).toInstant();
 					return PeriodType.YEAR.getPeriodDates(startDate);
 				} catch (ParseException e2) {
 					throw new IllegalArgumentException(String.format("Error parsing date value %s", value));
 				}
 			}
 		}
-	}
-
-	private ZonedDateTime toZonedDateTime(Date date) {
-		return date.toInstant().atZone(ZoneId.systemDefault());
 	}
 }

@@ -261,7 +261,7 @@ public class DatasetServiceTest {
 		assertEquals(ItemType.IMAGE, indexedItem.getType());
 		assertNotNull(indexedItem.getCreation());
 		assertNull(indexedItem.getModification());
-		TestHelper.assertDateInUTC("2005-01-17T16:20:40", indexedItem.getArchiveTime());
+		TestHelper.assertDateInUTC("2005-01-17T15:20:40", indexedItem.getArchiveTimeAsZoned("UTC"));
 		assertTrue(indexedItem.isArchived());
 		assertEquals("jpg", indexedItem.getFormat());
 		assertEquals(FILENAME, indexedItem.getFilename());
@@ -273,14 +273,13 @@ public class DatasetServiceTest {
 		entityManager.flush();
 
 		dataset = datasetService.findByName(DATASET_TEST_NAME);
-
 		assertEquals(1, dataset.getItems().size());
 
-		indexedItem = dataset.getItems().iterator().next();
-
+		indexedItem = datasetService.findItemById(dataset, indexedItem.getId());
 		assertNotNull(indexedItem);
 		assertNotNull(indexedItem.getId());
-		assertNotNull(datasetService.findItemById(dataset, indexedItem.getId()));
+		TestHelper.assertDateInUTC("2005-01-17T15:20:40", indexedItem.getArchiveTimeAsZoned("UTC"));
+		
 		StoredItem storedItem = datasetService.getStoredItem(dataset, indexedItem);
 		assertNotNull(storedItem);
 		assertEquals(FILENAME, storedItem.getStoredItemInfo().getOriginalFilename());

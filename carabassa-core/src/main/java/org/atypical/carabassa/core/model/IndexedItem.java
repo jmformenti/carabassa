@@ -1,5 +1,6 @@
 package org.atypical.carabassa.core.model;
 
+import java.time.Instant;
 import java.time.ZonedDateTime;
 import java.util.Set;
 import java.util.stream.Collectors;
@@ -28,17 +29,19 @@ public interface IndexedItem {
 
 	public void setHash(String hash);
 
-	public ZonedDateTime getCreation();
+	public Instant getCreation();
 
-	public void setCreation(ZonedDateTime creation);
+	public void setCreation(Instant creation);
 
-	public ZonedDateTime getModification();
+	public Instant getModification();
 
-	public void setModification(ZonedDateTime modification);
+	public void setModification(Instant modification);
 
-	public ZonedDateTime getArchiveTime();
+	public Instant getArchiveTime();
 
-	public void setArchiveTime(ZonedDateTime archiveTime);
+	public ZonedDateTime getArchiveTimeAsZoned(String zoneId);
+
+	public void setArchiveTime(Instant archiveTime);
 
 	public Set<Tag> getTags();
 

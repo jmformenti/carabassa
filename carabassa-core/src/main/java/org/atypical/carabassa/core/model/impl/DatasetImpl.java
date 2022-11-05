@@ -1,6 +1,6 @@
 package org.atypical.carabassa.core.model.impl;
 
-import java.time.ZonedDateTime;
+import java.time.Instant;
 import java.util.HashSet;
 import java.util.Set;
 
@@ -12,8 +12,8 @@ public class DatasetImpl implements Dataset {
 	private Long id;
 	private String name;
 	private String description;
-	private ZonedDateTime creation;
-	private ZonedDateTime modification;
+	private Instant creation;
+	private Instant modification;
 	private Set<IndexedItem> items;
 
 	public DatasetImpl() {
@@ -57,22 +57,22 @@ public class DatasetImpl implements Dataset {
 	}
 
 	@Override
-	public ZonedDateTime getCreation() {
+	public Instant getCreation() {
 		return creation;
 	}
 
 	@Override
-	public void setCreation(ZonedDateTime creation) {
+	public void setCreation(Instant creation) {
 		this.creation = creation;
 	}
 
 	@Override
-	public ZonedDateTime getModification() {
+	public Instant getModification() {
 		return modification;
 	}
 
 	@Override
-	public void setModification(ZonedDateTime modification) {
+	public void setModification(Instant modification) {
 		this.modification = modification;
 	}
 

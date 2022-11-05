@@ -10,6 +10,8 @@ import java.nio.file.Paths;
 import java.nio.file.StandardCopyOption;
 import java.time.ZonedDateTime;
 
+import javax.annotation.PostConstruct;
+
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.FilenameUtils;
 import org.apache.commons.lang3.StringUtils;
@@ -38,8 +40,6 @@ import com.fasterxml.jackson.databind.JsonMappingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
 import net.coobird.thumbnailator.Thumbnails;
-
-import javax.annotation.PostConstruct;
 
 @Component
 public class DatasetFSStorage implements DatasetStorage {
@@ -93,6 +93,7 @@ public class DatasetFSStorage implements DatasetStorage {
 		if (!Files.exists(itemDirPath)) {
 			Files.move(Paths.get(inputItem.getFile().getPath()), itemDirPath, StandardCopyOption.REPLACE_EXISTING);
 			writeJson(repoPath, item);
+			writeThumbnail(dataset, item);
 		} else {
 			throw new EntityExistsException(localizedMessage.getText(ITEM_EXISTS_MESSAGE_KEY, item.getId()));
 		}
@@ -132,8 +133,7 @@ public class DatasetFSStorage implements DatasetStorage {
 				if (Files.exists(thumbnailPath)) {
 					contents = Files.readAllBytes(thumbnailPath);
 				} else {
-					contents = createThumbnail(itemPath);
-					Files.write(thumbnailPath, contents);
+					contents = writeThumbnail(dataset, item);
 				}
 
 				return new StoredItemThumbnailImpl(thumbnailFilename, contents);
@@ -145,14 +145,24 @@ public class DatasetFSStorage implements DatasetStorage {
 		}
 	}
 
+	private byte[] writeThumbnail(Dataset dataset, IndexedItem item) throws IOException {
+		if (item.getType() == ItemType.IMAGE) {
+			Path repoPath = getArchivePath(dataset, item);
+			Path itemPath = repoPath.resolve(getArchiveFilename(item));
+
+			String thumbnailFilename = getThumbnailFilename(item);
+			Path thumbnailPath = repoPath.resolve(thumbnailFilename);
+
+			byte[] contents = createThumbnail(itemPath);
+			Files.write(thumbnailPath, contents);
+
+			return contents;
+		} else {
+			return null;
+		}
+	}
+
 	private byte[] createThumbnail(Path itemPath) throws IOException {
-//		BufferedImage img = ImageIO.read(itemPath.toFile());
-//		BufferedImage thumb = new FixedSizeThumbnailMaker() //
-//				.size(200, 200) //
-//				.keepAspectRatio(true) //
-//				.fitWithinDimensions(false) //
-//				.make(img);
-//		ImageIO.write(thumb, StoredItemThumbnail.THUMBNAIL_FORMAT, thumbnailPath.toFile());
 		ByteArrayOutputStream baos = new ByteArrayOutputStream();
 		Thumbnails.of(itemPath.toFile()).size(200, 200).keepAspectRatio(true).toOutputStream(baos);
 		return baos.toByteArray();
@@ -226,7 +236,7 @@ public class DatasetFSStorage implements DatasetStorage {
 	}
 
 	private Path getArchivedPath(Dataset dataset, IndexedItem item) {
-		ZonedDateTime archiveTime = item.getArchiveTime();
+		ZonedDateTime archiveTime = item.getArchiveTimeAsZoned("UTC");
 		return Paths.get(getDatasetPath(dataset).toString(), getTypeDir(item.getType()), ARCHIVED_DIR,
 				String.valueOf(archiveTime.getYear()), String.format("%02d", archiveTime.getMonth().getValue()),
 				String.format("%02d", archiveTime.getDayOfMonth()));

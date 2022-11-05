@@ -14,6 +14,7 @@ import org.atypical.carabassa.cli.service.DatasetApiService;
 import org.atypical.carabassa.core.util.HashGenerator;
 import org.atypical.carabassa.restapi.representation.model.DatasetEntityRepresentation;
 import org.atypical.carabassa.restapi.representation.model.IdRepresentation;
+import org.atypical.carabassa.restapi.representation.model.ItemRepresentation;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.core.ParameterizedTypeReference;
@@ -21,6 +22,7 @@ import org.springframework.core.io.FileSystemResource;
 import org.springframework.core.io.Resource;
 import org.springframework.hateoas.IanaLinkRelations;
 import org.springframework.hateoas.PagedModel;
+import org.springframework.hateoas.RepresentationModel;
 import org.springframework.hateoas.server.core.TypeReferences.PagedModelType;
 import org.springframework.http.ContentDisposition;
 import org.springframework.http.HttpEntity;
@@ -193,6 +195,28 @@ public class DatasetApiServiceImpl implements DatasetApiService {
 	}
 
 	@Override
+	public List<ItemRepresentation> findItems(Long datasetId) throws ApiException {
+		try {
+			PagedModel<ItemRepresentation> page = getPage(datasetUrl + "{datasetId}/item?size={size}&search=type:I",
+					new PagedModelType<ItemRepresentation>() {
+					}, datasetId, 100);
+
+			List<ItemRepresentation> items = new ArrayList<>(page.getContent());
+			while (page.hasLink(IanaLinkRelations.NEXT)) {
+				System.out.println(page.getLink("next").get().toUri().toString());
+				page = getPage(page.getLink("next").get().toUri().toString(),
+						new PagedModelType<ItemRepresentation>() {
+						});
+				items.addAll(page.getContent());
+			}
+
+			return items;
+		} catch (RestClientResponseException e) {
+			throw buildApiException(e);
+		}
+	}
+
+	@Override
 	public void update(Long datasetId, String description) throws ApiException {
 		try {
 			DatasetEntityRepresentation dataset = new DatasetEntityRepresentation();
@@ -203,8 +227,8 @@ public class DatasetApiServiceImpl implements DatasetApiService {
 		}
 	}
 
-	private <T extends DatasetEntityRepresentation> PagedModel<T> getPage(String uri, PagedModelType<T> responseType) {
-		return restTemplate.exchange(uri, HttpMethod.GET, null, responseType).getBody();
+	private <T extends RepresentationModel<T>> PagedModel<T> getPage(String uri, PagedModelType<T> responseType, Object... uriVariables) {
+		return restTemplate.exchange(uri, HttpMethod.GET, null, responseType, uriVariables).getBody();
 	}
 
 	private ApiException buildApiException(RestClientResponseException e) {

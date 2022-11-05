@@ -1,5 +1,7 @@
 package org.atypical.carabassa.core.model.impl;
 
+import java.time.Instant;
+import java.time.ZoneId;
 import java.time.ZonedDateTime;
 import java.util.Set;
 
@@ -15,9 +17,9 @@ public class IndexedItemImpl implements IndexedItem {
 	private String filename;
 	private String format;
 	private String hash;
-	private ZonedDateTime creation;
-	private ZonedDateTime modification;
-	private ZonedDateTime archiveTime;
+	private Instant creation;
+	private Instant modification;
+	private Instant archiveTime;
 	private Set<Tag> tags;
 	private Dataset dataset;
 
@@ -76,32 +78,37 @@ public class IndexedItemImpl implements IndexedItem {
 	}
 
 	@Override
-	public ZonedDateTime getCreation() {
+	public Instant getCreation() {
 		return creation;
 	}
 
 	@Override
-	public void setCreation(ZonedDateTime creation) {
+	public void setCreation(Instant creation) {
 		this.creation = creation;
 	}
 
 	@Override
-	public ZonedDateTime getModification() {
+	public Instant getModification() {
 		return modification;
 	}
 
 	@Override
-	public void setModification(ZonedDateTime modification) {
+	public void setModification(Instant modification) {
 		this.modification = modification;
 	}
 
 	@Override
-	public ZonedDateTime getArchiveTime() {
+	public Instant getArchiveTime() {
 		return archiveTime;
 	}
 
 	@Override
-	public void setArchiveTime(ZonedDateTime archiveTime) {
+	public ZonedDateTime getArchiveTimeAsZoned(String zoneId) {
+		return archiveTime.atZone(ZoneId.of(zoneId));
+	}
+
+	@Override
+	public void setArchiveTime(Instant archiveTime) {
 		this.archiveTime = archiveTime;
 	}
 

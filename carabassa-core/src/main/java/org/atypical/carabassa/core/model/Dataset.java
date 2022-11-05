@@ -1,6 +1,6 @@
 package org.atypical.carabassa.core.model;
 
-import java.time.ZonedDateTime;
+import java.time.Instant;
 import java.util.Set;
 
 public interface Dataset {
@@ -17,13 +17,13 @@ public interface Dataset {
 
 	public void setDescription(String description);
 
-	public ZonedDateTime getCreation();
+	public Instant getCreation();
 
-	public void setCreation(ZonedDateTime creation);
+	public void setCreation(Instant creation);
 
-	public ZonedDateTime getModification();
+	public Instant getModification();
 
-	public void setModification(ZonedDateTime modification);
+	public void setModification(Instant modification);
 
 	public Set<IndexedItem> getItems();
 

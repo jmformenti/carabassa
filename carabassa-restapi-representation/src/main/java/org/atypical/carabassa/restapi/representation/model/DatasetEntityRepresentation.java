@@ -1,5 +1,7 @@
 package org.atypical.carabassa.restapi.representation.model;
 
+import java.time.Instant;
+import java.time.ZoneId;
 import java.time.ZonedDateTime;
 
 import org.springframework.hateoas.Links;
@@ -10,8 +12,8 @@ public class DatasetEntityRepresentation extends RepresentationModel<DatasetEnti
 	private Long id;
 	private String name;
 	private String description;
-	private ZonedDateTime creation;
-	private ZonedDateTime modification;
+	private Instant creation;
+	private Instant modification;
 
 	public DatasetEntityRepresentation() {
 		super();
@@ -46,19 +48,27 @@ public class DatasetEntityRepresentation extends RepresentationModel<DatasetEnti
 		this.description = description;
 	}
 
-	public ZonedDateTime getCreation() {
+	public Instant getCreation() {
 		return creation;
 	}
 
-	public void setCreation(ZonedDateTime creation) {
+	public ZonedDateTime getCreationAsZoned(String zoneId) {
+		return creation.atZone(ZoneId.of(zoneId));
+	}
+
+	public void setCreation(Instant creation) {
 		this.creation = creation;
 	}
 
-	public ZonedDateTime getModification() {
+	public Instant getModification() {
 		return modification;
 	}
 
-	public void setModification(ZonedDateTime modification) {
+	public ZonedDateTime getModificationAsZoned(String zoneId) {
+		return modification.atZone(ZoneId.of(zoneId));
+	}
+
+	public void setModification(Instant modification) {
 		this.modification = modification;
 	}
 

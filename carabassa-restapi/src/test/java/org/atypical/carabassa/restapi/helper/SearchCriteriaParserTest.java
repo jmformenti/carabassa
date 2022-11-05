@@ -4,7 +4,7 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 
 import java.text.ParseException;
-import java.time.ZonedDateTime;
+import java.time.Instant;
 
 import org.apache.commons.lang3.time.DateUtils;
 import org.atypical.carabassa.core.model.SearchCriteria;
@@ -38,7 +38,7 @@ class SearchCriteriaParserTest {
 
 	@Test
 	void test3() throws ParseException {
-		ZonedDateTime now = ZonedDateTime.now();
+		Instant now = Instant.now();
 		System.out.println(PeriodType.DAY.getPeriodDates(now));
 		System.out.println(PeriodType.MONTH.getPeriodDates(now));
 		System.out.println(PeriodType.YEAR.getPeriodDates(now));

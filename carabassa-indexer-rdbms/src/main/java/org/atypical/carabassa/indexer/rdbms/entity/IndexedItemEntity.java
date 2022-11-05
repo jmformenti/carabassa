@@ -1,5 +1,7 @@
 package org.atypical.carabassa.indexer.rdbms.entity;
 
+import java.time.Instant;
+import java.time.ZoneId;
 import java.time.ZonedDateTime;
 import java.util.Set;
 
@@ -48,11 +50,11 @@ public class IndexedItemEntity implements IndexedItem {
 	private String hash;
 
 	@Column(nullable = false)
-	private ZonedDateTime creation;
+	private Instant creation;
 
-	private ZonedDateTime modification;
+	private Instant modification;
 
-	private ZonedDateTime archiveTime;
+	private Instant archiveTime;
 
 	@OneToMany(targetEntity = TagEntity.class, cascade = CascadeType.ALL, orphanRemoval = true)
 	@JoinColumn(name = "ITEM_ID")
@@ -63,12 +65,12 @@ public class IndexedItemEntity implements IndexedItem {
 
 	@PrePersist
 	public void onPrePersist() {
-		this.creation = ZonedDateTime.now();
+		this.creation = Instant.now();
 	}
 
 	@PreUpdate
 	public void onPreUpdate() {
-		this.modification = ZonedDateTime.now();
+		this.modification = Instant.now();
 	}
 
 	@Override
@@ -122,32 +124,37 @@ public class IndexedItemEntity implements IndexedItem {
 	}
 
 	@Override
-	public ZonedDateTime getCreation() {
+	public Instant getCreation() {
 		return creation;
 	}
 
 	@Override
-	public void setCreation(ZonedDateTime creation) {
+	public void setCreation(Instant creation) {
 		this.creation = creation;
 	}
 
 	@Override
-	public ZonedDateTime getModification() {
+	public Instant getModification() {
 		return modification;
 	}
 
 	@Override
-	public void setModification(ZonedDateTime modification) {
+	public void setModification(Instant modification) {
 		this.modification = modification;
 	}
 
 	@Override
-	public ZonedDateTime getArchiveTime() {
+	public Instant getArchiveTime() {
 		return archiveTime;
 	}
 
 	@Override
-	public void setArchiveTime(ZonedDateTime archiveTime) {
+	public ZonedDateTime getArchiveTimeAsZoned(String zoneId) {
+		return archiveTime.atZone(ZoneId.of(zoneId));
+	}
+
+	@Override
+	public void setArchiveTime(Instant archiveTime) {
 		this.archiveTime = archiveTime;
 	}
 

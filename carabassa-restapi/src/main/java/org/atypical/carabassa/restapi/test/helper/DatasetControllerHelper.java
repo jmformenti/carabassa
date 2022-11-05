@@ -1,6 +1,7 @@
 package org.atypical.carabassa.restapi.test.helper;
 
-import java.time.ZonedDateTime;
+import java.time.Duration;
+import java.time.Instant;
 import java.util.HashSet;
 import java.util.TreeSet;
 
@@ -39,19 +40,20 @@ public class DatasetControllerHelper {
 	protected ObjectMapper objectMapper = new ObjectMapper();
 
 	protected void initData() {
-		ZonedDateTime now = ZonedDateTime.now();
+		Instant now = Instant.now();
+		Instant dayBefore = now.minus(Duration.ofDays(1));
 
 		dataset = new DatasetImpl(DATASET_NAME);
 		dataset.setId(DATASET_ID);
 		dataset.setDescription("description");
-		dataset.setCreation(ZonedDateTime.now().minusDays(1));
+		dataset.setCreation(dayBefore);
 		dataset.setModification(now);
 
 		datasetRepresentation = new DatasetEntityRepresentation(DATASET_NAME);
 		datasetRepresentation.setId(DATASET_ID);
 		datasetRepresentation.setDescription("description");
-		datasetRepresentation.setCreation(ZonedDateTime.now().minusDays(1));
-		datasetRepresentation.setModification(ZonedDateTime.now());
+		datasetRepresentation.setCreation(dayBefore);
+		datasetRepresentation.setModification(dayBefore);
 
 		tag = new TagImpl(TAG_NAME, TAG_VALUE);
 		tag.setId(TAG_ID);
@@ -67,7 +69,7 @@ public class DatasetControllerHelper {
 		indexedItem.setHash("12345");
 		indexedItem.setCreation(now);
 		indexedItem.setModification(now);
-		indexedItem.setArchiveTime(now);
+		indexedItem.setArchiveTime(Instant.now());
 		indexedItem.setTags(new HashSet<>());
 		indexedItem.getTags().add(new TagImpl(tag));
 
@@ -79,7 +81,7 @@ public class DatasetControllerHelper {
 		itemRepresentation.setHash("12345");
 		itemRepresentation.setCreation(now);
 		itemRepresentation.setModification(now);
-		itemRepresentation.setArchiveTime(now);
+		itemRepresentation.setArchiveTime(Instant.now());
 		itemRepresentation.setTags(new TreeSet<>());
 		itemRepresentation.getTags().add(tagRepresentation);
 

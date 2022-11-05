@@ -1,5 +1,7 @@
 package org.atypical.carabassa.restapi.representation.model;
 
+import java.time.Instant;
+import java.time.ZoneId;
 import java.time.ZonedDateTime;
 import java.util.SortedSet;
 
@@ -12,9 +14,9 @@ public class ItemRepresentation extends RepresentationModel<ItemRepresentation> 
 	private String filename;
 	private String format;
 	private String hash;
-	private ZonedDateTime creation;
-	private ZonedDateTime modification;
-	private ZonedDateTime archiveTime;
+	private Instant creation;
+	private Instant modification;
+	private Instant archiveTime;
 	private SortedSet<TagEntityRepresentation> tags;
 
 	public Long getId() {
@@ -57,27 +59,39 @@ public class ItemRepresentation extends RepresentationModel<ItemRepresentation> 
 		this.hash = hash;
 	}
 
-	public ZonedDateTime getCreation() {
+	public Instant getCreation() {
 		return creation;
 	}
 
-	public void setCreation(ZonedDateTime creation) {
+	public ZonedDateTime getCreationAsZoned(String zoneId) {
+		return creation.atZone(ZoneId.of(zoneId));
+	}
+
+	public void setCreation(Instant creation) {
 		this.creation = creation;
 	}
 
-	public ZonedDateTime getModification() {
+	public Instant getModification() {
 		return modification;
 	}
 
-	public void setModification(ZonedDateTime modification) {
+	public ZonedDateTime getModificationAsZoned(String zoneId) {
+		return modification.atZone(ZoneId.of(zoneId));
+	}
+	
+	public void setModification(Instant modification) {
 		this.modification = modification;
 	}
 
-	public ZonedDateTime getArchiveTime() {
+	public Instant getArchiveTime() {
 		return archiveTime;
 	}
 
-	public void setArchiveTime(ZonedDateTime archiveTime) {
+	public ZonedDateTime getArchiveTimeAsZoned(String zoneId) {
+		return archiveTime.atZone(ZoneId.of(zoneId));
+	}
+
+	public void setArchiveTime(Instant archiveTime) {
 		this.archiveTime = archiveTime;
 	}
 

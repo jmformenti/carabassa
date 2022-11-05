@@ -1,5 +1,6 @@
 package org.atypical.carabassa.cli.command;
 
+import java.time.ZoneId;
 import java.util.List;
 import java.util.concurrent.Callable;
 
@@ -38,9 +39,9 @@ public class ListDatasetCommand implements Callable<Integer> {
 				for (DatasetEntityRepresentation datasetRepresentation : datasets) {
 					System.out.format(OUTPUT_FORMAT, datasetRepresentation.getId(), datasetRepresentation.getName(),
 							datasetRepresentation.getDescription(),
-							DateFormatter.toLocalDateFormatted(datasetRepresentation.getCreation()),
+							DateFormatter.toLocalDateFormatted(datasetRepresentation.getCreationAsZoned(ZoneId.systemDefault().getId())),
 							datasetRepresentation.getModification() == null ? ""
-									: DateFormatter.toLocalDateFormatted(datasetRepresentation.getModification()));
+									: DateFormatter.toLocalDateFormatted(datasetRepresentation.getModificationAsZoned(ZoneId.systemDefault().getId())));
 				}
 				cmdLogger.info("done.");
 			} else {

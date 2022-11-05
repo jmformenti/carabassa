@@ -17,7 +17,6 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
-import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.Arrays;
 
@@ -53,7 +52,6 @@ import org.springframework.http.MediaType;
 import org.springframework.mock.web.MockMultipartFile;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.web.servlet.MockMvc;
-import org.springframework.test.web.servlet.result.MockMvcResultHandlers;
 
 @ContextConfiguration(classes = { RestApiConfiguration.class, RestApiRdbmsMapperConfiguration.class })
 @WebMvcTest(DatasetController.class)
@@ -150,10 +148,8 @@ public class DatasetControllerIntegrationTest extends DatasetControllerHelper {
 				.andExpect(jsonPath("$.id", is(DATASET_ID.intValue()))) //
 				.andExpect(jsonPath("$.name", is(DATASET_NAME))) //
 				.andExpect(jsonPath("$.description", is(dataset.getDescription())))
-				.andExpect(jsonPath("$.creation",
-						is(dataset.getCreation().format(DateTimeFormatter.ISO_OFFSET_DATE_TIME))))
-				.andExpect(jsonPath("$.modification",
-						is(dataset.getModification().format(DateTimeFormatter.ISO_OFFSET_DATE_TIME))))
+				.andExpect(jsonPath("$.creation", is(dataset.getCreation().toString())))
+				.andExpect(jsonPath("$.modification", is(dataset.getModification().toString()))) //
 				.andDo(log());
 	}
 
@@ -174,10 +170,8 @@ public class DatasetControllerIntegrationTest extends DatasetControllerHelper {
 				.andExpect(status().isOk()).andExpect(jsonPath("$.id", is(DATASET_ID.intValue())))
 				.andExpect(jsonPath("$.name", is(DATASET_NAME)))
 				.andExpect(jsonPath("$.description", is(dataset.getDescription())))
-				.andExpect(jsonPath("$.creation",
-						is(dataset.getCreation().format(DateTimeFormatter.ISO_OFFSET_DATE_TIME))))
-				.andExpect(jsonPath("$.modification",
-						is(dataset.getModification().format(DateTimeFormatter.ISO_OFFSET_DATE_TIME))))
+				.andExpect(jsonPath("$.creation", is(dataset.getCreation().toString())))
+				.andExpect(jsonPath("$.modification", is(dataset.getModification().toString()))) //
 				.andDo(log());
 	}
 
@@ -237,7 +231,8 @@ public class DatasetControllerIntegrationTest extends DatasetControllerHelper {
 		when(datasetService.findById(DATASET_ID)).thenThrow(EntityNotFoundException.class);
 
 		mvc.perform(get("/api/dataset/{datasetId}/item", DATASET_ID)) //
-				.andExpect(status().isNotFound()).andDo(log());
+				.andExpect(status().isNotFound()) //
+				.andDo(log());
 	}
 
 	@Test
@@ -252,19 +247,17 @@ public class DatasetControllerIntegrationTest extends DatasetControllerHelper {
 				.andExpect(jsonPath("$.filename", is(indexedItem.getFilename())))
 				.andExpect(jsonPath("$.format", is(indexedItem.getFormat())))
 				.andExpect(jsonPath("$.hash", is(indexedItem.getHash())))
-				.andExpect(jsonPath("$.creation",
-						is(indexedItem.getCreation().format(DateTimeFormatter.ISO_OFFSET_DATE_TIME))))
-				.andExpect(jsonPath("$.modification",
-						is(indexedItem.getModification().format(DateTimeFormatter.ISO_OFFSET_DATE_TIME))))
-				.andExpect(jsonPath("$.archiveTime",
-						is(indexedItem.getArchiveTime().format(DateTimeFormatter.ISO_OFFSET_DATE_TIME))))
+				.andExpect(jsonPath("$.creation", is(indexedItem.getCreation().toString())))
+				.andExpect(jsonPath("$.modification", is(indexedItem.getModification().toString())))
+				.andExpect(jsonPath("$.archiveTime", is(indexedItem.getArchiveTime().toString())))
 				.andExpect(jsonPath("$.tags", hasSize(1))).andExpect(jsonPath("$.tags[0].id", is(TAG_ID.intValue())))
 				.andExpect(jsonPath("$.tags[0].name", is(tag.getName())))
 				.andExpect(jsonPath("$.tags[0].value", is(tag.getValue(String.class))))
 				.andExpect(jsonPath("$.tags[0].boundingBox.minX", is(tag.getBoundingBox().getMinX())))
 				.andExpect(jsonPath("$.tags[0].boundingBox.minY", is(tag.getBoundingBox().getMinY())))
 				.andExpect(jsonPath("$.tags[0].boundingBox.width", is(tag.getBoundingBox().getWidth())))
-				.andExpect(jsonPath("$.tags[0].boundingBox.height", is(tag.getBoundingBox().getHeight()))).andDo(log());
+				.andExpect(jsonPath("$.tags[0].boundingBox.height", is(tag.getBoundingBox().getHeight()))) //
+				.andDo(log());
 	}
 
 	@Test
@@ -401,7 +394,7 @@ public class DatasetControllerIntegrationTest extends DatasetControllerHelper {
 				.contentType(MediaType.APPLICATION_JSON).content(json)) //
 				.andExpect(status().isCreated()) //
 				.andExpect(jsonPath("$.id", is(TAG_ID.intValue()))) //
-				.andDo(MockMvcResultHandlers.log());
+				.andDo(log());
 	}
 
 	@Test
@@ -416,7 +409,7 @@ public class DatasetControllerIntegrationTest extends DatasetControllerHelper {
 		mvc.perform(post("/api/dataset/{datasetId}/item/{itemId}/tag", DATASET_ID, ITEM_ID) //
 				.contentType(MediaType.APPLICATION_JSON).content(json)) //
 				.andExpect(status().isBadRequest()) //
-				.andDo(MockMvcResultHandlers.log());
+				.andDo(log());
 	}
 
 	@Test
@@ -427,7 +420,7 @@ public class DatasetControllerIntegrationTest extends DatasetControllerHelper {
 
 		mvc.perform(delete("/api/dataset/{datasetId}/item/{itemId}", DATASET_ID, ITEM_ID)) //
 				.andExpect(status().isNoContent()) //
-				.andDo(MockMvcResultHandlers.log());
+				.andDo(log());
 	}
 
 	@Test
@@ -438,7 +431,7 @@ public class DatasetControllerIntegrationTest extends DatasetControllerHelper {
 
 		mvc.perform(delete("/api/dataset/{datasetId}/item/{itemId}", DATASET_ID, ITEM_ID)) //
 				.andExpect(status().isNoContent()) //
-				.andDo(MockMvcResultHandlers.log());
+				.andDo(log());
 	}
 
 	@Test
@@ -449,7 +442,7 @@ public class DatasetControllerIntegrationTest extends DatasetControllerHelper {
 
 		mvc.perform(delete("/api/dataset/{datasetId}/item/{itemId}/tag/{tagId}", DATASET_ID, ITEM_ID, TAG_ID)) //
 				.andExpect(status().isNoContent()) //
-				.andDo(MockMvcResultHandlers.log());
+				.andDo(log());
 	}
 
 	@Test
@@ -460,7 +453,7 @@ public class DatasetControllerIntegrationTest extends DatasetControllerHelper {
 
 		mvc.perform(delete("/api/dataset/{datasetId}/item/{itemId}/tag/{tagId}", DATASET_ID, ITEM_ID, TAG_ID)) //
 				.andExpect(status().isNotFound()) //
-				.andDo(MockMvcResultHandlers.log());
+				.andDo(log());
 	}
 
 }

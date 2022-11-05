@@ -1,7 +1,7 @@
 package org.atypical.carabassa.indexer.rdbms.component;
 
 import java.io.IOException;
-import java.time.ZonedDateTime;
+import java.time.Instant;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -134,9 +134,9 @@ public class DatasetDbIndexer implements DatasetIndexer {
 		indexedItemEntity.setHash(hash);
 
 		Tag archiveTimeTag = indexedItemEntity.getFirstTag(Tagger.TAG_ARCHIVE_TIME);
-		ZonedDateTime archiveTime = null;
+		Instant archiveTime = null;
 		if (archiveTimeTag != null) {
-			archiveTime = archiveTimeTag.getValue(ZonedDateTime.class);
+			archiveTime = archiveTimeTag.getValue(Instant.class);
 		}
 		indexedItemEntity.setArchiveTime(archiveTime);
 

@@ -7,6 +7,7 @@ import org.atypical.carabassa.cli.dto.ItemToUpload;
 import org.atypical.carabassa.cli.exception.ApiException;
 import org.atypical.carabassa.cli.exception.ItemAlreadyExists;
 import org.atypical.carabassa.restapi.representation.model.DatasetEntityRepresentation;
+import org.atypical.carabassa.restapi.representation.model.ItemRepresentation;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 
@@ -22,6 +23,8 @@ public interface DatasetApiService {
 	public List<DatasetEntityRepresentation> findAll() throws ApiException;
 
 	public Long findByName(String datasetName) throws ApiException;
+	
+	public List<ItemRepresentation> findItems(Long datasetId) throws ApiException;
 
 	public void update(Long datasetId, String description) throws ApiException;
 

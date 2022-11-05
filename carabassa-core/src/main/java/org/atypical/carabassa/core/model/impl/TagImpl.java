@@ -1,6 +1,6 @@
 package org.atypical.carabassa.core.model.impl;
 
-import java.time.ZonedDateTime;
+import java.time.Instant;
 
 import org.atypical.carabassa.core.model.BoundingBox;
 import org.atypical.carabassa.core.model.Tag;
@@ -9,7 +9,7 @@ public class TagImpl implements Tag {
 
 	private Long id;
 	private String name;
-	private ZonedDateTime creation;
+	private Instant creation;
 	private Object value;
 	private BoundingBox boundingBox;
 
@@ -38,11 +38,11 @@ public class TagImpl implements Tag {
 	}
 
 	@Override
-	public ZonedDateTime getCreation() {
+	public Instant getCreation() {
 		return creation;
 	}
 
-	public void setCreation(ZonedDateTime creation) {
+	public void setCreation(Instant creation) {
 		this.creation = creation;
 	}
 

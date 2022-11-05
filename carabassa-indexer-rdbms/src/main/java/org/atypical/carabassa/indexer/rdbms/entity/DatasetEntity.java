@@ -1,6 +1,6 @@
 package org.atypical.carabassa.indexer.rdbms.entity;
 
-import java.time.ZonedDateTime;
+import java.time.Instant;
 import java.util.HashSet;
 import java.util.Set;
 
@@ -36,9 +36,9 @@ public class DatasetEntity implements Dataset {
 	private String description;
 
 	@Column(nullable = false)
-	private ZonedDateTime creation;
+	private Instant creation;
 
-	private ZonedDateTime modification;
+	private Instant modification;
 
 	@OneToMany(targetEntity = IndexedItemEntity.class, cascade = CascadeType.ALL, orphanRemoval = true)
 	@JoinColumn(name = "DATASET_ID")
@@ -56,12 +56,12 @@ public class DatasetEntity implements Dataset {
 
 	@PrePersist
 	public void onPrePersist() {
-		this.creation = ZonedDateTime.now();
+		this.creation = Instant.now();
 	}
 
 	@PreUpdate
 	public void onPreUpdate() {
-		this.modification = ZonedDateTime.now();
+		this.modification = Instant.now();
 	}
 
 	@Override
@@ -95,22 +95,22 @@ public class DatasetEntity implements Dataset {
 	}
 
 	@Override
-	public ZonedDateTime getCreation() {
+	public Instant getCreation() {
 		return creation;
 	}
 
 	@Override
-	public void setCreation(ZonedDateTime creation) {
+	public void setCreation(Instant creation) {
 		this.creation = creation;
 	}
 
 	@Override
-	public ZonedDateTime getModification() {
+	public Instant getModification() {
 		return modification;
 	}
 
 	@Override
-	public void setModification(ZonedDateTime modification) {
+	public void setModification(Instant modification) {
 		this.modification = modification;
 	}
 
