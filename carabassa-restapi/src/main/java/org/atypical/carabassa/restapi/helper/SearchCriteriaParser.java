@@ -26,7 +26,7 @@ public class SearchCriteriaParser {
 			if (matcher.group(VALUE_GROUP_POS) == null) {
 				searchCriteria.add(new SearchConditionImpl(matcher.group(ONLY_VALUE_POS)));
 			} else {
-				searchCriteria.add(new SearchConditionImpl(matcher.group(ATTR_POS).trim(),
+				searchCriteria.add(new SearchConditionImpl(matcher.group(ATTR_POS).trim().toLowerCase(),
 						SearchOperator.fromCode(matcher.group(OPERATOR_POS)), matcher.group(VALUE_POS).trim()));
 			}
 		}

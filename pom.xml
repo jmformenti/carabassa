@@ -90,6 +90,7 @@
 		<module>carabassa-restapi-representation</module>
 		<module>carabassa-restapi</module>
 		<module>carabassa-restapi-rdbms-mapper</module>
+		<module>carabassa-frontend</module>
 		<module>carabassa-web</module>
 		<module>carabassa-cli</module>
 	</modules>
