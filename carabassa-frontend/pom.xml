@@ -85,7 +85,7 @@
 						</goals>
 						<configuration>
 							<environmentVariables>
-								<BASE_API_URL>.</BASE_API_URL>
+								<NUXT_PUBLIC_API_BASE_URL>.</NUXT_PUBLIC_API_BASE_URL>
 							</environmentVariables>
 							<arguments>run build</arguments>
 						</configuration>

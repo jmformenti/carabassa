@@ -5,7 +5,7 @@ import eslintPlugin from 'vite-plugin-eslint'
 export default defineNuxtConfig({
   runtimeConfig: {
     public: {
-      apiBaseURL: 'http://192.168.1.2:8080'
+      apiBaseURL: 'http://localhost:8080'
     }
   },
   css: [
