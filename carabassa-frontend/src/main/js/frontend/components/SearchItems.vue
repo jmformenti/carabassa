@@ -1,37 +1,46 @@
 <template>
   <div>
-    <v-row justify="center" align="center">
-      <v-col cols="12" sm="8" md="6">
+    <v-row
+      justify="center" 
+      align="center"
+    >
+      <v-col
+        cols="12"
+        sm="8"
+        md="6"
+      >
         <v-text-field
           v-model="searchString"
           label="Search"
+          variant="underlined"
           clear-icon="mdi-close-circle"
           clearable
           @keyup.enter="search"
         >
           <template #prepend>
-            <v-tooltip bottom>
-              <template #activator="{ on, attrs }">
+            <v-tooltip location="bottom">
+              <template #activator="{ props }">
                 <v-icon
                   small
-                  color="orange darken-2"
-                  v-bind="attrs"
-                  v-on="on"
+                  class="with-pointer no-opacity"
+                  color="orange-darken-2"
+                  v-bind="props"
                 >
                   mdi-help-circle
                 </v-icon>
               </template>
               <span>
-                Cheatsheet for searching:<br />
-                <b>from:</b> YYYY-MM-DD<br />
-                <b>to:</b> YYYY-MM-DD<br />
+                Cheatsheet for searching:<br>
+                <b>from:</b> YYYY-MM-DD<br>
+                <b>to:</b> YYYY-MM-DD<br>
                 <b>on:</b> YYYY-MM-DD
               </span>
             </v-tooltip>
           </template>
-          <template #append-outer>
+          <template #append>
             <v-icon
-              color="orange darken-2"
+              class="no-opacity"
+              color="orange-darken-2"
               @click="search"
             >
               mdi-send
@@ -42,7 +51,10 @@
     </v-row>
     <v-row>
       <v-col>
-        <div v-if="searched" class="text-body-2">
+        <div
+          v-if="searched"
+          class="text-body-2"
+        >
           {{ totalItems }} found
         </div>
       </v-col>
@@ -54,25 +66,26 @@
         class="d-flex child-flex"
         cols="2"
       >
-        <a :href="`${$axios.defaults.baseURL}/api/dataset/1/item/${item.id}/content`" download>
+        <a
+          class="download-link"
+          :href="`${apiBaseURL}/api/dataset/1/item/${item.id}/content`"
+          download
+        >
           <v-img
-            :src="`${$axios.defaults.baseURL}/api/dataset/1/item/${item.id}/thumbnail`"
-            :lazy-src="`${$axios.defaults.baseURL}/api/dataset/1/item/${item.id}/thumbnail`"
+            :src="`${apiBaseURL}/api/dataset/1/item/${item.id}/thumbnail`"
+            :lazy-src="`${apiBaseURL}/api/dataset/1/item/${item.id}/thumbnail`"
             aspect-ratio="1"
+            cover
             class="grey lighten-2"
             :title="`${item.id} - ${item.archiveTime}`"
           >
             <template #placeholder>
-              <v-row
-                class="fill-height ma-0"
-                align="center"
-                justify="center"
-              >
+              <div class="d-flex align-center justify-center fill-height">
                 <v-progress-circular
                   indeterminate
-                  color="grey lighten-5"
+                  color="grey-lighten-5"
                 />
-              </v-row>
+              </div>
             </template>
           </v-img>
         </a>
@@ -80,7 +93,10 @@
     </v-row>
     <v-row>
       <v-col>
-        <div v-if="leftItems > 0" class="text-body-2 text-center">
+        <div
+          v-if="leftItems > 0"
+          class="text-body-2 text-center"
+        >
           <v-icon>
             mdi-chevron-double-down
           </v-icon>
@@ -95,6 +111,7 @@
 export default {
   data () {
     return {
+      apiBaseURL: null,
       searchString: '',
       totalItems: 0,
       items: [],
@@ -115,12 +132,14 @@ export default {
     }
   },
   mounted () {
+    const runtimeConfig = useRuntimeConfig()
+    this.apiBaseURL = runtimeConfig.public.apiBaseURL
     this.nextPage()
   },
   methods: {
     async getItems () {
-      const newItems = await this.$axios.$get(
-        this.$axios.defaults.baseURL + '/api/dataset/1/item?type=image&size=' + this.pageSize + '&page=' + this.currentPage + '&search=' + this.searchString + ' type:I'
+      const newItems = await $fetch(
+        `${this.apiBaseURL}/api/dataset/1/item?type=image&size=${this.pageSize}&page=${this.currentPage}&search=${this.searchString} type:I`
       ).then((data) => {
         if (data._embedded) {
           this.totalItems = data.page.totalElements
@@ -155,3 +174,15 @@ export default {
   }
 }
 </script>
+
+<style scoped>
+.with-pointer {
+  cursor: pointer;
+}
+.no-opacity {
+  opacity: 1;
+}
+.download-link {
+  width: 100%;
+}
+</style>
