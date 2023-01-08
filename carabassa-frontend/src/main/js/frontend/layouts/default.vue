@@ -8,15 +8,10 @@
         <v-list-item
           v-for="(item, i) in items"
           :key="i"
+          :prepend-icon="item.icon"
           :title="item.title"
           :to="item.to"
-          router
-          exact
-        >
-          <template #prepend>
-            <v-icon :icon="item.icon" />
-          </template>
-        </v-list-item>
+        />
       </v-list>
     </v-navigation-drawer>
     <v-app-bar
@@ -51,8 +46,13 @@ export default {
       items: [
         {
           title: 'Search',
-          icon: 'mdi-apps',
+          icon: 'mdi-magnify',
           to: '/'
+        },
+        {
+          title: 'Test',
+          icon: 'mdi-test-tube',
+          to: '/test'
         }
       ],
       title: 'Carabassa'

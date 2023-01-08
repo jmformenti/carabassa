@@ -159,7 +159,7 @@ public class DatasetControllerTest extends DatasetControllerHelper {
 	}
 
 	@Test
-	public void create() throws Exception {
+	public void createDataset() throws Exception {
 		String json = objectMapper.writeValueAsString(new DatasetEditableRepresentation(DATASET_NAME, "description"));
 
 		when(datasetMapper.toEntity(isA(DatasetEditableRepresentation.class))).thenReturn(dataset);
@@ -174,7 +174,7 @@ public class DatasetControllerTest extends DatasetControllerHelper {
 	}
 
 	@Test
-	public void findAll() throws Exception {
+	public void findAllDatasets() throws Exception {
 		Page<Dataset> page = new PageImpl<>(Arrays.asList(new DatasetImpl()), PageRequest.of(2, 10), 100L);
 
 		when(datasetService.findAll(isA(Pageable.class))).thenReturn(page);
@@ -194,7 +194,7 @@ public class DatasetControllerTest extends DatasetControllerHelper {
 	}
 
 	@Test
-	public void findById() throws Exception {
+	public void findByDatasetId() throws Exception {
 		when(datasetService.findById(DATASET_ID)).thenReturn(dataset);
 		when(datasetMapper.toRepresentation(isA(Dataset.class))).thenReturn(datasetRepresentation);
 
@@ -206,7 +206,7 @@ public class DatasetControllerTest extends DatasetControllerHelper {
 	}
 
 	@Test
-	public void findByName() throws Exception {
+	public void findByDatasetName() throws Exception {
 		when(datasetService.findByName(DATASET_NAME)).thenReturn(dataset);
 		when(datasetMapper.toRepresentation(isA(Dataset.class))).thenReturn(datasetRepresentation);
 
@@ -218,7 +218,7 @@ public class DatasetControllerTest extends DatasetControllerHelper {
 	}
 
 	@Test
-	public void update() throws Exception {
+	public void updateDataset() throws Exception {
 		String json = objectMapper.writeValueAsString(new DatasetEditableRepresentation(DATASET_NAME, "description"));
 
 		when(datasetService.findById(DATASET_ID)).thenReturn(dataset);
@@ -233,7 +233,7 @@ public class DatasetControllerTest extends DatasetControllerHelper {
 	}
 
 	@Test
-	public void deleteOK() throws Exception {
+	public void deleteDataset() throws Exception {
 		when(datasetService.findById(DATASET_ID)).thenReturn(dataset);
 		doNothing().when(datasetService).delete(dataset);
 

@@ -87,7 +87,7 @@
 							<environmentVariables>
 								<NUXT_PUBLIC_API_BASE_URL>.</NUXT_PUBLIC_API_BASE_URL>
 							</environmentVariables>
-							<arguments>run build</arguments>
+							<arguments>run generate</arguments>
 						</configuration>
 					</execution>
 				</executions>
