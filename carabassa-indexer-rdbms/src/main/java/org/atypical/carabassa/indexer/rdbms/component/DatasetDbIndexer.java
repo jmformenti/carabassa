@@ -232,7 +232,7 @@ public class DatasetDbIndexer implements DatasetIndexer {
 	@Override
 	public Page<IndexedItem> findItems(Dataset dataset, SearchCriteria searchCriteria, Pageable pageable) {
 		Assert.notNull(searchCriteria, "Search criteria can not be null.");
-		return indexedItemRepository.findAll(new ItemSpecification(searchCriteria), pageable)
+		return indexedItemRepository.findAll(new ItemSpecification(dataset, searchCriteria), pageable)
 				.map(item -> (IndexedItem) item);
 	}
 

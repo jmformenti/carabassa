@@ -14,6 +14,7 @@ import javax.persistence.criteria.Root;
 
 import org.apache.commons.lang3.time.DateUtils;
 import org.atypical.carabassa.core.component.tagger.impl.ImageMetadataTagger;
+import org.atypical.carabassa.core.model.Dataset;
 import org.atypical.carabassa.core.model.SearchCondition;
 import org.atypical.carabassa.core.model.SearchCriteria;
 import org.atypical.carabassa.core.model.enums.ItemType;
@@ -40,9 +41,11 @@ public class ItemSpecification implements Specification<IndexedItemEntity> {
 	private static final String MONTH_DATE = "yyyy-MM";
 	private static final String YEAR_DATE = "yyyy";
 
+	private Dataset dataset;
 	private SearchCriteria searchCriteria;
 
-	public ItemSpecification(SearchCriteria searchCriteria) {
+	public ItemSpecification(Dataset dataset, SearchCriteria searchCriteria) {
+		this.dataset = dataset;
 		this.searchCriteria = searchCriteria;
 	}
 
@@ -50,6 +53,9 @@ public class ItemSpecification implements Specification<IndexedItemEntity> {
 	public Predicate toPredicate(Root<IndexedItemEntity> root, CriteriaQuery<?> query, CriteriaBuilder builder) {
 
 		final List<Predicate> predicates = new ArrayList<>();
+		
+		predicates.add(builder.equal(root.get(IndexedItemEntity_.DATASET), this.dataset.getId()));
+
 		for (SearchCondition condition : searchCriteria.getConditions()) {
 			predicates.add(toPredicateFromCondition(condition, root, query, builder));
 		}

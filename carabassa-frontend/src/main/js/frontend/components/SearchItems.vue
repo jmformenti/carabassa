@@ -61,7 +61,7 @@
           </div>
         </v-col>
       </v-row>
-      <v-row v-if="items.length">
+      <v-row v-if="searched">
         <v-col
           v-for="item of items"
           :key="item.id"
@@ -69,11 +69,11 @@
           cols="2"
         >
           <v-img
-            :src="`${apiBaseURL}/api/dataset/1/item/${item.id}/thumbnail`"
-            :lazy-src="`${apiBaseURL}/api/dataset/1/item/${item.id}/thumbnail`"
+            :src="$carabassa.getItemThumbnailURL(item.id)"
+            :lazy-src="$carabassa.getItemThumbnailURL(item.id)"
             :aspect-ratio="1"
             cover
-            class="grey lighten-2"
+            class="with-pointer grey lighten-2"
             :title="`${item.id} - ${item.archiveTime}`"
             @click="expandImage(item)"
           >
@@ -115,23 +115,39 @@
           <v-img
             width="500"
             max-height="500"
-            :src="selectedItem? `${apiBaseURL}/api/dataset/1/item/${selectedItem.id}/content` :''"
+            :src="selectedItem? $carabassa.getItemContentURL(selectedItem.id) :''"
             @click="selectedItem = null" 
           />
         </v-card-text>
         <v-card-actions>
           <v-btn
             icon="mdi-download"
-            :href="`${apiBaseURL}/api/dataset/1/item/${selectedItem.id}/content`"
+            :href="$carabassa.getItemContentURL(selectedItem.id)"
           />
         </v-card-actions>
       </v-card>
     </v-overlay>
+    <div
+      v-if="waitingResults"
+      class="text-center"
+    >
+      <v-progress-circular
+        size="50"
+        width="5"
+        indeterminate
+        color="primary"
+      />
+    </div>
   </div>
 </template>
 
 <script>
 export default {
+  setup () {
+    const datasetStore = useDatasetStore()
+    return { datasetStore }
+  },
+
   data () {
     return {
       apiBaseURL: null,
@@ -149,7 +165,8 @@ export default {
         year: 'numeric',
         month: 'long',
         day: 'numeric'
-      }
+      },
+      waitingResults: false
     }
   },
 
@@ -161,41 +178,58 @@ export default {
       } else {
         return 0
       }
+    },
+
+    selectedDataset () {
+      return this.datasetStore.dataset
+    }
+  },
+
+  watch: {
+    selectedDataset () {
+      this.reset()
     }
   },
 
   mounted () {
-    const runtimeConfig = useRuntimeConfig()
-    this.apiBaseURL = runtimeConfig.public.apiBaseURL
+    this.enableInfiniteScroll()
   },
 
   methods: {
     async getItems () {
-      const newItems = await $fetch(
-        `${this.apiBaseURL}/api/dataset/1/item?type=image&size=${this.pageSize}&page=${this.currentPage}&search=${this.searchString} type:I`
-      ).then((data) => {
+      this.waitingResults = true
+      const newItems = await this.$carabassa.getItems(this.currentPage, this.pageSize, this.searchString)
+      .then((data) => {
+        let items = []
         if (data._embedded) {
           this.totalItems = data.page.totalElements
           this.totalPages = data.page.totalPages
-          return data._embedded.itemRepresentationList
-        } else {
-          return []
+          items = data._embedded.itemRepresentationList
         }
-      }
-      )
+        this.searched = true
+        return items
+      })
+      .catch((err) => {
+        this.$notification.alert(err)
+      })
+      this.waitingResults = false
       this.items.push(...newItems)
-      this.searched = true
     },
 
-    search () {
+    reset () {
       this.currentPage = 0
       this.totalItems = 0
       this.totalPages = 0
       this.items = []
+      this.searched = false
+    },
+
+    search () {
+      this.reset()
       this.getItems()
     },
 
-    nextPage () {
+    enableInfiniteScroll () {
       window.onscroll = () => {
         const bottomOfWindow = document.documentElement.scrollTop + window.innerHeight === document.documentElement.offsetHeight
         if (bottomOfWindow) {
@@ -221,8 +255,5 @@ export default {
 }
 .no-opacity {
   opacity: 1;
-}
-.download-link {
-  width: 100%;
 }
 </style>

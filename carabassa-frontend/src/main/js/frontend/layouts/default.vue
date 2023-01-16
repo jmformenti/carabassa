@@ -23,6 +23,29 @@
       />
       <v-app-bar-title>{{ title }}</v-app-bar-title>
       <v-spacer />
+      <v-menu
+        v-if="datasets"
+      >
+        <template #activator="{ props }">
+          <v-btn
+            text
+            v-bind="props"
+          >
+            {{ datasetStore.dataset.name }}
+          </v-btn>
+        </template>
+        <v-list>
+          <v-list-item
+            v-for="(dataset, index) in datasets"
+            :key="index"
+            :value="dataset.id"
+            dense
+            @click="changeDataset(dataset)"
+          >
+            <v-list-item-title>{{ dataset.name }}</v-list-item-title>
+          </v-list-item>
+        </v-list>
+      </v-menu>
     </v-app-bar>
     <v-main>
       <v-container>
@@ -32,17 +55,35 @@
     <v-footer
       class="bg-orange-lighten-4"
       app
+      :padless="true"
     >
-      <span>&copy; {{ new Date().getFullYear() }}</span>
+      <v-card
+        flat
+        tile
+        width="100%"
+        class="bg-orange-lighten-4 text-center"
+      >
+        <v-card-text class="py-1 font-weight-light">
+          &copy; {{ new Date().getFullYear() }}
+        </v-card-text>
+      </v-card>
     </v-footer>
   </v-app>
 </template>
 
 <script>
 export default {
+  setup () {
+    const datasetStore = useDatasetStore()
+    return { datasetStore }
+  },
+
   data () {
     return {
+      title: 'Carabassa',
+      apiBaseURL: null,
       drawer: false,
+      datasets: [],
       items: [
         {
           title: 'Search',
@@ -54,8 +95,22 @@ export default {
           icon: 'mdi-test-tube',
           to: '/test'
         }
-      ],
-      title: 'Carabassa'
+      ]
+    }
+  },
+
+  mounted () {
+    this.$carabassa.getDatasets()
+      .then(data => {
+        this.datasets = data
+        this.changeDataset(this.datasets[0])
+      }
+    )
+  },
+
+  methods: {
+    changeDataset (dataset) {
+      this.datasetStore.dataset = dataset
     }
   }
 }
