@@ -94,10 +94,7 @@
             v-if="leftItems > 0"
             class="text-body-2 text-center"
           >
-            <v-icon>
-              mdi-chevron-double-down
-            </v-icon>
-            {{ leftItems }} images left (loading)
+            {{ leftItems }} images left
           </div>
         </v-col>
       </v-row>
