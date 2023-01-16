@@ -111,8 +111,8 @@ public class ImageMetadataTagger implements Tagger {
 	private void printMetadata(Metadata metadata) {
 		for (Directory directory : metadata.getDirectories()) {
 			for (com.drew.metadata.Tag tag : directory.getTags()) {
-				logger.debug(String.format("%s = %s, %s", directory.getTagName(tag.getTagType()),
-						directory.getString(tag.getTagType()), directory.getDate(tag.getTagType())));
+				logger.debug(String.format("%s (%s) = str(%s), date(%s)", directory.getTagName(tag.getTagType()),
+						tag.getTagTypeHex(), directory.getString(tag.getTagType()), directory.getDate(tag.getTagType())));
 			}
 		}
 	}
@@ -174,6 +174,11 @@ public class ImageMetadataTagger implements Tagger {
 			Date dateOriginal = directory.getDateOriginal(TimeZone.getTimeZone(ZoneId.of(defaultTimeZone)));
 			if (dateOriginal != null) {
 				return dateOriginal.toInstant();
+			} else {
+				Date dateModified = directory.getDateModified(TimeZone.getTimeZone(ZoneId.of(defaultTimeZone)));
+				if (dateModified != null) {
+					return dateModified.toInstant();
+				}
 			}
 		}
 		return null;

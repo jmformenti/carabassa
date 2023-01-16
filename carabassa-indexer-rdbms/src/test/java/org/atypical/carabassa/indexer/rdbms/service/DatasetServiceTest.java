@@ -546,4 +546,24 @@ public class DatasetServiceTest {
 		assertThrows(IOException.class, () -> datasetService.update(dataset));
 	}
 
+	@Test
+	void addItemNoDateOriginalButWithDateModified() throws IOException, EntityExistsException, EntityNotFoundException {
+		final String FILENAME = "IMG_20230115_151633.jpg";
+		Dataset dataset = datasetService.findByName(DATASET_TEST_NAME);
+
+		IndexedItem indexedItem = datasetService.addItem(dataset, ItemType.IMAGE, FILENAME,
+				TestHelper.getImageResource(FILENAME));
+
+		assertNotNull(indexedItem);
+		assertNotNull(indexedItem.getCreation());
+		assertNull(indexedItem.getModification());
+		assertNotNull(indexedItem.getArchiveTime());
+		assertFalse(indexedItem.isArchived());
+		assertEquals("jpg", indexedItem.getFormat());
+		assertEquals(FILENAME, indexedItem.getFilename());
+		assertNotNull(indexedItem.getHash());
+		assertEquals("78364f4c8712125fe370f2f9f469122c", indexedItem.getHash());
+		assertEquals(45, indexedItem.getTags().size());
+	}
+
 }
