@@ -10,7 +10,7 @@ import org.atypical.carabassa.core.model.impl.SearchCriteriaImpl;
 
 public class SearchCriteriaParser {
 
-	private static final String SEARCH_REGEX = "([^:\\s]+)((:)\\s*([^\\s]+))?";
+	private static final String SEARCH_REGEX = "([^:<>\\s]+)((:|<|>)\\s*([^\\s]+))?";
 
 	private static final int ATTR_POS = 1;
 	private static final int ONLY_VALUE_POS = 1;

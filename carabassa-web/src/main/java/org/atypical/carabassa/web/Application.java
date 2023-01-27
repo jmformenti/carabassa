@@ -24,7 +24,7 @@ import org.springframework.util.FileSystemUtils;
 @SpringBootApplication
 public class Application extends SpringBootServletInitializer {
 
-	@Value("${carabassa.tempdir}")
+	@Value("${carabassa.tempdir:#{null}}")
 	private String tempDirLocation;
 
 	@PostConstruct
@@ -37,9 +37,11 @@ public class Application extends SpringBootServletInitializer {
 	}
 
 	private void resetTempDir() throws IOException {
-		Path tempDirPath = Paths.get(tempDirLocation);
-		FileSystemUtils.deleteRecursively(tempDirPath);
-		Files.createDirectories(tempDirPath);
+		if (tempDirLocation != null) {
+			Path tempDirPath = Paths.get(tempDirLocation);
+			FileSystemUtils.deleteRecursively(tempDirPath);
+			Files.createDirectories(tempDirPath);
+		}
 	}
 
 }

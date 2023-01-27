@@ -4,6 +4,7 @@ import java.time.Instant;
 import java.time.ZoneId;
 import java.time.ZonedDateTime;
 import java.util.Set;
+import java.util.stream.Collectors;
 
 import org.atypical.carabassa.core.model.Dataset;
 import org.atypical.carabassa.core.model.IndexedItem;
@@ -25,6 +26,20 @@ public class IndexedItemImpl implements IndexedItem {
 
 	public IndexedItemImpl() {
 		super();
+	}
+
+	public IndexedItemImpl(IndexedItem item) {
+		super();
+		this.id = item.getId();
+		this.type = item.getType();
+		this.filename = item.getFilename();
+		this.format = item.getFormat();
+		this.hash = item.getHash();
+		this.creation = item.getCreation();
+		this.modification = item.getModification();
+		this.archiveTime = item.getArchiveTime();
+		this.tags = item.getTags().stream().collect(Collectors.toSet());
+		this.dataset = item.getDataset();
 	}
 
 	@Override

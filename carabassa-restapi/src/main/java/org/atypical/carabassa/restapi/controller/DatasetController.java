@@ -90,4 +90,8 @@ public interface DatasetController {
 	public void deleteItemTag(@PathVariable("datasetId") Long datasetId, @PathVariable("id") Long itemId,
 			@PathVariable("tagId") Long tagId);
 
+	@PutMapping(value = "/{datasetId}/item/{id}/reset")
+	@ResponseStatus(code = HttpStatus.NO_CONTENT)
+	public void resetItem(@PathVariable("datasetId") Long datasetId, @PathVariable("id") Long itemId);
+
 }

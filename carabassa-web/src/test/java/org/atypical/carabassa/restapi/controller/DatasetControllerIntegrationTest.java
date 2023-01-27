@@ -55,6 +55,7 @@ import org.springframework.test.web.servlet.MockMvc;
 
 @ContextConfiguration(classes = { RestApiConfiguration.class, RestApiRdbmsMapperConfiguration.class })
 @WebMvcTest(DatasetController.class)
+// TODO Implement without mock datasetService, so DatasetControllerHelper won't be necessary
 public class DatasetControllerIntegrationTest extends DatasetControllerHelper {
 
 	@Autowired
@@ -453,6 +454,17 @@ public class DatasetControllerIntegrationTest extends DatasetControllerHelper {
 
 		mvc.perform(delete("/api/dataset/{datasetId}/item/{itemId}/tag/{tagId}", DATASET_ID, ITEM_ID, TAG_ID)) //
 				.andExpect(status().isNotFound()) //
+				.andDo(log());
+	}
+
+	@Test
+	void resetItemOK() throws Exception {
+		when(datasetService.findById(DATASET_ID)).thenReturn(dataset);
+		when(datasetService.findItemById(dataset, ITEM_ID)).thenReturn(indexedItem);
+		doNothing().when(datasetService).resetItem(dataset, ITEM_ID);
+
+		mvc.perform(put("/api/dataset/{datasetId}/item/{itemId}/reset", DATASET_ID, ITEM_ID)) //
+				.andExpect(status().isNoContent()) //
 				.andDo(log());
 	}
 

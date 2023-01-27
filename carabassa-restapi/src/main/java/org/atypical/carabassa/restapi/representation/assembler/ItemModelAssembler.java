@@ -20,7 +20,7 @@ public class ItemModelAssembler extends RepresentationModelAssemblerSupport<Inde
 
 	@Override
 	public ItemRepresentation toModel(IndexedItem indexedItem) {
-		return itemMapper.toRepresentation(indexedItem);
+		return itemMapper.toBaseRepresentation(indexedItem);
 	}
 
 }

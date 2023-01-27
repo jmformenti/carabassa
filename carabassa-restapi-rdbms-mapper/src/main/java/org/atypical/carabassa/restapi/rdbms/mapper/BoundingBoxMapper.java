@@ -8,8 +8,10 @@ import org.mapstruct.Mapper;
 @Mapper
 public interface BoundingBoxMapper extends org.atypical.carabassa.restapi.representation.mapper.BoundingBoxMapper {
 
+	@Override
 	public BoundingBoxRepresentation toRepresentation(BoundingBox boundingBox);
 
+	@Override
 	public BoundingBoxEntity toEntity(BoundingBoxRepresentation boundingBoxRepresentation);
 
 }

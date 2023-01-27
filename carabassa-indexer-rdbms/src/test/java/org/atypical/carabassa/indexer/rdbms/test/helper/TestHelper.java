@@ -23,6 +23,7 @@ public class TestHelper {
 
 	private static Resource getTempResource(Resource resource) throws IOException {
 		File tempFile = File.createTempFile("test", null);
+		tempFile.deleteOnExit();
 		Files.copy(resource.getInputStream(), Paths.get(tempFile.getPath()), StandardCopyOption.REPLACE_EXISTING);
 		return new FileSystemResource(tempFile);
 	}

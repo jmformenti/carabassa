@@ -75,7 +75,7 @@ public class DatasetControllerImpl implements DatasetController {
 	@Autowired
 	private PagedResourcesAssembler<IndexedItem> itemPagedResourcesAssembler;
 
-	@Value("${carabassa.tempdir:/tmp}")
+	@Value("${carabassa.tempdir:#{null}}")
 	private String tempDirPath;
 
 	@Override
@@ -281,6 +281,22 @@ public class DatasetControllerImpl implements DatasetController {
 		}
 	}
 
+	@Override
+	public void resetItem(Long datasetId, Long itemId) {
+		Dataset dataset = getDataset(datasetId);
+		try {
+			datasetService.resetItem(dataset, itemId);
+		} catch (EntityNotFoundException e) {
+			logger.error(e.getMessage(), e);
+			throw new ResponseStatusException(HttpStatus.NOT_FOUND, e.getMessage());
+		} catch (EntityExistsException e) {
+			throw new ResponseStatusException(HttpStatus.CONFLICT, e.getMessage());
+		} catch (IOException e) {
+			logger.error(e.getMessage(), e);
+			throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, e.getMessage());
+		}
+	}
+
 	private Dataset getDataset(Long datasetId) {
 		Dataset dataset;
 		try {
@@ -316,7 +332,12 @@ public class DatasetControllerImpl implements DatasetController {
 	 * @throws IOException
 	 */
 	private Resource getTempResource(MultipartFile file) throws IOException {
-		File tempFile = File.createTempFile(TEMP_FILE_PREFIX, null, Paths.get(tempDirPath).toFile());
+		File tempFile;
+		if (tempDirPath != null) {
+			tempFile = File.createTempFile(TEMP_FILE_PREFIX, null, Paths.get(tempDirPath).toFile());
+		} else {
+			tempFile = File.createTempFile(TEMP_FILE_PREFIX, null);
+		}
 		file.transferTo(tempFile);
 		return new FileSystemResource(tempFile);
 	}

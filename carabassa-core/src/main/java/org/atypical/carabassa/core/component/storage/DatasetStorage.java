@@ -14,19 +14,19 @@ public interface DatasetStorage {
 
 	public void create(Dataset dataset) throws IOException, EntityExistsException;
 
-	public void addItem(Dataset dataset, IndexedItem item, Resource inputItem)
-			throws IOException, EntityExistsException;
+	public void addItem(IndexedItem item, Resource inputItem) throws IOException, EntityExistsException;
 
-	public StoredItem getItem(Dataset dataset, IndexedItem item) throws IOException, EntityNotFoundException;
+	public StoredItem getItem(IndexedItem item) throws IOException, EntityNotFoundException;
 
-	public StoredItemThumbnail getItemThumbnail(Dataset dataset, IndexedItem item)
-			throws IOException, EntityNotFoundException;
+	public StoredItemThumbnail getItemThumbnail(IndexedItem item) throws IOException, EntityNotFoundException;
 
 	public void deleteAll() throws IOException;
 
 	public void delete(Dataset dataset) throws IOException;
 
-	public void deleteItem(Dataset dataset, IndexedItem item) throws IOException;
+	public void deleteItem(IndexedItem item) throws IOException;
+
+	public void resetItem(IndexedItem updatedItem, IndexedItem previousItem) throws IOException, EntityExistsException;
 
 	public void update(Dataset dataset) throws IOException;
 

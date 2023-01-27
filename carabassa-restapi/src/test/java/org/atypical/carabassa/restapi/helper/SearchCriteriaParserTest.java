@@ -3,19 +3,25 @@ package org.atypical.carabassa.restapi.helper;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 
+import java.text.DateFormat;
 import java.text.ParseException;
+import java.text.SimpleDateFormat;
 import java.time.Instant;
+import java.time.LocalDateTime;
+import java.time.ZoneOffset;
+import java.time.format.DateTimeFormatter;
 
 import org.apache.commons.lang3.time.DateUtils;
 import org.atypical.carabassa.core.model.SearchCriteria;
 import org.atypical.carabassa.core.model.enums.PeriodType;
 import org.atypical.carabassa.core.model.enums.SearchOperator;
 import org.junit.jupiter.api.Test;
+import org.springframework.data.util.Pair;
 
 class SearchCriteriaParserTest {
 
 	@Test
-	void test() {
+	void testCriteriaParser() {
 		SearchCriteria searchCriteria = SearchCriteriaParser.parse("att:test test2 att2: 123");
 
 		assertFalse(searchCriteria.isEmpty());
@@ -30,18 +36,33 @@ class SearchCriteriaParserTest {
 	}
 
 	@Test
-	void test2() throws ParseException {
-		System.out.println(DateUtils.parseDateStrictly("2005", "yyyy", "yyyy-MM", "yyyy-MM-dd"));
-		System.out.println(DateUtils.parseDateStrictly("2005-08", "yyyy", "yyyy-MM", "yyyy-MM-dd"));
-		System.out.println(DateUtils.parseDateStrictly("2005-08-5", "yyyy", "yyyy-MM", "yyyy-MM-dd"));
+	void testDatesCompletion() throws ParseException {
+		DateFormat formatter = new SimpleDateFormat("yyyy-MM-dd");
+		assertEquals("2005-01-01",
+				formatter.format(DateUtils.parseDateStrictly("2005", "yyyy", "yyyy-MM", "yyyy-MM-dd")));
+		assertEquals("2005-08-01",
+				formatter.format(DateUtils.parseDateStrictly("2005-08", "yyyy", "yyyy-MM", "yyyy-MM-dd")));
+		assertEquals("2005-08-05",
+				formatter.format(DateUtils.parseDateStrictly("2005-08-05", "yyyy", "yyyy-MM", "yyyy-MM-dd")));
 	}
 
 	@Test
-	void test3() throws ParseException {
-		Instant now = Instant.now();
-		System.out.println(PeriodType.DAY.getPeriodDates(now));
-		System.out.println(PeriodType.MONTH.getPeriodDates(now));
-		System.out.println(PeriodType.YEAR.getPeriodDates(now));
+	void testPeriodTypes() throws ParseException {
+		DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss").withZone(ZoneOffset.UTC);
+
+		Instant instant = LocalDateTime.of(2005, 1, 1, 11, 11).toInstant(ZoneOffset.UTC);
+		
+		Pair<Instant, Instant> period = PeriodType.DAY.getPeriodDates(instant);
+		assertEquals("2005-01-01 00:00:00", formatter.format(period.getFirst()));
+		assertEquals("2005-01-01 23:59:59", formatter.format(period.getSecond()));
+
+		period = PeriodType.MONTH.getPeriodDates(instant);
+		assertEquals("2005-01-01 00:00:00", formatter.format(period.getFirst()));
+		assertEquals("2005-01-31 23:59:59", formatter.format(period.getSecond()));
+
+		period = PeriodType.YEAR.getPeriodDates(instant);
+		assertEquals("2005-01-01 00:00:00", formatter.format(period.getFirst()));
+		assertEquals("2005-12-31 23:59:59", formatter.format(period.getSecond()));
 	}
 
 }

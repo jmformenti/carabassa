@@ -122,30 +122,8 @@ public class DatasetDbIndexer implements DatasetIndexer {
 
 		indexedItemEntity.setFilename(originalFilename);
 
-		Tagger metadataTagger = metadataTaggerByType.get(indexedItemEntity.getType().normalized() + "MetadataTagger");
-		Assert.notNull(metadataTagger, localizedMessage.getText(METADATA_TAGGER_NOT_FOUND_MESSAGE_KEY, type));
-
-		Set<Tag> tags = metadataTagger.getTags(inputItem).stream().map(t -> new TagEntity(t))
-				.collect(Collectors.toSet());
-		indexedItemEntity.setTags(tags);
-
-		String hash = indexedItemEntity.getFirstTag(Tagger.TAG_HASH).getValue(String.class);
-		Assert.notNull(hash, localizedMessage.getText(ITEM_HASH_NULL_MESSAGE_KEY));
-		indexedItemEntity.setHash(hash);
-
-		Tag archiveTimeTag = indexedItemEntity.getFirstTag(Tagger.TAG_ARCHIVE_TIME);
-		Instant archiveTime = null;
-		if (archiveTimeTag != null) {
-			archiveTime = archiveTimeTag.getValue(Instant.class);
-		}
-		indexedItemEntity.setArchiveTime(archiveTime);
-
-		Tag fileTypeTag = indexedItemEntity.getFirstTag(Tagger.TAG_FILE_TYPE);
-		String fileType = fileTypeTag.getValue(String.class);
-		Assert.isTrue(fileTypeTag != null && fileType != null,
-				localizedMessage.getText(ITEM_NOT_FILE_TYPE_MESSAGE_KEY));
-		indexedItemEntity.setFormat(fileType);
-
+		setMetaInfo(indexedItemEntity, inputItem);
+		
 		return indexedItemEntity;
 	}
 
@@ -173,12 +151,11 @@ public class DatasetDbIndexer implements DatasetIndexer {
 	}
 
 	@Override
-	public void deleteItem(Dataset dataset, IndexedItem item) throws EntityNotFoundException {
-		// detach dataset from session before get an inconsistent status
-		em.detach(dataset);
+	public void deleteItem(IndexedItem item) throws EntityNotFoundException {
 		// Deletes item in an efficient way to avoid problems with large sets
 		// performance in hibernate
 		indexedItemRepository.delete((IndexedItemEntity) item);
+		update(item.getDataset());
 	}
 
 	@Override
@@ -245,8 +222,48 @@ public class DatasetDbIndexer implements DatasetIndexer {
 	}
 
 	@Override
+	public IndexedItem resetItem(Dataset dataset, Long itemId, Resource inputItem) throws EntityNotFoundException, IOException {
+		IndexedItem item = findItemById(dataset, itemId);
+		item.getTags().clear();
+		setMetaInfo(item, inputItem);
+		item.setModification(Instant.now());
+		update(dataset);
+		return item;
+	}
+
+	@Override
 	public Dataset update(Dataset dataset) {
 		return datasetRepository.save((DatasetEntity) dataset);
+	}
+
+	private void setMetaInfo(IndexedItem indexedItem, Resource inputItem) throws IOException {
+		Tagger metadataTagger = metadataTaggerByType.get(indexedItem.getType().normalized() + "MetadataTagger");
+		Assert.notNull(metadataTagger, localizedMessage.getText(METADATA_TAGGER_NOT_FOUND_MESSAGE_KEY, indexedItem.getType()));
+
+		Set<Tag> tags = metadataTagger.getTags(inputItem).stream().map(t -> new TagEntity(t))
+				.collect(Collectors.toSet());
+		if(indexedItem.getTags() == null) {
+			indexedItem.setTags(tags);
+		} else {
+			indexedItem.getTags().addAll(tags);
+		}
+
+		String hash = indexedItem.getFirstTag(Tagger.TAG_HASH).getValue(String.class);
+		Assert.notNull(hash, localizedMessage.getText(ITEM_HASH_NULL_MESSAGE_KEY));
+		indexedItem.setHash(hash);
+
+		Tag archiveTimeTag = indexedItem.getFirstTag(Tagger.TAG_ARCHIVE_TIME);
+		Instant archiveTime = null;
+		if (archiveTimeTag != null) {
+			archiveTime = archiveTimeTag.getValue(Instant.class);
+		}
+		indexedItem.setArchiveTime(archiveTime);
+
+		Tag fileTypeTag = indexedItem.getFirstTag(Tagger.TAG_FILE_TYPE);
+		String fileType = fileTypeTag.getValue(String.class);
+		Assert.isTrue(fileTypeTag != null && fileType != null,
+				localizedMessage.getText(ITEM_NOT_FILE_TYPE_MESSAGE_KEY));
+		indexedItem.setFormat(fileType);
 	}
 
 }

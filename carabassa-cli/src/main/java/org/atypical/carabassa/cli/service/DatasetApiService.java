@@ -26,6 +26,10 @@ public interface DatasetApiService {
 	
 	public List<ItemRepresentation> findItems(Long datasetId) throws ApiException;
 
+	public List<ItemRepresentation> findItems(Long datasetId, String searchString) throws ApiException;
+
+	public void resetItem(Long datasetId, Long id) throws ApiException;
+
 	public void update(Long datasetId, String description) throws ApiException;
 
 }

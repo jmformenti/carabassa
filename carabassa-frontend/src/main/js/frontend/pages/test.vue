@@ -11,7 +11,10 @@
 
     <v-menu>
       <template #activator="{ props }">
-        <v-btn text v-bind="props">
+        <v-btn
+          text 
+          v-bind="props"
+        >
           {{ selectedDataset }}
         </v-btn>
       </template>

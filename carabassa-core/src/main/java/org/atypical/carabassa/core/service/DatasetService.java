@@ -56,6 +56,8 @@ public interface DatasetService {
 	public StoredItemThumbnail getStoredItemThumbnail(Dataset dataset, IndexedItem item)
 			throws IOException, EntityNotFoundException;
 
+	public void resetItem(Dataset dataset, Long itemId) throws EntityExistsException, EntityNotFoundException, IOException;
+
 	public Dataset update(Dataset dataset) throws IOException;
 
 }

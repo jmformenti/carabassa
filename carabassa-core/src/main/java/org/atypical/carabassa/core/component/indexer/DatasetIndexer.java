@@ -27,7 +27,7 @@ public interface DatasetIndexer {
 
 	public void deleteAll();
 
-	public void deleteItem(Dataset dataset, IndexedItem item) throws EntityNotFoundException;
+	public void deleteItem(IndexedItem item) throws EntityNotFoundException;
 
 	public void deleteItemTag(Dataset dataset, Long itemId, Long tagId) throws EntityNotFoundException;
 
@@ -48,6 +48,8 @@ public interface DatasetIndexer {
 	public Page<IndexedItem> findItems(Dataset dataset, SearchCriteria searchCriteria, Pageable pageable);
 
 	public Tag findItemTagById(Dataset dataset, Long itemId, Long tagId) throws EntityNotFoundException;
+
+	public IndexedItem resetItem(Dataset dataset, Long itemId, Resource inputItem) throws EntityNotFoundException, IOException;
 
 	public Dataset update(Dataset dataset);
 

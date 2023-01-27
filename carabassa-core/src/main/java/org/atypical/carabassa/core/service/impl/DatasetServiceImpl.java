@@ -16,7 +16,9 @@ import org.atypical.carabassa.core.model.StoredItem;
 import org.atypical.carabassa.core.model.StoredItemThumbnail;
 import org.atypical.carabassa.core.model.Tag;
 import org.atypical.carabassa.core.model.enums.ItemType;
+import org.atypical.carabassa.core.model.impl.IndexedItemImpl;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.core.io.ByteArrayResource;
 import org.springframework.core.io.Resource;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -42,7 +44,7 @@ public class DatasetServiceImpl implements org.atypical.carabassa.core.service.D
 	public IndexedItem addItem(Dataset dataset, ItemType type, String originalFilename, Resource inputItem)
 			throws IOException, EntityExistsException {
 		IndexedItem item = datasetIndexer.addItem(dataset, type, originalFilename, inputItem);
-		datasetStorage.addItem(dataset, item, inputItem);
+		datasetStorage.addItem(item, inputItem);
 		return item;
 	}
 
@@ -74,8 +76,8 @@ public class DatasetServiceImpl implements org.atypical.carabassa.core.service.D
 	public void deleteItem(Dataset dataset, Long itemId) throws IOException {
 		try {
 			IndexedItem item = datasetIndexer.findItemById(dataset, itemId);
-			datasetIndexer.deleteItem(dataset, item);
-			datasetStorage.deleteItem(dataset, item);
+			datasetIndexer.deleteItem(item);
+			datasetStorage.deleteItem(item);
 		} catch (EntityNotFoundException e) {
 			// nothing to do
 		}
@@ -133,12 +135,23 @@ public class DatasetServiceImpl implements org.atypical.carabassa.core.service.D
 
 	@Override
 	public StoredItem getStoredItem(Dataset dataset, IndexedItem item) throws IOException, EntityNotFoundException {
-		return datasetStorage.getItem(dataset, item);
+		return datasetStorage.getItem(item);
 	}
 
 	@Override
-	public StoredItemThumbnail getStoredItemThumbnail(Dataset dataset, IndexedItem item) throws IOException, EntityNotFoundException {
-		return datasetStorage.getItemThumbnail(dataset, item);
+	public StoredItemThumbnail getStoredItemThumbnail(Dataset dataset, IndexedItem item)
+			throws IOException, EntityNotFoundException {
+		return datasetStorage.getItemThumbnail(item);
+	}
+
+	@Override
+	public void resetItem(Dataset dataset, Long itemId)
+			throws EntityExistsException, EntityNotFoundException, IOException {
+		IndexedItem item = new IndexedItemImpl(datasetIndexer.findItemById(dataset, itemId));
+		StoredItem storedItem = datasetStorage.getItem(item);
+		IndexedItem updatedItem = datasetIndexer.resetItem(dataset, itemId,
+				new ByteArrayResource(storedItem.getContent()));
+		datasetStorage.resetItem(updatedItem, item);
 	}
 
 	@Override

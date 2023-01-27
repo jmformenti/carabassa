@@ -2,6 +2,7 @@ package org.atypical.carabassa.core.component.tagger.impl;
 
 import java.awt.image.BufferedImage;
 import java.io.IOException;
+import java.nio.file.Paths;
 import java.time.Instant;
 import java.time.ZoneId;
 import java.util.Date;
@@ -10,6 +11,7 @@ import java.util.Set;
 import java.util.TimeZone;
 import java.util.stream.IntStream;
 
+import javax.annotation.PostConstruct;
 import javax.imageio.ImageIO;
 
 import org.apache.commons.codec.binary.Hex;
@@ -54,13 +56,25 @@ public class ImageMetadataTagger implements Tagger {
 	private static final String IMAGE_ERROR_META_MESSAGE_KEY = "core.tagger.meta.image.error";
 	private static final String IMAGE_ERROR_PHASH_MESSAGE_KEY = "core.tagger.phash.error";
 
+	private static DifferenceHash differenceHash = new DifferenceHash(64, Precision.Double);
+	
 	@Value("${carabassa.default-tz}")
 	private String defaultTimeZone;
-	
+
+	@Value("${carabassa.tempdir:#{null}}")
+	private String tempDirLocation;
+
 	@Autowired
 	private LocalizedMessage localizedMessage;
 
 	private Atlas atlas = new Atlas();
+
+	@PostConstruct
+	public void init() {
+		if (tempDirLocation != null) {
+			ImageIO.setCacheDirectory(Paths.get(tempDirLocation).toFile());
+		}
+	}
 
 	@Override
 	public Set<Tag> getTags(Resource inputItem) throws IOException {
@@ -72,7 +86,7 @@ public class ImageMetadataTagger implements Tagger {
 			tags.addAll(getCustomTags(inputItem, metadata));
 		}
 
-		if (logger.isDebugEnabled()) {
+		if (logger.isTraceEnabled()) {
 			tags.forEach(t -> logger.debug("Tag {} = {}", t.getName(), t.getValue()));
 		}
 
@@ -104,7 +118,9 @@ public class ImageMetadataTagger implements Tagger {
 		} catch (ImageProcessingException | IOException e) {
 			throw new IOException(localizedMessage.getText(IMAGE_ERROR_META_MESSAGE_KEY, e.getMessage()), e);
 		}
-		printMetadata(metadata);
+		if (logger.isTraceEnabled()) {
+			printMetadata(metadata);
+		}
 		return metadata;
 	}
 
@@ -112,7 +128,8 @@ public class ImageMetadataTagger implements Tagger {
 		for (Directory directory : metadata.getDirectories()) {
 			for (com.drew.metadata.Tag tag : directory.getTags()) {
 				logger.debug(String.format("%s (%s) = str(%s), date(%s)", directory.getTagName(tag.getTagType()),
-						tag.getTagTypeHex(), directory.getString(tag.getTagType()), directory.getDate(tag.getTagType())));
+						tag.getTagTypeHex(), directory.getString(tag.getTagType()),
+						directory.getDate(tag.getTagType())));
 			}
 		}
 	}
@@ -199,8 +216,6 @@ public class ImageMetadataTagger implements Tagger {
 	}
 
 	private String getPerceptualHash(Resource inputItem) throws IOException {
-		DifferenceHash differenceHash = new DifferenceHash(64, Precision.Double);
-
 		BufferedImage image;
 		try {
 			image = ImageIO.read(inputItem.getInputStream());

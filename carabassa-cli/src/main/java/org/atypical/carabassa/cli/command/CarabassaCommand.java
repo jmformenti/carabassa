@@ -11,7 +11,7 @@ import picocli.CommandLine.ExitCode;
 @Component
 @Command(name = "carabassa", mixinStandardHelpOptions = true, versionProvider = CarabassaVersion.class, subcommands = {
 		CreateDatasetCommand.class, ListDatasetCommand.class, UpdateDatasetCommand.class, DeleteDatasetCommand.class,
-		UploadDatasetCommand.class, ListItemsCommand.class })
+		UploadDatasetCommand.class, ListItemsCommand.class, ResetItemsCommand.class })
 public class CarabassaCommand implements Callable<Integer> {
 
 	@Override

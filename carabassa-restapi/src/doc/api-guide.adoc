@@ -197,27 +197,27 @@ Get items from a dataset.
 ==== Request
 
 ===== Path parameters
-include::{snippets}/get-items/path-parameters.adoc[]
+include::{snippets}/find-items/path-parameters.adoc[]
 
 ===== Request parameters
-include::{snippets}/get-items/request-parameters.adoc[]
+include::{snippets}/find-items/request-parameters.adoc[]
 
 ===== Example
-include::{snippets}/get-items/http-request.adoc[]
+include::{snippets}/find-items/http-request.adoc[]
 
 ===== CURL request
-include::{snippets}/get-items/curl-request.adoc[]
+include::{snippets}/find-items/curl-request.adoc[]
 
 ==== Response
 
 ===== Fields
-include::{snippets}/get-items/response-fields.adoc[]
+include::{snippets}/find-items/response-fields.adoc[]
 
 ===== Links
-include::{snippets}/get-items/links.adoc[]
+include::{snippets}/find-items/links.adoc[]
 
 ===== Example
-include::{snippets}/get-items/http-response.adoc[]
+include::{snippets}/find-items/http-response.adoc[]
 
 [[resources-dataset-getitem]]
 === Get item
@@ -226,41 +226,61 @@ Get an indexed item from a dataset.
 ==== Request
 
 ===== Path parameters
-include::{snippets}/get-item/path-parameters.adoc[]
+include::{snippets}/find-item/path-parameters.adoc[]
 
 ===== Example
-include::{snippets}/get-item/http-request.adoc[]
+include::{snippets}/find-item/http-request.adoc[]
 
 ===== CURL request
-include::{snippets}/get-item/curl-request.adoc[]
+include::{snippets}/find-item/curl-request.adoc[]
 
 ==== Response
 
 ===== Fields
-include::{snippets}/get-item/response-fields.adoc[]
+include::{snippets}/find-item/response-fields.adoc[]
 
 ===== Example
-include::{snippets}/get-item/http-response.adoc[]
+include::{snippets}/find-item/http-response.adoc[]
 
 [[resources-dataset-getitemcontent]]
 === Get item content
-Get an item content from a dataset.
+Get the item content from a dataset.
 
 ==== Request
 
 ===== Path parameters
-include::{snippets}/get-item-content/path-parameters.adoc[]
+include::{snippets}/find-item-content/path-parameters.adoc[]
 
 ===== Example
-include::{snippets}/get-item-content/http-request.adoc[]
+include::{snippets}/find-item-content/http-request.adoc[]
 
 ===== CURL request
-include::{snippets}/get-item-content/curl-request.adoc[]
+include::{snippets}/find-item-content/curl-request.adoc[]
 
 ==== Response
 
 ===== Example
-include::{snippets}/get-item-content/http-response.adoc[]
+include::{snippets}/find-item-content/http-response.adoc[]
+
+[[resources-dataset-getitemthumbnail]]
+=== Get item thumbnail
+Get the item thumbnail from a dataset.
+
+==== Request
+
+===== Path parameters
+include::{snippets}/find-item-thumbnail/path-parameters.adoc[]
+
+===== Example
+include::{snippets}/find-item-thumbnail/http-request.adoc[]
+
+===== CURL request
+include::{snippets}/find-item-thumbnail/curl-request.adoc[]
+
+==== Response
+
+===== Example
+include::{snippets}/find-item-thumbnail/http-response.adoc[]
 
 [[resources-dataset-additem]]
 === Add item 
@@ -350,3 +370,25 @@ include::{snippets}/delete-item-tag/curl-request.adoc[]
 
 ===== Example
 include::{snippets}/delete-item-tag/http-response.adoc[]
+
+[[resources-dataset-resetitem]]
+=== Reset item 
+Resets an item.
+
+Recalculates basic info (archive date, hash, file type) and reset related tags.
+
+==== Request
+
+===== Path parameters
+include::{snippets}/reset-item/path-parameters.adoc[]
+
+===== Example
+include::{snippets}/reset-item/http-request.adoc[]
+
+===== CURL request
+include::{snippets}/reset-item/curl-request.adoc[]
+
+==== Response
+
+===== Example
+include::{snippets}/reset-item/http-response.adoc[]

@@ -1,6 +1,7 @@
 package org.atypical.carabassa.cli.service.impl;
 
 import java.io.IOException;
+import java.net.URI;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -170,7 +171,7 @@ public class DatasetApiServiceImpl implements DatasetApiService {
 
 			List<DatasetEntityRepresentation> datasets = new ArrayList<>(page.getContent());
 			while (page.hasLink(IanaLinkRelations.NEXT)) {
-				page = getPage(page.getLink("next").get().toUri().toString(),
+				page = getPage(page.getLink(IanaLinkRelations.NEXT_VALUE).get().toUri(),
 						new PagedModelType<DatasetEntityRepresentation>() {
 						});
 				datasets.addAll(page.getContent());
@@ -196,21 +197,35 @@ public class DatasetApiServiceImpl implements DatasetApiService {
 
 	@Override
 	public List<ItemRepresentation> findItems(Long datasetId) throws ApiException {
+		return findItems(datasetId, null);
+	}
+
+	@Override
+	public List<ItemRepresentation> findItems(Long datasetId, String searchString) throws ApiException {
 		try {
-			PagedModel<ItemRepresentation> page = getPage(datasetUrl + "{datasetId}/item?size={size}&search=type:I",
+			PagedModel<ItemRepresentation> page = getPage(
+					datasetUrl + "{datasetId}/item?size={size}&search={searchString}",
 					new PagedModelType<ItemRepresentation>() {
-					}, datasetId, 100);
+					}, datasetId, 100, searchString);
 
 			List<ItemRepresentation> items = new ArrayList<>(page.getContent());
 			while (page.hasLink(IanaLinkRelations.NEXT)) {
-				System.out.println(page.getLink("next").get().toUri().toString());
-				page = getPage(page.getLink("next").get().toUri().toString(),
+				page = getPage(page.getLink(IanaLinkRelations.NEXT_VALUE).get().toUri(),
 						new PagedModelType<ItemRepresentation>() {
 						});
 				items.addAll(page.getContent());
 			}
 
 			return items;
+		} catch (RestClientResponseException e) {
+			throw buildApiException(e);
+		}
+	}
+
+	@Override
+	public void resetItem(Long datasetId, Long itemId) throws ApiException {
+		try {
+			restTemplate.put(datasetUrl + "{datasetId}/item/{itemId}/reset", null, datasetId, itemId);
 		} catch (RestClientResponseException e) {
 			throw buildApiException(e);
 		}
@@ -227,8 +242,13 @@ public class DatasetApiServiceImpl implements DatasetApiService {
 		}
 	}
 
-	private <T extends RepresentationModel<T>> PagedModel<T> getPage(String uri, PagedModelType<T> responseType, Object... uriVariables) {
+	private <T extends RepresentationModel<T>> PagedModel<T> getPage(String uri, PagedModelType<T> responseType,
+			Object... uriVariables) {
 		return restTemplate.exchange(uri, HttpMethod.GET, null, responseType, uriVariables).getBody();
+	}
+
+	private <T extends RepresentationModel<T>> PagedModel<T> getPage(URI uri, PagedModelType<T> responseType) {
+		return restTemplate.exchange(uri, HttpMethod.GET, null, responseType).getBody();
 	}
 
 	private ApiException buildApiException(RestClientResponseException e) {
@@ -244,4 +264,5 @@ public class DatasetApiServiceImpl implements DatasetApiService {
 	private String getDatasetUrl() {
 		return (baseUrl.endsWith("/") ? baseUrl : baseUrl + "/") + DATASET_PATH;
 	}
+
 }

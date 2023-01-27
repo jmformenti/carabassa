@@ -64,7 +64,6 @@ public class DatasetServiceTest {
 	void setUp() throws EntityExistsException, IOException {
 		datasetService.deleteAll();
 		datasetService.create(new DatasetImpl(DATASET_TEST_NAME));
-		datasetService.create(new DatasetImpl("test2"));
 	}
 
 	@AfterEach
@@ -74,8 +73,10 @@ public class DatasetServiceTest {
 
 	@Test
 	void addItemBlankFilename() throws IOException, EntityNotFoundException {
+		// GIVEN
 		Dataset dataset = datasetService.findByName(DATASET_TEST_NAME);
 
+		// WHEN & THEN
 		assertThrows(IllegalArgumentException.class,
 				() -> datasetService.addItem(dataset, ItemType.IMAGE, null, new ByteArrayResource("test".getBytes())));
 	}
@@ -83,13 +84,17 @@ public class DatasetServiceTest {
 	@Test
 	void addItemExisting() throws IOException, EntityExistsException, EntityNotFoundException {
 		final String FILENAME = "IMG_VALID.jpg";
+		
+		// GIVEN
 		Dataset dataset = datasetService.findByName(DATASET_TEST_NAME);
 
+		// WHEN
 		datasetService.addItem(dataset, ItemType.IMAGE, FILENAME, TestHelper.getImageResource(FILENAME));
 
 		// required to save item in db
 		entityManager.flush();
 
+		// THEN
 		Dataset finalDataset = datasetService.findByName(DATASET_TEST_NAME);
 		assertEquals(1, finalDataset.getItems().size());
 
@@ -100,9 +105,13 @@ public class DatasetServiceTest {
 	@Test
 	void addItemInvalid() throws IOException, EntityNotFoundException {
 		final String FILENAME = "IMG_INVALID.jpg";
+		
+		// GIVEN
 		Dataset dataset = datasetService.findByName(DATASET_TEST_NAME);
 
 		Resource resource = TestHelper.getImageResource(FILENAME);
+
+		// WHEN & THEN
 		assertThrows(IOException.class, () -> datasetService.addItem(dataset, ItemType.IMAGE, FILENAME, resource));
 		assertEquals(0, dataset.getItems().size());
 	}
@@ -110,23 +119,55 @@ public class DatasetServiceTest {
 	@Test
 	void addItemInvalidTypeFile() throws IOException, EntityExistsException, EntityNotFoundException {
 		final String FILENAME = "IMG_INVALID_FILE_TYPE.gif";
+		
+		// GIVEN
 		Dataset dataset = datasetService.findByName(DATASET_TEST_NAME);
 
+		// WHEN
 		IndexedItem indexedItem = datasetService.addItem(dataset, ItemType.IMAGE, FILENAME,
 				TestHelper.getImageResource(FILENAME));
 
+		// THEN
 		assertNotNull(indexedItem);
 		assertEquals("jpg", indexedItem.getFormat());
 	}
 
 	@Test
-	void addItemNotArchived() throws IOException, EntityExistsException, EntityNotFoundException {
-		final String FILENAME = "IMG_NO_DATE.jpg";
+	void addItemNoDateOriginalButWithDateModified() throws IOException, EntityExistsException, EntityNotFoundException {
+		final String FILENAME = "IMG_20230115_151633.jpg";
+		
+		// GIVEN
 		Dataset dataset = datasetService.findByName(DATASET_TEST_NAME);
 
+		// WHEN
 		IndexedItem indexedItem = datasetService.addItem(dataset, ItemType.IMAGE, FILENAME,
 				TestHelper.getImageResource(FILENAME));
 
+		// THEN
+		assertNotNull(indexedItem);
+		assertNotNull(indexedItem.getCreation());
+		assertNull(indexedItem.getModification());
+		assertNotNull(indexedItem.getArchiveTime());
+		assertTrue(indexedItem.isArchived());
+		assertEquals("jpg", indexedItem.getFormat());
+		assertEquals(FILENAME, indexedItem.getFilename());
+		assertNotNull(indexedItem.getHash());
+		assertEquals("78364f4c8712125fe370f2f9f469122c", indexedItem.getHash());
+		assertEquals(46, indexedItem.getTags().size());
+	}
+
+	@Test
+	void addItemNotArchived() throws IOException, EntityExistsException, EntityNotFoundException {
+		final String FILENAME = "IMG_NO_DATE.jpg";
+		
+		// GIVEN
+		Dataset dataset = datasetService.findByName(DATASET_TEST_NAME);
+
+		// WHEN
+		IndexedItem indexedItem = datasetService.addItem(dataset, ItemType.IMAGE, FILENAME,
+				TestHelper.getImageResource(FILENAME));
+
+		// THEN
 		assertNotNull(indexedItem);
 		assertNotNull(indexedItem.getCreation());
 		assertNull(indexedItem.getModification());
@@ -158,20 +199,26 @@ public class DatasetServiceTest {
 
 	@Test
 	void addItemNullContent() throws IOException, EntityNotFoundException {
+		// GIVEN
 		Dataset dataset = datasetService.findByName(DATASET_TEST_NAME);
 
+		// WHEN
 		Resource resource = null;
+		
+		// THEN
 		assertThrows(IllegalArgumentException.class,
 				() -> datasetService.addItem(dataset, ItemType.IMAGE, "test", resource));
 	}
 
 	@Test
 	void addItemSameDhash() throws IOException, EntityExistsException, EntityNotFoundException {
-		Dataset dataset = datasetService.findByName(DATASET_TEST_NAME);
-
 		final String FILENAME1 = "IMG_DHASH_1.jpg";
 		final String FILENAME2 = "IMG_DHASH_2.jpg";
 
+		// GIVEN
+		Dataset dataset = datasetService.findByName(DATASET_TEST_NAME);
+
+		// WHEN
 		IndexedItem indexedItem1 = datasetService.addItem(dataset, ItemType.IMAGE, FILENAME1,
 				TestHelper.getImageResource(FILENAME1));
 		assertNotNull(indexedItem1);
@@ -184,6 +231,7 @@ public class DatasetServiceTest {
 		Tag perceptualTag2 = indexedItem2.getFirstTag(ImageMetadataTagger.TAG_DHASH);
 		assertNotNull(perceptualTag2);
 
+		// THEN
 		assertNotEquals(indexedItem1.getHash(), indexedItem2.getHash());
 		assertEquals(perceptualTag1.getValue(String.class), perceptualTag2.getValue(String.class));
 	}
@@ -193,13 +241,16 @@ public class DatasetServiceTest {
 		final String FILENAME = "IMG_VALID.jpg";
 		final String TAG_VALUE = "test";
 
+		// GIVEN
 		Dataset dataset = datasetService.findByName(DATASET_TEST_NAME);
 
+		// WHEN
 		datasetService.addItem(dataset, ItemType.IMAGE, FILENAME, TestHelper.getImageResource(FILENAME));
 
 		// required to save item in db
 		entityManager.flush();
 
+		// THEN
 		final Dataset finalDataset = datasetService.findByName(DATASET_TEST_NAME);
 		assertEquals(1, finalDataset.getItems().size());
 		IndexedItem indexedItem = finalDataset.getItems().iterator().next();
@@ -219,13 +270,16 @@ public class DatasetServiceTest {
 		final String TAG_NAME = "meta.newTag";
 		final String TAG_VALUE = "test";
 
+		// GIVEN
 		Dataset dataset = datasetService.findByName(DATASET_TEST_NAME);
 
+		// WHEN
 		datasetService.addItem(dataset, ItemType.IMAGE, FILENAME, TestHelper.getImageResource(FILENAME));
 
 		// required to save item in db
 		entityManager.flush();
 
+		// THEN
 		dataset = datasetService.findByName(DATASET_TEST_NAME);
 		assertEquals(1, dataset.getItems().size());
 		IndexedItem indexedItem = dataset.getItems().iterator().next();
@@ -252,11 +306,15 @@ public class DatasetServiceTest {
 	@Test
 	void addItemValid() throws IOException, EntityExistsException, EntityNotFoundException {
 		final String FILENAME = "IMG_VALID.jpg";
+		
+		// GIVEN
 		Dataset dataset = datasetService.findByName(DATASET_TEST_NAME);
 
+		// WHEN
 		IndexedItem indexedItem = datasetService.addItem(dataset, ItemType.IMAGE, FILENAME,
 				TestHelper.getImageResource(FILENAME));
 
+		// THEN
 		assertNotNull(indexedItem);
 		assertEquals(ItemType.IMAGE, indexedItem.getType());
 		assertNotNull(indexedItem.getCreation());
@@ -279,7 +337,7 @@ public class DatasetServiceTest {
 		assertNotNull(indexedItem);
 		assertNotNull(indexedItem.getId());
 		TestHelper.assertDateInUTC("2005-01-17T15:20:40", indexedItem.getArchiveTimeAsZoned("UTC"));
-		
+
 		StoredItem storedItem = datasetService.getStoredItem(dataset, indexedItem);
 		assertNotNull(storedItem);
 		assertEquals(FILENAME, storedItem.getStoredItemInfo().getOriginalFilename());
@@ -296,15 +354,21 @@ public class DatasetServiceTest {
 
 	@Test
 	void delete() throws IOException, EntityNotFoundException {
+		// GIVEN
 		Dataset dataset = datasetService.findByName(DATASET_TEST_NAME);
 		assertNotNull(dataset);
+		
+		// WHEN
 		datasetService.delete(dataset);
+		
+		// THEN
 		assertThrows(EntityNotFoundException.class, () -> datasetService.findByName(DATASET_TEST_NAME));
 	}
 
 	@Test
 	void deleteItemArchived() throws IOException, EntityExistsException, EntityNotFoundException {
 		final String FILENAME = "IMG_VALID.jpg";
+		// GIVEN
 		Dataset dataset = datasetService.findByName(DATASET_TEST_NAME);
 
 		datasetService.addItem(dataset, ItemType.IMAGE, FILENAME, TestHelper.getImageResource(FILENAME));
@@ -320,11 +384,13 @@ public class DatasetServiceTest {
 		Long itemId = indexedItem.getId();
 		assertNotNull(itemId);
 
+		// WHEN
 		datasetService.deleteItem(dataset, itemId);
 
 		// required to delete item in db
 		entityManager.flush();
 
+		// THEN
 		final Dataset finalDataset = datasetService.findByName(DATASET_TEST_NAME);
 		assertEquals(0, finalDataset.getItems().size());
 
@@ -335,6 +401,8 @@ public class DatasetServiceTest {
 	@Test
 	void deleteItemNotArchived() throws IOException, EntityExistsException, EntityNotFoundException {
 		final String FILENAME = "IMG_NO_DATE.jpg";
+		
+		// GIVEN
 		Dataset dataset = datasetService.findByName(DATASET_TEST_NAME);
 
 		datasetService.addItem(dataset, ItemType.IMAGE, FILENAME, TestHelper.getImageResource(FILENAME));
@@ -350,11 +418,13 @@ public class DatasetServiceTest {
 		Long itemId = finalIndexedItem.getId();
 		assertNotNull(itemId);
 
+		// WHEN
 		datasetService.deleteItem(dataset, itemId);
 
 		// required to delete item in db
 		entityManager.flush();
 
+		// THEN
 		final Dataset finalDataset = datasetService.findByName(DATASET_TEST_NAME);
 		assertEquals(0, finalDataset.getItems().size());
 
@@ -368,6 +438,7 @@ public class DatasetServiceTest {
 		final String TAG_NAME = "meta.ExposureIndex";
 		final String TAG_VALUE = "140/1";
 
+		// GIVEN
 		Dataset dataset = datasetService.findByName(DATASET_TEST_NAME);
 
 		datasetService.addItem(dataset, ItemType.IMAGE, FILENAME, TestHelper.getImageResource(FILENAME));
@@ -386,11 +457,13 @@ public class DatasetServiceTest {
 		Tag tag = tags.iterator().next();
 		assertEquals(TAG_VALUE, tag.getValue(String.class));
 
+		// WHEN
 		datasetService.deleteItemTag(dataset, indexedItem.getId(), tag.getId());
 
 		// required to save item in db
 		entityManager.flush();
 
+		// THEN
 		tags = indexedItem.getTags(TAG_NAME);
 		assertNotNull(tags);
 		assertEquals(0, tags.size());
@@ -399,6 +472,8 @@ public class DatasetServiceTest {
 	@Test
 	void deleteItemTagNotFound() throws EntityNotFoundException, IOException, EntityExistsException {
 		final String FILENAME = "IMG_VALID.jpg";
+		
+		// GIVEN
 		Dataset dataset = datasetService.findByName(DATASET_TEST_NAME);
 
 		datasetService.addItem(dataset, ItemType.IMAGE, FILENAME, TestHelper.getImageResource(FILENAME));
@@ -410,30 +485,39 @@ public class DatasetServiceTest {
 		assertEquals(1, finalDataset.getItems().size());
 		IndexedItem indexedItem = finalDataset.getItems().iterator().next();
 
+		// WHEN & THEN
 		assertThrows(EntityNotFoundException.class,
 				() -> datasetService.deleteItemTag(finalDataset, indexedItem.getId(), -1L));
 	}
 
 	@Test
 	void findAll() {
+		// WHEN
 		List<Dataset> datasets = datasetService.findAll();
 
+		// THEN
 		assertNotNull(datasets);
-		assertEquals(2, datasets.size());
+		assertEquals(1, datasets.size());
 	}
 
 	@Test
 	void findById() throws EntityNotFoundException {
+		// GIVEN
 		Dataset dataset = datasetService.findByName(DATASET_TEST_NAME);
 		assertNotNull(dataset);
 
+		// WHEN
 		dataset = datasetService.findById(dataset.getId());
+		
+		// THEN
 		assertNotNull(dataset);
 	}
 
 	@Test
 	void findByItemTagId() throws EntityNotFoundException, IOException, EntityExistsException {
 		final String FILENAME = "IMG_NO_DATE.jpg";
+		
+		// GIVEN
 		Dataset dataset = datasetService.findByName(DATASET_TEST_NAME);
 
 		IndexedItem indexedItem = datasetService.addItem(dataset, ItemType.IMAGE, FILENAME,
@@ -458,7 +542,10 @@ public class DatasetServiceTest {
 		assertNotNull(indexedItem);
 		assertNotNull(indexedItem.getId());
 
+		// WHEN
 		Tag persistedHashTag = datasetService.findItemTagById(dataset, indexedItem.getId(), tagId);
+		
+		// THEN
 		assertNotNull(persistedHashTag);
 		assertEquals(hash, persistedHashTag.getValue());
 	}
@@ -468,6 +555,7 @@ public class DatasetServiceTest {
 		final String FILENAME1 = "IMG_VALID.jpg";
 		final String FILENAME2 = "IMG_NO_DATE.jpg";
 
+		// GIVEN
 		Dataset dataset = datasetService.findByName(DATASET_TEST_NAME);
 		datasetService.addItem(dataset, ItemType.IMAGE, FILENAME1, TestHelper.getImageResource(FILENAME1));
 		datasetService.addItem(dataset, ItemType.IMAGE, FILENAME2, TestHelper.getImageResource(FILENAME2));
@@ -475,12 +563,18 @@ public class DatasetServiceTest {
 		// required to save item in db
 		entityManager.flush();
 
+		// WHEN
 		Page<IndexedItem> indexedItems = datasetService.findItems(dataset, PageRequest.of(0, 10));
+		
+		// THEN
 		assertNotNull(indexedItems);
 		assertEquals(2, indexedItems.getNumberOfElements());
 		assertEquals(2, indexedItems.getTotalElements());
 
+		// WHEN
 		indexedItems = datasetService.findItems(dataset, PageRequest.of(0, 1, Sort.by("hash").ascending()));
+		
+		// THEN
 		assertNotNull(indexedItems);
 		assertEquals(1, indexedItems.getNumberOfElements());
 		assertEquals("c90dc72d18cb6c62d8923fc2f276f94f", indexedItems.getContent().get(0).getHash());
@@ -498,6 +592,7 @@ public class DatasetServiceTest {
 		final String FILENAME1 = "IMG_VALID.jpg";
 		final String FILENAME2 = "IMG_NO_DATE.jpg";
 
+		// GIVEN
 		Dataset dataset = datasetService.findByName(DATASET_TEST_NAME);
 		datasetService.addItem(dataset, ItemType.IMAGE, FILENAME1, TestHelper.getImageResource(FILENAME1));
 		datasetService.addItem(dataset, ItemType.IMAGE, FILENAME2, TestHelper.getImageResource(FILENAME2));
@@ -505,9 +600,12 @@ public class DatasetServiceTest {
 		// required to save item in db
 		entityManager.flush();
 
+		// WHEN
 		SearchCriteria searchCriteria = new SearchCriteriaImpl(
 				new SearchConditionImpl("meta.YearCreated", SearchOperator.EQUAL, "2005"));
 		Page<IndexedItem> indexedItems = datasetService.findItems(dataset, searchCriteria, PageRequest.of(0, 10));
+		
+		// THEN
 		assertNotNull(indexedItems);
 		assertEquals(1, indexedItems.getNumberOfElements());
 		assertEquals(1, indexedItems.getTotalElements());
@@ -522,16 +620,20 @@ public class DatasetServiceTest {
 	void update() throws EntityNotFoundException, IOException {
 		final String DESC = "new description!";
 
+		// GIVEN
 		Dataset dataset = datasetService.findByName(DATASET_TEST_NAME);
 		assertNotNull(dataset.getCreation());
 		assertNull(dataset.getModification());
 		assertNull(dataset.getDescription());
 		dataset.setDescription(DESC);
+		
+		// WHEN
 		Dataset updatedDataset = datasetService.update(dataset);
 
 		// required to execute @PreUpdate on Dataset
 		entityManager.flush();
 
+		// THEN
 		assertNotNull(updatedDataset.getCreation());
 		assertNotNull(updatedDataset.getModification());
 		assertNotNull(updatedDataset.getDescription());
@@ -539,31 +641,44 @@ public class DatasetServiceTest {
 	}
 
 	@Test
-	void updateChangeName() throws EntityNotFoundException, IOException {
-		Dataset dataset = datasetService.findByName(DATASET_TEST_NAME);
-		dataset.setName("othername");
+	void resetItem() throws IOException, EntityExistsException, EntityNotFoundException {
+		final String FILENAME = "IMG_VALID.jpg";
+		final String TAG_NAME = "meta.newTag";
+		final String TAG_VALUE = "test";
 
-		assertThrows(IOException.class, () -> datasetService.update(dataset));
+		// GIVEN
+		Dataset dataset = datasetService.findByName(DATASET_TEST_NAME);
+		IndexedItem indexedItem = datasetService.addItem(dataset, ItemType.IMAGE, FILENAME, TestHelper.getImageResource(FILENAME));
+
+		dataset = datasetService.findByName(DATASET_TEST_NAME);
+		assertNotNull(datasetService.addItemTag(dataset, indexedItem.getId(), new TagEntity(new TagImpl(TAG_NAME, TAG_VALUE))));
+
+		assertEquals(1, dataset.getItems().size());
+		indexedItem = dataset.getItems().iterator().next();
+
+		Set<Tag> tags = indexedItem.getTags();
+		assertNotNull(tags);
+		assertEquals(88, tags.size());
+
+		// WHEN
+		datasetService.resetItem(dataset, indexedItem.getId());
+
+		// THEN
+		tags = indexedItem.getTags();
+		assertNotNull(tags);
+		assertEquals(87, tags.size());
 	}
 
 	@Test
-	void addItemNoDateOriginalButWithDateModified() throws IOException, EntityExistsException, EntityNotFoundException {
-		final String FILENAME = "IMG_20230115_151633.jpg";
+	void updateChangeName() throws EntityNotFoundException, IOException {
+		// GIVEN
 		Dataset dataset = datasetService.findByName(DATASET_TEST_NAME);
+		
+		// WHEN
+		dataset.setName("othername");
 
-		IndexedItem indexedItem = datasetService.addItem(dataset, ItemType.IMAGE, FILENAME,
-				TestHelper.getImageResource(FILENAME));
-
-		assertNotNull(indexedItem);
-		assertNotNull(indexedItem.getCreation());
-		assertNull(indexedItem.getModification());
-		assertNotNull(indexedItem.getArchiveTime());
-		assertFalse(indexedItem.isArchived());
-		assertEquals("jpg", indexedItem.getFormat());
-		assertEquals(FILENAME, indexedItem.getFilename());
-		assertNotNull(indexedItem.getHash());
-		assertEquals("78364f4c8712125fe370f2f9f469122c", indexedItem.getHash());
-		assertEquals(45, indexedItem.getTags().size());
+		// THEN
+		assertThrows(IOException.class, () -> datasetService.update(dataset));
 	}
 
 }

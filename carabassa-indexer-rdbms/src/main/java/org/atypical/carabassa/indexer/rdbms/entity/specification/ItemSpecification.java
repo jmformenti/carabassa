@@ -31,6 +31,7 @@ public class ItemSpecification implements Specification<IndexedItemEntity> {
 
 	private static final long serialVersionUID = -8307610449472579379L;
 
+	private static final String ATTR_ID = "id";
 	private static final String ATTR_TYPE = "type";
 	private static final String ATTR_ON = "on";
 	private static final String ATTR_FROM = "from";
@@ -53,7 +54,7 @@ public class ItemSpecification implements Specification<IndexedItemEntity> {
 	public Predicate toPredicate(Root<IndexedItemEntity> root, CriteriaQuery<?> query, CriteriaBuilder builder) {
 
 		final List<Predicate> predicates = new ArrayList<>();
-		
+
 		predicates.add(builder.equal(root.get(IndexedItemEntity_.DATASET), this.dataset.getId()));
 
 		for (SearchCondition condition : searchCriteria.getConditions()) {
@@ -76,6 +77,8 @@ public class ItemSpecification implements Specification<IndexedItemEntity> {
 		} else if (condition.getOperation() == SearchOperator.EQUAL) {
 			Pair<Instant, Instant> periodDates = null;
 			switch (condition.getKey()) {
+			case ATTR_ID:
+				return builder.equal(root.get(IndexedItemEntity_.ID), condition.getValue().toString());
 			case ATTR_TYPE:
 				return builder.equal(root.get(IndexedItemEntity_.TYPE),
 						ItemType.fromCode(condition.getValue().toString()));
@@ -100,15 +103,23 @@ public class ItemSpecification implements Specification<IndexedItemEntity> {
 				return builder.and(builder.equal(tags.get(TagEntity_.NAME), condition.getKey()),
 						builder.equal(tags.get(TagEntity_.TEXT_VALUE), condition.getValue()));
 			}
-		} else {
-			throw new IllegalArgumentException(
-					String.format("Operation %s not implemented yet", condition.getOperation()));
+		} else if (condition.getOperation() == SearchOperator.LESS_THAN) {
+			switch (condition.getKey()) {
+			case ATTR_ID:
+				return builder.lessThan(root.get(IndexedItemEntity_.ID), condition.getValue().toString());
+			}
+		} else if (condition.getOperation() == SearchOperator.GREATER_THAN) {
+			switch (condition.getKey()) {
+			case ATTR_ID:
+				return builder.greaterThan(root.get(IndexedItemEntity_.ID), condition.getValue().toString());
+			}
 		}
+		throw new IllegalArgumentException(String.format("Operation %s not implemented yet", condition.getOperation()));
 	}
 
 	private Join<IndexedItemEntity, TagEntity> addTagsJoin(Root<IndexedItemEntity> root, CriteriaQuery<?> query) {
 		query.distinct(true);
-		return root.join(IndexedItemEntity_.TAGS, JoinType.LEFT);
+		return root.join(IndexedItemEntity_.TAGS, JoinType.INNER);
 	}
 
 	private Pair<Instant, Instant> getPeriodDates(String value) {

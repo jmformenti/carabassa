@@ -30,6 +30,7 @@ import org.atypical.carabassa.core.model.impl.StoredItemInfoImpl;
 import org.atypical.carabassa.core.model.impl.StoredItemThumbnailImpl;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.core.io.FileSystemResource;
 import org.springframework.core.io.Resource;
 import org.springframework.stereotype.Component;
 import org.springframework.util.Assert;
@@ -55,6 +56,7 @@ public class DatasetFSStorage implements DatasetStorage {
 	private static final String NOT_ARCHIVED_DIR = "not_archived";
 
 	private static final String THUMBNAIL_SUFFIX = "_thumb";
+	private static final String JSON_EXT = ".json";
 
 	@Value("${carabassa.repodir}")
 	private String repoDir;
@@ -84,33 +86,30 @@ public class DatasetFSStorage implements DatasetStorage {
 	}
 
 	@Override
-	public void addItem(Dataset dataset, IndexedItem item, Resource inputItem)
-			throws IOException, EntityExistsException {
-		Path repoPath = getArchivePath(dataset, item);
+	public void addItem(IndexedItem item, Resource inputItem) throws IOException, EntityExistsException {
+		Path repoPath = getArchivePath(item);
 		Files.createDirectories(repoPath);
 
 		Path itemDirPath = repoPath.resolve(getArchiveFilename(item));
 		if (!Files.exists(itemDirPath)) {
 			Files.move(Paths.get(inputItem.getFile().getPath()), itemDirPath, StandardCopyOption.REPLACE_EXISTING);
-			writeJson(repoPath, item);
-			writeThumbnail(dataset, item);
+			writeJson(item);
+			writeThumbnail(item);
 		} else {
 			throw new EntityExistsException(localizedMessage.getText(ITEM_EXISTS_MESSAGE_KEY, item.getId()));
 		}
 	}
 
 	@Override
-	public StoredItem getItem(Dataset dataset, IndexedItem item) throws IOException, EntityNotFoundException {
-		Path repoPath = getArchivePath(dataset, item);
-
+	public StoredItem getItem(IndexedItem item) throws IOException, EntityNotFoundException {
 		StoredItem storedItem = new StoredItemImpl();
 		try {
-			storedItem.setContent(Files.readAllBytes(repoPath.resolve(getArchiveFilename(item))));
+			storedItem.setContent(Files.readAllBytes(getItemPath(item)));
 		} catch (NoSuchFileException e) {
 			throw new EntityNotFoundException(localizedMessage.getText(ITEM_NOT_EXISTS_MESSAGE_KEY, item.getId()));
 		}
 		try {
-			storedItem.setStoredItemInfo(readJson(repoPath, item));
+			storedItem.setStoredItemInfo(readJson(item));
 		} catch (FileNotFoundException e) {
 			storedItem.setStoredItemInfo(null);
 		}
@@ -119,53 +118,27 @@ public class DatasetFSStorage implements DatasetStorage {
 	}
 
 	@Override
-	public StoredItemThumbnail getItemThumbnail(Dataset dataset, IndexedItem item)
-			throws IOException, EntityNotFoundException {
+	public StoredItemThumbnail getItemThumbnail(IndexedItem item) throws IOException, EntityNotFoundException {
 		if (item.getType() == ItemType.IMAGE) {
-			Path repoPath = getArchivePath(dataset, item);
-			Path itemPath = repoPath.resolve(getArchiveFilename(item));
+			Path itemPath = getItemPath(item);
 
 			if (Files.exists(itemPath)) {
-				String thumbnailFilename = getThumbnailFilename(item);
-				Path thumbnailPath = repoPath.resolve(thumbnailFilename);
+				Path thumbnailPath = getThumbnailPath(item);
 
 				byte[] contents;
 				if (Files.exists(thumbnailPath)) {
 					contents = Files.readAllBytes(thumbnailPath);
 				} else {
-					contents = writeThumbnail(dataset, item);
+					contents = writeThumbnail(item);
 				}
 
-				return new StoredItemThumbnailImpl(thumbnailFilename, contents);
+				return new StoredItemThumbnailImpl(getThumbnailFilename(item), contents);
 			} else {
 				throw new EntityNotFoundException(localizedMessage.getText(ITEM_NOT_EXISTS_MESSAGE_KEY, item.getId()));
 			}
 		} else {
 			throw new IllegalArgumentException("Thumbnail implemented only for images");
 		}
-	}
-
-	private byte[] writeThumbnail(Dataset dataset, IndexedItem item) throws IOException {
-		if (item.getType() == ItemType.IMAGE) {
-			Path repoPath = getArchivePath(dataset, item);
-			Path itemPath = repoPath.resolve(getArchiveFilename(item));
-
-			String thumbnailFilename = getThumbnailFilename(item);
-			Path thumbnailPath = repoPath.resolve(thumbnailFilename);
-
-			byte[] contents = createThumbnail(itemPath);
-			Files.write(thumbnailPath, contents);
-
-			return contents;
-		} else {
-			return null;
-		}
-	}
-
-	private byte[] createThumbnail(Path itemPath) throws IOException {
-		ByteArrayOutputStream baos = new ByteArrayOutputStream();
-		Thumbnails.of(itemPath.toFile()).size(200, 200).keepAspectRatio(true).toOutputStream(baos);
-		return baos.toByteArray();
 	}
 
 	@Override
@@ -179,27 +152,75 @@ public class DatasetFSStorage implements DatasetStorage {
 	}
 
 	@Override
-	public void deleteItem(Dataset dataset, IndexedItem item) throws IOException {
-		Path repoPath = getArchivePath(dataset, item);
-		Files.delete(repoPath.resolve(getArchiveFilename(item)));
-		deleteJson(repoPath, item);
+	public void deleteItem(IndexedItem item) throws IOException {
+		Files.deleteIfExists(getItemPath(item));
+		deleteJson(item);
+		deleteThumbnail(item);
 	}
 
-	private StoredItemInfo readJson(Path repoDirPath, IndexedItem item)
-			throws JsonParseException, JsonMappingException, IOException {
-		String filename = getArchiveBasename(item) + ".json";
-		return mapper.readValue(repoDirPath.resolve(filename).toFile(), StoredItemInfoImpl.class);
+	@Override
+	public void resetItem(IndexedItem updatedItem, IndexedItem previousItem) throws IOException, EntityExistsException {
+		Path previousItemPath = getItemPath(previousItem);
+		Path updatedItemPath = getItemPath(updatedItem);
+
+		if (!updatedItemPath.equals(previousItemPath)) {
+			Resource itemResource = new FileSystemResource(previousItemPath);
+
+			addItem(updatedItem, itemResource);
+			deleteItem(previousItem);
+		}
 	}
 
-	private void writeJson(Path repoDirPath, IndexedItem item)
-			throws JsonGenerationException, JsonMappingException, IOException {
-		String filename = getArchiveBasename(item) + ".json";
-		mapper.writeValue(repoDirPath.resolve(filename).toFile(), new StoredItemInfoImpl(item.getFilename()));
+	@Override
+	public void update(Dataset dataset) throws IOException {
+		if (!Files.exists(getDatasetPath(dataset))) {
+			throw new IOException(localizedMessage.getText(DATASET_NOT_EXISTS_MESSAGE_KEY, dataset.getName()));
+		}
 	}
 
-	private void deleteJson(Path repoDirPath, IndexedItem item) throws IOException {
-		String filename = getArchiveBasename(item) + ".json";
-		Files.deleteIfExists(repoDirPath.resolve(filename));
+	private byte[] writeThumbnail(IndexedItem item) throws IOException {
+		if (item.getType() == ItemType.IMAGE) {
+			byte[] contents = createThumbnail(getItemPath(item));
+			Files.write(getThumbnailPath(item), contents);
+
+			return contents;
+		} else {
+			return null;
+		}
+	}
+
+	private byte[] createThumbnail(Path itemPath) throws IOException {
+		ByteArrayOutputStream baos = new ByteArrayOutputStream();
+		Thumbnails.of(itemPath.toFile()).size(200, 200).keepAspectRatio(true).toOutputStream(baos);
+		return baos.toByteArray();
+	}
+
+	private StoredItemInfo readJson(IndexedItem item) throws JsonParseException, JsonMappingException, IOException {
+		return mapper.readValue(getJsonPath(item).toFile(), StoredItemInfoImpl.class);
+	}
+
+	private void writeJson(IndexedItem item) throws JsonGenerationException, JsonMappingException, IOException {
+		mapper.writeValue(getJsonPath(item).toFile(), new StoredItemInfoImpl(item.getFilename()));
+	}
+
+	private void deleteJson(IndexedItem item) throws IOException {
+		Files.deleteIfExists(getJsonPath(item));
+	}
+
+	private void deleteThumbnail(IndexedItem item) throws IOException {
+		Files.deleteIfExists(getThumbnailPath(item));
+	}
+
+	private Path getItemPath(IndexedItem item) {
+		return getArchivePath(item).resolve(getArchiveFilename(item));
+	}
+
+	private Path getJsonPath(IndexedItem item) {
+		return getArchivePath(item).resolve(getJsonFilename(item));
+	}
+
+	private Path getThumbnailPath(IndexedItem item) {
+		return getArchivePath(item).resolve(getThumbnailFilename(item));
 	}
 
 	private String getArchiveFilename(IndexedItem item) {
@@ -209,6 +230,10 @@ public class DatasetFSStorage implements DatasetStorage {
 
 	private String getThumbnailFilename(IndexedItem item) {
 		return "." + getArchiveBasename(item) + THUMBNAIL_SUFFIX + "." + StoredItemThumbnail.THUMBNAIL_FORMAT;
+	}
+
+	private String getJsonFilename(IndexedItem item) {
+		return getArchiveBasename(item) + JSON_EXT;
 	}
 
 	private String getArchiveBasename(IndexedItem item) {
@@ -223,21 +248,21 @@ public class DatasetFSStorage implements DatasetStorage {
 		return extension;
 	}
 
-	private Path getArchivePath(Dataset dataset, IndexedItem item) {
+	private Path getArchivePath(IndexedItem item) {
 		if (item.isArchived()) {
-			return getArchivedPath(dataset, item);
+			return getArchivedPath(item);
 		} else {
-			return getNotArchivedPath(dataset, item);
+			return getNotArchivedPath(item);
 		}
 	}
 
-	private Path getNotArchivedPath(Dataset dataset, IndexedItem item) {
-		return Paths.get(getDatasetPath(dataset).toString(), getTypeDir(item.getType()), NOT_ARCHIVED_DIR);
+	private Path getNotArchivedPath(IndexedItem item) {
+		return Paths.get(getDatasetPath(item.getDataset()).toString(), getTypeDir(item.getType()), NOT_ARCHIVED_DIR);
 	}
 
-	private Path getArchivedPath(Dataset dataset, IndexedItem item) {
+	private Path getArchivedPath(IndexedItem item) {
 		ZonedDateTime archiveTime = item.getArchiveTimeAsZoned("UTC");
-		return Paths.get(getDatasetPath(dataset).toString(), getTypeDir(item.getType()), ARCHIVED_DIR,
+		return Paths.get(getDatasetPath(item.getDataset()).toString(), getTypeDir(item.getType()), ARCHIVED_DIR,
 				String.valueOf(archiveTime.getYear()), String.format("%02d", archiveTime.getMonth().getValue()),
 				String.format("%02d", archiveTime.getDayOfMonth()));
 	}
@@ -252,13 +277,6 @@ public class DatasetFSStorage implements DatasetStorage {
 
 	private String getTypeDir(ItemType type) {
 		return type.normalized();
-	}
-
-	@Override
-	public void update(Dataset dataset) throws IOException {
-		if (!Files.exists(getDatasetPath(dataset))) {
-			throw new IOException(localizedMessage.getText(DATASET_NOT_EXISTS_MESSAGE_KEY, dataset.getName()));
-		}
 	}
 
 }
