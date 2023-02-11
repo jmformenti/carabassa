@@ -43,6 +43,10 @@ public interface IndexedItem {
 
 	public void setArchiveTime(Instant archiveTime);
 
+	public long getSize();
+	
+	public void setSize(long size);
+
 	public Set<Tag> getTags();
 
 	public void setTags(Set<Tag> tags);

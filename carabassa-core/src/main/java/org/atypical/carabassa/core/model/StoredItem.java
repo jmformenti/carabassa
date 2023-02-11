@@ -1,13 +1,15 @@
 package org.atypical.carabassa.core.model;
 
+import org.springframework.core.io.Resource;
+
 public interface StoredItem {
 
 	public StoredItemInfo getStoredItemInfo();
 
 	public void setStoredItemInfo(StoredItemInfo storedItemInfo);
 
-	public byte[] getContent();
+	public Resource getResource();
 
-	public void setContent(byte[] content);
+	public void setResource(Resource resource);
 
 }

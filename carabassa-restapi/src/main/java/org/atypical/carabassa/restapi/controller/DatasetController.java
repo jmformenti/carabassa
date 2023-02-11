@@ -7,6 +7,7 @@ import org.atypical.carabassa.restapi.representation.model.DatasetEntityRepresen
 import org.atypical.carabassa.restapi.representation.model.IdRepresentation;
 import org.atypical.carabassa.restapi.representation.model.ItemRepresentation;
 import org.atypical.carabassa.restapi.representation.model.TagEditableRepresentation;
+import org.springframework.core.io.Resource;
 import org.springframework.data.domain.Pageable;
 import org.springframework.hateoas.PagedModel;
 import org.springframework.http.HttpStatus;
@@ -64,7 +65,7 @@ public interface DatasetController {
 	public void existsItem(@PathVariable("datasetId") Long datasetId, @PathVariable("hash") String hash);
 
 	@GetMapping(value = "/{datasetId}/item/{id}/content")
-	public ResponseEntity<byte[]> findItemContent(@PathVariable("datasetId") Long datasetId,
+	public ResponseEntity<Resource> findItemContent(@PathVariable("datasetId") Long datasetId,
 			@PathVariable("id") Long itemId);
 
 	@GetMapping(value = "/{datasetId}/item/{id}/thumbnail")

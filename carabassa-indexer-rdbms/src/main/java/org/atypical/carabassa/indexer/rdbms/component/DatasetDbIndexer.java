@@ -264,6 +264,8 @@ public class DatasetDbIndexer implements DatasetIndexer {
 		Assert.isTrue(fileTypeTag != null && fileType != null,
 				localizedMessage.getText(ITEM_NOT_FILE_TYPE_MESSAGE_KEY));
 		indexedItem.setFormat(fileType);
+		
+		indexedItem.setSize(inputItem.contentLength());
 	}
 
 }

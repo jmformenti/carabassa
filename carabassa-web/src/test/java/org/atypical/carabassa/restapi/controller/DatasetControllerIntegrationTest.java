@@ -43,6 +43,7 @@ import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
+import org.springframework.core.io.ClassPathResource;
 import org.springframework.core.io.Resource;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
@@ -58,6 +59,8 @@ import org.springframework.test.web.servlet.MockMvc;
 // TODO Implement without mock datasetService, so DatasetControllerHelper won't be necessary
 public class DatasetControllerIntegrationTest extends DatasetControllerHelper {
 
+	private String FAKE_IMG_PATH = "images/fake_test.jpg";
+	
 	@Autowired
 	private MockMvc mvc;
 
@@ -307,7 +310,7 @@ public class DatasetControllerIntegrationTest extends DatasetControllerHelper {
 
 		StoredItem storedItem = new StoredItemImpl();
 		storedItem.setStoredItemInfo(new StoredItemInfoImpl("test.jpg"));
-		storedItem.setContent("test".getBytes());
+		storedItem.setResource(new ClassPathResource(FAKE_IMG_PATH));
 		when(datasetService.getStoredItem(dataset, indexedItem)).thenReturn(storedItem);
 
 		mvc.perform(get("/api/dataset/{datasetId}/item/{itemId}/content", DATASET_ID, ITEM_ID)) //
@@ -315,7 +318,7 @@ public class DatasetControllerIntegrationTest extends DatasetControllerHelper {
 				.andExpect(content().contentType(indexedItem.getType().name() + "/" + indexedItem.getFormat()))
 				.andExpect(header().string(HttpHeaders.CONTENT_DISPOSITION,
 						"attachment; filename=\"" + indexedItem.getFilename() + "\""))
-				.andExpect(content().string("test")) //
+				.andExpect(content().string("Image content")) //
 				.andDo(log());
 	}
 
@@ -324,15 +327,15 @@ public class DatasetControllerIntegrationTest extends DatasetControllerHelper {
 		when(datasetService.findById(DATASET_ID)).thenReturn(dataset);
 		when(datasetService.findItemById(dataset, ITEM_ID)).thenReturn(indexedItem);
 
-		StoredItemThumbnail storedItemThumbnail = new StoredItemThumbnailImpl("test.jpg", "test".getBytes());
+		StoredItemThumbnail storedItemThumbnail = new StoredItemThumbnailImpl("test-thumbnail.jpg", "Thumbnail content".getBytes());
 		when(datasetService.getStoredItemThumbnail(dataset, indexedItem)).thenReturn(storedItemThumbnail);
 
 		mvc.perform(get("/api/dataset/{datasetId}/item/{itemId}/thumbnail", DATASET_ID, ITEM_ID)) //
 				.andExpect(status().isOk()) //
 				.andExpect(content().contentType(indexedItem.getType().name() + "/" + indexedItem.getFormat()))
 				.andExpect(header().string(HttpHeaders.CONTENT_DISPOSITION,
-						"attachment; filename=\"" + indexedItem.getFilename() + "\""))
-				.andExpect(content().string("test")) //
+						"attachment; filename=\"" + storedItemThumbnail.getFilename() + "\""))
+				.andExpect(content().bytes(storedItemThumbnail.getContent())) //
 				.andDo(log());
 	}
 

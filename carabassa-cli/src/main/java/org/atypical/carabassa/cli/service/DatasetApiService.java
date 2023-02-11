@@ -20,6 +20,8 @@ public interface DatasetApiService {
 
 	public void delete(Long datasetId) throws ApiException;
 
+	public void deleteItem(Long datasetId, Long id) throws ApiException;
+
 	public List<DatasetEntityRepresentation> findAll() throws ApiException;
 
 	public Long findByName(String datasetName) throws ApiException;

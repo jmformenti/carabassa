@@ -325,6 +325,7 @@ public class DatasetServiceTest {
 		assertEquals(FILENAME, indexedItem.getFilename());
 		assertNotNull(indexedItem.getHash());
 		assertEquals("f127c350588b861e813c45118b74aaec", indexedItem.getHash());
+		assertEquals(1057657, indexedItem.getSize());
 		assertEquals(87, indexedItem.getTags().size());
 
 		// required to save item in db

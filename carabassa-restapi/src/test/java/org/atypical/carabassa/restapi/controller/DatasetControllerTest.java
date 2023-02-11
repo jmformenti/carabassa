@@ -34,7 +34,6 @@ import org.atypical.carabassa.core.model.Tag;
 import org.atypical.carabassa.core.model.enums.ItemType;
 import org.atypical.carabassa.core.model.impl.DatasetImpl;
 import org.atypical.carabassa.core.model.impl.StoredItemImpl;
-import org.atypical.carabassa.core.model.impl.StoredItemInfoImpl;
 import org.atypical.carabassa.core.model.impl.StoredItemThumbnailImpl;
 import org.atypical.carabassa.core.service.DatasetService;
 import org.atypical.carabassa.restapi.configuration.RestApiConfiguration;
@@ -76,6 +75,8 @@ import org.springframework.web.context.WebApplicationContext;
 @ExtendWith({ RestDocumentationExtension.class })
 @WebMvcTest(DatasetController.class)
 public class DatasetControllerTest extends DatasetControllerHelper {
+
+	private String FAKE_IMG_PATH = "images/fake_test.jpg";
 
 	@Autowired
 	private MockMvc mvc;
@@ -297,11 +298,7 @@ public class DatasetControllerTest extends DatasetControllerHelper {
 		when(datasetService.findItemById(dataset, ITEM_ID)).thenReturn(indexedItem);
 
 		StoredItem storedItem = new StoredItemImpl();
-		Resource resource = new ClassPathResource("images/IMG_NO_DATE.jpg");
-		storedItem.setStoredItemInfo(new StoredItemInfoImpl(resource.getFilename()));
-		byte[] sampleContent = new byte[1000];
-		resource.getInputStream().read(sampleContent);
-		storedItem.setContent(sampleContent);
+		storedItem.setResource(new ClassPathResource(FAKE_IMG_PATH));
 		when(datasetService.getStoredItem(dataset, indexedItem)).thenReturn(storedItem);
 
 		mvc.perform(get("/api/dataset/{datasetId}/item/{itemId}/content", DATASET_ID, ITEM_ID)) //
@@ -316,10 +313,9 @@ public class DatasetControllerTest extends DatasetControllerHelper {
 		when(datasetService.findById(DATASET_ID)).thenReturn(dataset);
 		when(datasetService.findItemById(dataset, ITEM_ID)).thenReturn(indexedItem);
 
-		Resource resource = new ClassPathResource("images/IMG_NO_DATE.jpg");
-		byte[] sampleContent = new byte[1000];
-		resource.getInputStream().read(sampleContent);
-		StoredItemThumbnail storedItemThumbnail = new StoredItemThumbnailImpl(resource.getFilename(), sampleContent);
+		Resource resource = new ClassPathResource(FAKE_IMG_PATH);
+		StoredItemThumbnail storedItemThumbnail = new StoredItemThumbnailImpl(resource.getFilename(),
+				"Thumbnail content".getBytes());
 		when(datasetService.getStoredItemThumbnail(dataset, indexedItem)).thenReturn(storedItemThumbnail);
 
 		mvc.perform(get("/api/dataset/{datasetId}/item/{itemId}/thumbnail", DATASET_ID, ITEM_ID)) //
@@ -331,7 +327,7 @@ public class DatasetControllerTest extends DatasetControllerHelper {
 
 	@Test
 	public void addItem() throws Exception {
-		Resource resource = new ClassPathResource("images/IMG_NO_DATE.jpg");
+		Resource resource = new ClassPathResource(FAKE_IMG_PATH);
 		byte[] sampleContent = new byte[1000];
 		resource.getInputStream().read(sampleContent);
 
@@ -339,7 +335,8 @@ public class DatasetControllerTest extends DatasetControllerHelper {
 		when(datasetService.addItem(isA(Dataset.class), isA(ItemType.class), isA(String.class), isA(Resource.class)))
 				.thenReturn(indexedItem);
 
-		MockMultipartFile file = new MockMultipartFile("file", indexedItem.getFilename(), "image/jpg", sampleContent);
+		MockMultipartFile file = new MockMultipartFile("file", indexedItem.getFilename(), "image/jpg",
+				"Image content".getBytes());
 
 		mvc.perform(multipart("/api/dataset/{datasetId}/item", DATASET_ID).file(file)) //
 				.andExpect(status().isCreated()) //

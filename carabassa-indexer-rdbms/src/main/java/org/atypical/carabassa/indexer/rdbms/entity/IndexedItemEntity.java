@@ -56,6 +56,8 @@ public class IndexedItemEntity implements IndexedItem {
 
 	private Instant archiveTime;
 
+	private long size;
+
 	@OneToMany(targetEntity = TagEntity.class, cascade = CascadeType.ALL, orphanRemoval = true)
 	@JoinColumn(name = "ITEM_ID")
 	private Set<Tag> tags;
@@ -156,6 +158,16 @@ public class IndexedItemEntity implements IndexedItem {
 	@Override
 	public void setArchiveTime(Instant archiveTime) {
 		this.archiveTime = archiveTime;
+	}
+
+	@Override
+	public long getSize() {
+		return size;
+	}
+
+	@Override
+	public void setSize(long size) {
+		this.size = size;
 	}
 
 	@Override

@@ -2,11 +2,12 @@ package org.atypical.carabassa.core.model.impl;
 
 import org.atypical.carabassa.core.model.StoredItem;
 import org.atypical.carabassa.core.model.StoredItemInfo;
+import org.springframework.core.io.Resource;
 
 public class StoredItemImpl implements StoredItem {
 
 	private StoredItemInfo storedItemInfo;
-	private byte[] content;
+	private Resource resource;
 
 	@Override
 	public StoredItemInfo getStoredItemInfo() {
@@ -19,12 +20,13 @@ public class StoredItemImpl implements StoredItem {
 	}
 
 	@Override
-	public byte[] getContent() {
-		return content;
+	public Resource getResource() {
+		return resource;
 	}
 
 	@Override
-	public void setContent(byte[] content) {
-		this.content = content;
+	public void setResource(Resource resource) {
+		this.resource = resource;
 	}
+
 }

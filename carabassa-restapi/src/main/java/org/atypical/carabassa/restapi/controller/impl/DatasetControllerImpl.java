@@ -180,7 +180,7 @@ public class DatasetControllerImpl implements DatasetController {
 	}
 
 	@Override
-	public ResponseEntity<byte[]> findItemContent(Long datasetId, Long itemId) {
+	public ResponseEntity<Resource> findItemContent(Long datasetId, Long itemId) {
 		Dataset dataset = getDataset(datasetId);
 		IndexedItem indexedItem = getIndexedItem(dataset, itemId);
 
@@ -198,7 +198,7 @@ public class DatasetControllerImpl implements DatasetController {
 		return ResponseEntity.ok() //
 				.contentType(MediaType.parseMediaType(ItemType.IMAGE.normalized() + "/" + indexedItem.getFormat()))
 				.header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=\"" + indexedItem.getFilename() + "\"")
-				.body(storedItem.getContent());
+				.body(storedItem.getResource());
 	}
 
 	@Override

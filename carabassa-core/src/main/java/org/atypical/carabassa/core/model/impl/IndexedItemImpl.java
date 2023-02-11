@@ -21,6 +21,7 @@ public class IndexedItemImpl implements IndexedItem {
 	private Instant creation;
 	private Instant modification;
 	private Instant archiveTime;
+	private long size;
 	private Set<Tag> tags;
 	private Dataset dataset;
 
@@ -125,6 +126,16 @@ public class IndexedItemImpl implements IndexedItem {
 	@Override
 	public void setArchiveTime(Instant archiveTime) {
 		this.archiveTime = archiveTime;
+	}
+
+	@Override
+	public long getSize() {
+		return size;
+	}
+
+	@Override
+	public void setSize(long size) {
+		this.size = size;
 	}
 
 	@Override

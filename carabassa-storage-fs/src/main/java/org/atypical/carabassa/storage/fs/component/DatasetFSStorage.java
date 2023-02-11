@@ -4,7 +4,6 @@ import java.io.ByteArrayOutputStream;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.nio.file.Files;
-import java.nio.file.NoSuchFileException;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.nio.file.StandardCopyOption;
@@ -103,11 +102,11 @@ public class DatasetFSStorage implements DatasetStorage {
 	@Override
 	public StoredItem getItem(IndexedItem item) throws IOException, EntityNotFoundException {
 		StoredItem storedItem = new StoredItemImpl();
-		try {
-			storedItem.setContent(Files.readAllBytes(getItemPath(item)));
-		} catch (NoSuchFileException e) {
+		Path itemPath = getItemPath(item);
+		if (!Files.exists(itemPath)) {
 			throw new EntityNotFoundException(localizedMessage.getText(ITEM_NOT_EXISTS_MESSAGE_KEY, item.getId()));
 		}
+		storedItem.setResource(new FileSystemResource(itemPath));
 		try {
 			storedItem.setStoredItemInfo(readJson(item));
 		} catch (FileNotFoundException e) {

@@ -163,6 +163,15 @@ public class DatasetApiServiceImpl implements DatasetApiService {
 	}
 
 	@Override
+	public void deleteItem(Long datasetId, Long id) throws ApiException {
+		try {
+			restTemplate.delete(datasetUrl + "/{datasetId}/item/{id}", datasetId, id);
+		} catch (RestClientResponseException e) {
+			throw buildApiException(e);
+		}
+	}
+
+	@Override
 	public List<DatasetEntityRepresentation> findAll() throws ApiException {
 		try {
 			PagedModel<DatasetEntityRepresentation> page = getPage(datasetUrl,

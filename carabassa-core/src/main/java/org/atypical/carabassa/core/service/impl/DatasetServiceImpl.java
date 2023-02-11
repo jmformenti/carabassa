@@ -18,7 +18,6 @@ import org.atypical.carabassa.core.model.Tag;
 import org.atypical.carabassa.core.model.enums.ItemType;
 import org.atypical.carabassa.core.model.impl.IndexedItemImpl;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.core.io.ByteArrayResource;
 import org.springframework.core.io.Resource;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -149,8 +148,7 @@ public class DatasetServiceImpl implements org.atypical.carabassa.core.service.D
 			throws EntityExistsException, EntityNotFoundException, IOException {
 		IndexedItem item = new IndexedItemImpl(datasetIndexer.findItemById(dataset, itemId));
 		StoredItem storedItem = datasetStorage.getItem(item);
-		IndexedItem updatedItem = datasetIndexer.resetItem(dataset, itemId,
-				new ByteArrayResource(storedItem.getContent()));
+		IndexedItem updatedItem = datasetIndexer.resetItem(dataset, itemId, storedItem.getResource());
 		datasetStorage.resetItem(updatedItem, item);
 	}
 
