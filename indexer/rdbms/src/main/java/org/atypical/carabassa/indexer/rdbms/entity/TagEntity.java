@@ -31,7 +31,7 @@ import org.atypical.carabassa.indexer.rdbms.entity.enums.ValueType;
 
 @Entity
 @Table(name = "TAG")
-@SequenceGenerator(initialValue = 1, name = "tag_id_gen", sequenceName = "tag_sequence")
+@SequenceGenerator(name = "tag_id_gen", sequenceName = "tag_sequence")
 public class TagEntity implements Tag {
 
 	private static final int MAX_TEXT_LENGTH = 255;

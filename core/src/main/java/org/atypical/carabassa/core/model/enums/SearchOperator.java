@@ -15,9 +15,9 @@ public enum SearchOperator {
 		}
 	}
 
-	private String code;
+	private final String code;
 
-	private SearchOperator(String code) {
+	SearchOperator(String code) {
 		this.code = code;
 	}
 

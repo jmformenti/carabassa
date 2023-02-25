@@ -76,10 +76,10 @@ public class DatasetApiServiceImpl implements DatasetApiService {
 		if (!findItemByHash(datasetId, item)) {
 			HttpEntity<MultiValueMap<String, Object>> request = buildFileRequest(itemToUpload);
 
-			ResponseEntity<IdRepresentation> response = null;
+			ResponseEntity<IdRepresentation> response;
 			try {
 				response = restTemplate.exchange(datasetUrl + "{datasetId}/item", HttpMethod.POST, request,
-						new ParameterizedTypeReference<IdRepresentation>() {
+						new ParameterizedTypeReference<>() {
 						}, datasetId);
 			} catch (RestClientResponseException e) {
 				throw buildApiException(e);
@@ -107,7 +107,7 @@ public class DatasetApiServiceImpl implements DatasetApiService {
 		// to index this file inside the dataset
 		MultiValueMap<String, String> fileMap = new LinkedMultiValueMap<>();
 		ContentDisposition contentDisposition = ContentDisposition.builder("form-data").name("file")
-				.filename(itemToUpload.getFilename().toString()).build();
+				.filename(itemToUpload.getFilename()).build();
 		fileMap.add(HttpHeaders.CONTENT_DISPOSITION, contentDisposition.toString());
 		fileMap.add(HttpHeaders.CONTENT_TYPE, itemToUpload.getContentType());
 		HttpEntity<Resource> entity = new HttpEntity<>(item, fileMap);
@@ -142,10 +142,10 @@ public class DatasetApiServiceImpl implements DatasetApiService {
 
 		HttpEntity<String> request = new HttpEntity<>(objectMapper.writeValueAsString(dataset), headers);
 
-		ResponseEntity<IdRepresentation> response = null;
+		ResponseEntity<IdRepresentation> response;
 		try {
 			response = restTemplate.exchange(datasetUrl, HttpMethod.POST, request,
-					new ParameterizedTypeReference<IdRepresentation>() {
+					new ParameterizedTypeReference<>() {
 					});
 		} catch (RestClientResponseException e) {
 			throw buildApiException(e);
@@ -194,7 +194,7 @@ public class DatasetApiServiceImpl implements DatasetApiService {
 
 	@Override
 	public Long findByName(String datasetName) throws ApiException {
-		ResponseEntity<DatasetEntityRepresentation> response = null;
+		ResponseEntity<DatasetEntityRepresentation> response;
 		try {
 			response = restTemplate.getForEntity(datasetUrl + "name/{datasetName}", DatasetEntityRepresentation.class,
 					datasetName);
@@ -261,7 +261,7 @@ public class DatasetApiServiceImpl implements DatasetApiService {
 	}
 
 	private ApiException buildApiException(RestClientResponseException e) {
-		ResponseBodyException responseBody = null;
+		ResponseBodyException responseBody;
 		try {
 			responseBody = objectMapper.readValue(e.getResponseBodyAsString(), ResponseBodyException.class);
 		} catch (JsonProcessingException je) {

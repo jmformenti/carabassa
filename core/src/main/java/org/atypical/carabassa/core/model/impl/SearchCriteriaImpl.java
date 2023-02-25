@@ -8,7 +8,7 @@ import org.atypical.carabassa.core.model.SearchCriteria;
 
 public class SearchCriteriaImpl implements SearchCriteria {
 
-	private List<SearchCondition> conditions;
+	private final List<SearchCondition> conditions;
 
 	public SearchCriteriaImpl() {
 		this.conditions = new ArrayList<>();

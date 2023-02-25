@@ -6,7 +6,7 @@ import java.util.Map;
 public enum ValueType {
 	STRING("S"), LONG("L"), DOUBLE("F"), DATE("D"), BOOLEAN("B");
 
-	private String code;
+	private final String code;
 
 	private static final Map<String, ValueType> codes = new HashMap<>();
 
@@ -16,7 +16,7 @@ public enum ValueType {
 		}
 	}
 
-	private ValueType(String code) {
+	ValueType(String code) {
 		this.code = code;
 	}
 

@@ -4,12 +4,12 @@ import org.springframework.core.io.Resource;
 
 public interface StoredItem {
 
-	public StoredItemInfo getStoredItemInfo();
+	StoredItemInfo getStoredItemInfo();
 
-	public void setStoredItemInfo(StoredItemInfo storedItemInfo);
+	void setStoredItemInfo(StoredItemInfo storedItemInfo);
 
-	public Resource getResource();
+	Resource getResource();
 
-	public void setResource(Resource resource);
+	void setResource(Resource resource);
 
 }

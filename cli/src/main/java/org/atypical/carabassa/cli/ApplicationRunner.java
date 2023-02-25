@@ -23,7 +23,7 @@ public class ApplicationRunner implements CommandLineRunner, ExitCodeGenerator {
 	}
 
 	@Override
-	public void run(String... args) throws Exception {
+	public void run(String... args) {
 		exitCode = new CommandLine(carabassaCommand, factory).execute(args);
 	}
 

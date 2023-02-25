@@ -10,6 +10,6 @@ import org.springframework.web.bind.annotation.RestController;
 public interface IndexController {
 
 	@GetMapping("/")
-	public NoContentRepresentation index();
+	NoContentRepresentation index();
 
 }

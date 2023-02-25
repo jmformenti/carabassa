@@ -29,7 +29,7 @@ import org.atypical.carabassa.indexer.rdbms.entity.converter.ItemTypeConverter;
 
 @Entity
 @Table(name = "ITEM")
-@SequenceGenerator(initialValue = 1, name = "item_id_gen", sequenceName = "item_sequence")
+@SequenceGenerator(name = "item_id_gen", sequenceName = "item_sequence")
 public class IndexedItemEntity implements IndexedItem {
 
 	@Id

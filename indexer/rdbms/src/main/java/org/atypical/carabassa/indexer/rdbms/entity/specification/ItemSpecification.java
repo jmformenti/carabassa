@@ -47,8 +47,8 @@ public class ItemSpecification implements Specification<IndexedItemEntity> {
 	private static final String MONTH_DATE = "yyyy-MM";
 	private static final String YEAR_DATE = "yyyy";
 
-	private Dataset dataset;
-	private SearchCriteria searchCriteria;
+	private final Dataset dataset;
+	private final SearchCriteria searchCriteria;
 
 	public ItemSpecification(Dataset dataset, SearchCriteria searchCriteria) {
 		this.dataset = dataset;
@@ -69,7 +69,7 @@ public class ItemSpecification implements Specification<IndexedItemEntity> {
 		query.orderBy(builder.asc(root.get(IndexedItemEntity_.ARCHIVE_TIME)),
 				builder.asc(root.get(IndexedItemEntity_.ID)));
 
-		return builder.and(predicates.toArray(new Predicate[predicates.size()]));
+		return builder.and(predicates.toArray(new Predicate[0]));
 	}
 
 	private Predicate toPredicateFromCondition(SearchCondition condition, Root<IndexedItemEntity> root,
@@ -80,7 +80,7 @@ public class ItemSpecification implements Specification<IndexedItemEntity> {
 			return builder.like(builder.lower(tags.get(TagEntity_.TEXT_VALUE)),
 					builder.lower(builder.literal("%" + condition.getValue() + "%")));
 		} else if (condition.getOperation() == SearchOperator.EQUAL) {
-			Pair<Instant, Instant> periodDates = null;
+			Pair<Instant, Instant> periodDates;
 			switch (condition.getKey()) {
 			case ATTR_ID:
 				return builder.equal(root.get(IndexedItemEntity_.ID), condition.getValue().toString());
@@ -108,16 +108,10 @@ public class ItemSpecification implements Specification<IndexedItemEntity> {
 				return builder.and(builder.equal(tags.get(TagEntity_.NAME), condition.getKey()),
 						builder.equal(tags.get(TagEntity_.TEXT_VALUE), condition.getValue()));
 			}
-		} else if (condition.getOperation() == SearchOperator.LESS_THAN) {
-			switch (condition.getKey()) {
-			case ATTR_ID:
-				return builder.lessThan(root.get(IndexedItemEntity_.ID), condition.getValue().toString());
-			}
-		} else if (condition.getOperation() == SearchOperator.GREATER_THAN) {
-			switch (condition.getKey()) {
-			case ATTR_ID:
-				return builder.greaterThan(root.get(IndexedItemEntity_.ID), condition.getValue().toString());
-			}
+		} else if (condition.getOperation() == SearchOperator.LESS_THAN && ATTR_ID.equals(condition.getKey())) {
+			return builder.lessThan(root.get(IndexedItemEntity_.ID), condition.getValue().toString());
+		} else if (condition.getOperation() == SearchOperator.GREATER_THAN && ATTR_ID.equals(condition.getKey())) {
+			return builder.greaterThan(root.get(IndexedItemEntity_.ID), condition.getValue().toString());
 		}
 		throw new IllegalArgumentException(String.format("Operation %s not implemented yet", condition.getOperation()));
 	}
@@ -128,7 +122,7 @@ public class ItemSpecification implements Specification<IndexedItemEntity> {
 	}
 
 	private Pair<Instant, Instant> getPeriodDates(String value) {
-		Instant startDate = null;
+		Instant startDate;
 		try {
 			startDate = dateIgnoringTimeZoneToInstant(DateUtils.parseDateStrictly(value, FULL_DATE));
 			return PeriodType.DAY.getPeriodDates(startDate);

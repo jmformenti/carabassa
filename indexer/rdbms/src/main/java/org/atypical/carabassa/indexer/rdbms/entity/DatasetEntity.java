@@ -22,7 +22,7 @@ import org.atypical.carabassa.core.model.IndexedItem;
 
 @Entity
 @Table(name = "DATASET")
-@SequenceGenerator(initialValue = 1, name = "dataset_id_gen", sequenceName = "dataset_sequence")
+@SequenceGenerator(name = "dataset_id_gen", sequenceName = "dataset_sequence")
 public class DatasetEntity implements Dataset {
 
 	@Id
@@ -32,7 +32,7 @@ public class DatasetEntity implements Dataset {
 	@Column(unique = true, nullable = false)
 	private String name;
 
-	@Column(length = 255)
+	@Column
 	private String description;
 
 	@Column(nullable = false)

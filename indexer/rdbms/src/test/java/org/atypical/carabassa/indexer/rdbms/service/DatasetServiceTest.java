@@ -72,7 +72,7 @@ public class DatasetServiceTest {
 	}
 
 	@Test
-	void addItemBlankFilename() throws IOException, EntityNotFoundException {
+	void addItemBlankFilename() throws EntityNotFoundException {
 		// GIVEN
 		Dataset dataset = datasetService.findByName(DATASET_TEST_NAME);
 
@@ -198,16 +198,13 @@ public class DatasetServiceTest {
 	}
 
 	@Test
-	void addItemNullContent() throws IOException, EntityNotFoundException {
+	void addItemNullContent() throws EntityNotFoundException {
 		// GIVEN
 		Dataset dataset = datasetService.findByName(DATASET_TEST_NAME);
 
-		// WHEN
-		Resource resource = null;
-		
-		// THEN
+		// WHEN & THEN
 		assertThrows(IllegalArgumentException.class,
-				() -> datasetService.addItem(dataset, ItemType.IMAGE, "test", resource));
+				() -> datasetService.addItem(dataset, ItemType.IMAGE, "test", null));
 	}
 
 	@Test

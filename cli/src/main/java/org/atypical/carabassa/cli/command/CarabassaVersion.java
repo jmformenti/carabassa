@@ -12,7 +12,7 @@ public class CarabassaVersion implements IVersionProvider {
 	private String appVersion;
 
 	@Override
-	public String[] getVersion() throws Exception {
+	public String[] getVersion() {
 		return new String[] { "v" + appVersion };
 	}
 }

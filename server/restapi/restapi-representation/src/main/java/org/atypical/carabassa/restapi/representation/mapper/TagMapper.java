@@ -5,6 +5,6 @@ import org.atypical.carabassa.restapi.representation.model.TagEditableRepresenta
 
 public interface TagMapper {
 
-	public Tag toEntity(TagEditableRepresentation tagEditableRepresentation);
+	Tag toEntity(TagEditableRepresentation tagEditableRepresentation);
 
 }

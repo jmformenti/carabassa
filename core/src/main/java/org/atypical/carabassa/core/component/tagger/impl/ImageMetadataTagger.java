@@ -56,7 +56,7 @@ public class ImageMetadataTagger implements Tagger {
 	private static final String IMAGE_ERROR_META_MESSAGE_KEY = "core.tagger.meta.image.error";
 	private static final String IMAGE_ERROR_PHASH_MESSAGE_KEY = "core.tagger.phash.error";
 
-	private static DifferenceHash differenceHash = new DifferenceHash(64, Precision.Double);
+	private static final DifferenceHash differenceHash = new DifferenceHash(64, Precision.Double);
 	
 	@Value("${carabassa.default-tz}")
 	private String defaultTimeZone;
@@ -67,7 +67,7 @@ public class ImageMetadataTagger implements Tagger {
 	@Autowired
 	private LocalizedMessage localizedMessage;
 
-	private Atlas atlas = new Atlas();
+	private final Atlas atlas = new Atlas();
 
 	@PostConstruct
 	public void init() {
@@ -96,23 +96,23 @@ public class ImageMetadataTagger implements Tagger {
 	private Set<Tag> getCustomTags(Resource inputItem, Metadata metadata) throws IOException {
 		Set<Tag> tags = new HashSet<>();
 
-		tags.add((Tag) new TagImpl(TAG_HASH, HashGenerator.generate(inputItem)));
+		tags.add(new TagImpl(TAG_HASH, HashGenerator.generate(inputItem)));
 		try {
-			tags.add((Tag) new TagImpl(TAG_DHASH, getPerceptualHash(inputItem)));
+			tags.add(new TagImpl(TAG_DHASH, getPerceptualHash(inputItem)));
 		} catch (IOException e) {
 			logger.error(e.getMessage(), e);
 		}
 		Instant archiveTime = getArchiveTime(metadata);
 		if (archiveTime != null) {
-			tags.add((Tag) new TagImpl(TAG_ARCHIVE_TIME, archiveTime));
+			tags.add(new TagImpl(TAG_ARCHIVE_TIME, archiveTime));
 		}
-		tags.add((Tag) new TagImpl(TAG_FILE_TYPE, getFileType(metadata)));
+		tags.add(new TagImpl(TAG_FILE_TYPE, getFileType(metadata)));
 
 		return tags;
 	}
 
 	private Metadata getMetaData(Resource inputItem) throws IOException {
-		Metadata metadata = null;
+		Metadata metadata;
 		try {
 			metadata = ImageMetadataReader.readMetadata(inputItem.getInputStream());
 		} catch (ImageProcessingException | IOException e) {
@@ -144,7 +144,7 @@ public class ImageMetadataTagger implements Tagger {
 				Object tagValue = directory.getObject(metaTag.getTagType());
 				if (isValidTag(metaTag.getTagName(), tagValue)) {
 					Tag tag = new TagImpl(TAG_PREFIX + toCamelCase(metaTag.getTagName()), tagValue);
-					metaTags.add((Tag) tag);
+					metaTags.add(tag);
 				}
 			}
 		}
@@ -152,7 +152,7 @@ public class ImageMetadataTagger implements Tagger {
 	}
 
 	private void addGeoTags(GpsDirectory directory, Set<Tag> metaTags) {
-		GeoLocation geoLocation = ((GpsDirectory) directory).getGeoLocation();
+		GeoLocation geoLocation = directory.getGeoLocation();
 		if (geoLocation != null && !geoLocation.isZero()) {
 			metaTags.add(new TagImpl(TAG_GEO_LATITUDE, geoLocation.getLatitude()));
 			metaTags.add(new TagImpl(TAG_GEO_LONGITUDE, geoLocation.getLongitude()));
@@ -171,9 +171,7 @@ public class ImageMetadataTagger implements Tagger {
 		} else if (value == null) {
 			return false;
 		} else if (value instanceof String) {
-			if (((String) value).isEmpty()) {
-				return false;
-			}
+			return !((String) value).isEmpty();
 		} else if (value instanceof byte[]) {
 			byte[] data = (byte[]) value;
 			return !IntStream.range(0, data.length).parallel().allMatch(i -> data[i] == 0);

@@ -1,11 +1,10 @@
 package org.atypical.carabassa.restapi.representation.model;
 
+import org.springframework.hateoas.RepresentationModel;
+
 import java.time.Instant;
 import java.time.ZoneId;
 import java.time.ZonedDateTime;
-
-import org.springframework.hateoas.Links;
-import org.springframework.hateoas.RepresentationModel;
 
 public class DatasetEntityRepresentation extends RepresentationModel<DatasetEntityRepresentation> {
 
@@ -70,9 +69,5 @@ public class DatasetEntityRepresentation extends RepresentationModel<DatasetEnti
 
 	public void setModification(Instant modification) {
 		this.modification = modification;
-	}
-
-	public Links getLinks() {
-		return super.getLinks();
 	}
 }

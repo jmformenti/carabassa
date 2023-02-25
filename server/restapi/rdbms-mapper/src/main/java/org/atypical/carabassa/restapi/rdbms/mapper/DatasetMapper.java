@@ -12,12 +12,12 @@ import org.mapstruct.ReportingPolicy;
 public interface DatasetMapper extends org.atypical.carabassa.restapi.representation.mapper.DatasetMapper {
 
 	@Override
-	public DatasetEntityRepresentation toRepresentation(Dataset dataset);
+	DatasetEntityRepresentation toRepresentation(Dataset dataset);
 
 	@Override
-	public DatasetEntity toEntity(DatasetEditableRepresentation datasetEditableRepresentation);
+	DatasetEntity toEntity(DatasetEditableRepresentation datasetEditableRepresentation);
 
 	@Override
-	public void update(DatasetEditableRepresentation datasetEditableRepresentation, @MappingTarget Dataset dataset);
+	void update(DatasetEditableRepresentation datasetEditableRepresentation, @MappingTarget Dataset dataset);
 
 }

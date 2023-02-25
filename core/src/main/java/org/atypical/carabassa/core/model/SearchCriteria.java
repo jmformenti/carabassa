@@ -4,10 +4,10 @@ import java.util.List;
 
 public interface SearchCriteria {
 
-	public List<SearchCondition> getConditions();
+	List<SearchCondition> getConditions();
 
-	public void add(SearchCondition searchCondition);
+	void add(SearchCondition searchCondition);
 
-	public boolean isEmpty();
+	boolean isEmpty();
 
 }

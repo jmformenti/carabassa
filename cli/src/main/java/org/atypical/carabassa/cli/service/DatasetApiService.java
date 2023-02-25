@@ -14,24 +14,24 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 // TODO Do junits
 public interface DatasetApiService {
 
-	public Long addItem(Long datasetId, ItemToUpload itemToUpload) throws ItemAlreadyExists, ApiException, IOException;
+	Long addItem(Long datasetId, ItemToUpload itemToUpload) throws ItemAlreadyExists, ApiException, IOException;
 
-	public Long create(String name, String description) throws ApiException, JsonProcessingException;
+	Long create(String name, String description) throws ApiException, JsonProcessingException;
 
-	public void delete(Long datasetId) throws ApiException;
+	void delete(Long datasetId) throws ApiException;
 
-	public void deleteItem(Long datasetId, Long id) throws ApiException;
+	void deleteItem(Long datasetId, Long id) throws ApiException;
 
-	public List<DatasetEntityRepresentation> findAll() throws ApiException;
+	List<DatasetEntityRepresentation> findAll() throws ApiException;
 
-	public Long findByName(String datasetName) throws ApiException;
+	Long findByName(String datasetName) throws ApiException;
 	
-	public List<ItemRepresentation> findItems(Long datasetId) throws ApiException;
+	List<ItemRepresentation> findItems(Long datasetId) throws ApiException;
 
-	public List<ItemRepresentation> findItems(Long datasetId, String searchString) throws ApiException;
+	List<ItemRepresentation> findItems(Long datasetId, String searchString) throws ApiException;
 
-	public void resetItem(Long datasetId, Long id) throws ApiException;
+	void resetItem(Long datasetId, Long id) throws ApiException;
 
-	public void update(Long datasetId, String description) throws ApiException;
+	void update(Long datasetId, String description) throws ApiException;
 
 }

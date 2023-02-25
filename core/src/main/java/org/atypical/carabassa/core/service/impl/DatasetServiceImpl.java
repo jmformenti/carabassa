@@ -153,7 +153,7 @@ public class DatasetServiceImpl implements org.atypical.carabassa.core.service.D
     }
 
     @Override
-    public Dataset update(String originalDatasetName, Dataset dataset) throws EntityNotFoundException, IOException {
+    public Dataset update(String originalDatasetName, Dataset dataset) throws IOException {
         Dataset updatedDataset = datasetIndexer.update(dataset);
         datasetStorage.update(originalDatasetName, updatedDataset);
         return updatedDataset;

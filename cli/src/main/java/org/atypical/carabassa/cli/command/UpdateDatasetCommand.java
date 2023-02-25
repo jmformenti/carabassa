@@ -13,10 +13,10 @@ import picocli.CommandLine.ExitCode;
 import picocli.CommandLine.Option;
 
 @Component
-@Command(name = "update", description = "update dataset.", mixinStandardHelpOptions = true, exitCodeOnExecutionException = 1)
+@Command(name = "update", description = "update dataset.")
 public class UpdateDatasetCommand implements Callable<Integer> {
 
-	private CommandLogger cmdLogger = new CommandLogger();
+	private final CommandLogger cmdLogger = new CommandLogger();
 
 	@Autowired
 	private DatasetApiService datasetApiService;
@@ -28,7 +28,7 @@ public class UpdateDatasetCommand implements Callable<Integer> {
 	private String description;
 
 	@Override
-	public Integer call() throws Exception {
+	public Integer call() {
 		try {
 			cmdLogger.info(String.format("Updating dataset %s ...", dataset));
 

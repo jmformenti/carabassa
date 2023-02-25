@@ -1,25 +1,24 @@
 package org.atypical.carabassa.cli.command;
 
-import java.util.List;
-import java.util.Scanner;
-import java.util.concurrent.Callable;
-
 import org.atypical.carabassa.cli.exception.ApiException;
 import org.atypical.carabassa.cli.service.DatasetApiService;
 import org.atypical.carabassa.cli.util.CommandLogger;
+import org.atypical.carabassa.cli.util.InteractiveCommand;
 import org.atypical.carabassa.restapi.representation.model.ItemRepresentation;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
-
 import picocli.CommandLine.Command;
 import picocli.CommandLine.ExitCode;
 import picocli.CommandLine.Option;
 
+import java.util.List;
+import java.util.concurrent.Callable;
+
 @Component
-@Command(name = "delete-items", description = "delete items.", mixinStandardHelpOptions = true, exitCodeOnExecutionException = 1)
+@Command(name = "delete-items", description = "delete items.")
 public class DeleteItemCommand implements Callable<Integer> {
 
-	private CommandLogger cmdLogger = new CommandLogger();
+	private final CommandLogger cmdLogger = new CommandLogger();
 
 	@Option(names = { "-d", "--dataset" }, description = "dataset name.", required = true)
 	private String dataset;
@@ -39,7 +38,7 @@ public class DeleteItemCommand implements Callable<Integer> {
 	private int total;
 	
 	@Override
-	public Integer call() throws Exception {
+	public Integer call() {
 		try {
 			Long datasetId = datasetApiService.findByName(dataset);
 			if (datasetId != null) {
@@ -50,7 +49,7 @@ public class DeleteItemCommand implements Callable<Integer> {
 					items = datasetApiService.findItems(datasetId, searchString);
 				}
 				if (!items.isEmpty()) {
-					if (force || doConfirm(String.format(
+					if (force || InteractiveCommand.doConfirm(String.format(
 							"This action cannot be reversed. You are going to delete %d items in dataset '%s'. Are you sure? [y|N] ",
 							items.size(), dataset))) {
 						total = items.size();
@@ -72,18 +71,6 @@ public class DeleteItemCommand implements Callable<Integer> {
 		return ExitCode.OK;
 	}
 
-	private boolean doConfirm(String text) {
-		System.out.print(text);
-		try (Scanner scanner = new Scanner(System.in)) {
-			String userInput = scanner.next();
-			if (userInput.equalsIgnoreCase("y") || userInput.equalsIgnoreCase("yes")) {
-				return true;
-			} else {
-				return false;
-			}
-		}
-	}
-	
 	private void deleteItem(Long datasetId, ItemRepresentation itemRepresentation) {
 		try {
 			cmdLogger.info(String.format("Delete item %s ( %d / %d ) ...", itemRepresentation.getId(), ++count, total));

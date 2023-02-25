@@ -43,28 +43,28 @@ public class VideoMetadataTagger implements Tagger {
 			throw new IOException(e);
 		}
 
-		tags.add((Tag) new TagImpl(TAG_FILE_TYPE, info.getFormat()));
-		tags.add((Tag) new TagImpl(TAG_PREFIX + "Duration", info.getDuration()));
+		tags.add(new TagImpl(TAG_FILE_TYPE, info.getFormat()));
+		tags.add(new TagImpl(TAG_PREFIX + "Duration", info.getDuration()));
 		if (info.getMetadata().get(METADATA_CREATION_TIME_FIELD) != null) {
-			tags.add((Tag) new TagImpl(TAG_ARCHIVE_TIME,
+			tags.add(new TagImpl(TAG_ARCHIVE_TIME,
 					ZonedDateTime.parse(info.getMetadata().get(METADATA_CREATION_TIME_FIELD))));
 		}
 
 		if (info.getVideo() != null) {
-			tags.add((Tag) new TagImpl(TAG_PREFIX + "VideoBitRate", info.getVideo().getBitRate()));
-			tags.add((Tag) new TagImpl(TAG_PREFIX + "VideoDecoder", info.getVideo().getDecoder()));
-			tags.add((Tag) new TagImpl(TAG_PREFIX + "VideoFrameRate", info.getVideo().getFrameRate()));
-			tags.add((Tag) new TagImpl(TAG_PREFIX + "VideoSizeHeight", info.getVideo().getSize().getHeight()));
-			tags.add((Tag) new TagImpl(TAG_PREFIX + "VideoSizeWidth", info.getVideo().getSize().getWidth()));
+			tags.add(new TagImpl(TAG_PREFIX + "VideoBitRate", info.getVideo().getBitRate()));
+			tags.add(new TagImpl(TAG_PREFIX + "VideoDecoder", info.getVideo().getDecoder()));
+			tags.add(new TagImpl(TAG_PREFIX + "VideoFrameRate", info.getVideo().getFrameRate()));
+			tags.add(new TagImpl(TAG_PREFIX + "VideoSizeHeight", info.getVideo().getSize().getHeight()));
+			tags.add(new TagImpl(TAG_PREFIX + "VideoSizeWidth", info.getVideo().getSize().getWidth()));
 		}
 		if (info.getAudio() != null) {
-			tags.add((Tag) new TagImpl(TAG_PREFIX + "AudioBitRate", info.getAudio().getBitRate()));
-			tags.add((Tag) new TagImpl(TAG_PREFIX + "AudioChannels", info.getAudio().getChannels()));
-			tags.add((Tag) new TagImpl(TAG_PREFIX + "AudioDecoder", info.getAudio().getDecoder()));
-			tags.add((Tag) new TagImpl(TAG_PREFIX + "AudioSamplingRate", info.getAudio().getSamplingRate()));
+			tags.add(new TagImpl(TAG_PREFIX + "AudioBitRate", info.getAudio().getBitRate()));
+			tags.add(new TagImpl(TAG_PREFIX + "AudioChannels", info.getAudio().getChannels()));
+			tags.add(new TagImpl(TAG_PREFIX + "AudioDecoder", info.getAudio().getDecoder()));
+			tags.add(new TagImpl(TAG_PREFIX + "AudioSamplingRate", info.getAudio().getSamplingRate()));
 		}
 
-		tags.add((Tag) new TagImpl(TAG_HASH, HashGenerator.generate(inputItem)));
+		tags.add(new TagImpl(TAG_HASH, HashGenerator.generate(inputItem)));
 
 		releaseFile(inputItem, inputFile);
 

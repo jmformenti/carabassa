@@ -61,7 +61,7 @@ public class DatasetFSStorage implements DatasetStorage {
     @Autowired
     private LocalizedMessage localizedMessage;
 
-    private ObjectMapper mapper = new ObjectMapper();
+    private final ObjectMapper mapper = new ObjectMapper();
 
     @PostConstruct
     private void postConstruct() throws IOException {
@@ -192,11 +192,11 @@ public class DatasetFSStorage implements DatasetStorage {
         return baos.toByteArray();
     }
 
-    private StoredItemInfo readJson(IndexedItem item) throws JsonParseException, JsonMappingException, IOException {
+    private StoredItemInfo readJson(IndexedItem item) throws IOException {
         return mapper.readValue(getJsonPath(item).toFile(), StoredItemInfoImpl.class);
     }
 
-    private void writeJson(IndexedItem item) throws JsonGenerationException, JsonMappingException, IOException {
+    private void writeJson(IndexedItem item) throws IOException {
         mapper.writeValue(getJsonPath(item).toFile(), new StoredItemInfoImpl(item.getFilename()));
     }
 

@@ -13,10 +13,10 @@ import picocli.CommandLine.ExitCode;
 import picocli.CommandLine.Option;
 
 @Component
-@Command(name = "create", description = "create new dataset.", mixinStandardHelpOptions = true, exitCodeOnExecutionException = 1)
+@Command(name = "create", description = "create new dataset.")
 public class CreateDatasetCommand implements Callable<Integer> {
 
-	private CommandLogger cmdLogger = new CommandLogger();
+	private final CommandLogger cmdLogger = new CommandLogger();
 
 	@Option(names = { "-d", "--dataset" }, description = "dataset name.", required = true)
 	private String dataset;

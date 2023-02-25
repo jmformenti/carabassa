@@ -12,22 +12,22 @@ import org.springframework.core.io.Resource;
 
 public interface DatasetStorage {
 
-	public void create(Dataset dataset) throws IOException, EntityExistsException;
+	void create(Dataset dataset) throws IOException, EntityExistsException;
 
-	public void addItem(IndexedItem item, Resource inputItem) throws IOException, EntityExistsException;
+	void addItem(IndexedItem item, Resource inputItem) throws IOException, EntityExistsException;
 
-	public StoredItem getItem(IndexedItem item) throws IOException, EntityNotFoundException;
+	StoredItem getItem(IndexedItem item) throws IOException, EntityNotFoundException;
 
-	public StoredItemThumbnail getItemThumbnail(IndexedItem item) throws IOException, EntityNotFoundException;
+	StoredItemThumbnail getItemThumbnail(IndexedItem item) throws IOException, EntityNotFoundException;
 
-	public void deleteAll() throws IOException;
+	void deleteAll() throws IOException;
 
-	public void delete(Dataset dataset) throws IOException;
+	void delete(Dataset dataset) throws IOException;
 
-	public void deleteItem(IndexedItem item) throws IOException;
+	void deleteItem(IndexedItem item) throws IOException;
 
-	public void resetItem(IndexedItem updatedItem, IndexedItem previousItem) throws IOException, EntityExistsException;
+	void resetItem(IndexedItem updatedItem, IndexedItem previousItem) throws IOException, EntityExistsException;
 
-	public void update(String originalDatasetName, Dataset updatedDataset) throws IOException;
+	void update(String originalDatasetName, Dataset updatedDataset) throws IOException;
 
 }

@@ -2,12 +2,12 @@ package org.atypical.carabassa.core.model;
 
 public interface BoundingBox {
 
-	public int getMinX();
+	int getMinX();
 
-	public int getMinY();
+	int getMinY();
 
-	public int getWidth();
+	int getWidth();
 
-	public int getHeight();
+	int getHeight();
 
 }

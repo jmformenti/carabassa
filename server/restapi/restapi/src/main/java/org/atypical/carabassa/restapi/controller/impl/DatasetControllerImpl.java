@@ -1,9 +1,5 @@
 package org.atypical.carabassa.restapi.controller.impl;
 
-import java.io.File;
-import java.io.IOException;
-import java.nio.file.Paths;
-
 import org.atypical.carabassa.core.exception.EntityExistsException;
 import org.atypical.carabassa.core.exception.EntityNotFoundException;
 import org.atypical.carabassa.core.model.Dataset;
@@ -44,6 +40,10 @@ import org.springframework.stereotype.Component;
 import org.springframework.web.multipart.MultipartFile;
 import org.springframework.web.server.ResponseStatusException;
 
+import java.io.File;
+import java.io.IOException;
+import java.nio.file.Paths;
+
 @Component
 public class DatasetControllerImpl implements DatasetController {
 
@@ -80,17 +80,14 @@ public class DatasetControllerImpl implements DatasetController {
 
 	@Override
 	public IdRepresentation create(DatasetEditableRepresentation datasetRepresentation) {
-		Dataset dataset = null;
+		Dataset dataset;
 		try {
 			dataset = datasetMapper.toEntity(datasetRepresentation);
 			dataset = datasetService.create(dataset);
 		} catch (IOException e) {
 			logger.error(e.getMessage(), e);
 			throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, e.getMessage());
-		} catch (IllegalArgumentException e) {
-			logger.error(e.getMessage(), e);
-			throw new ResponseStatusException(HttpStatus.CONFLICT, e.getMessage());
-		} catch (EntityExistsException e) {
+		} catch (IllegalArgumentException | EntityExistsException e) {
 			logger.error(e.getMessage(), e);
 			throw new ResponseStatusException(HttpStatus.CONFLICT, e.getMessage());
 		}
@@ -123,7 +120,7 @@ public class DatasetControllerImpl implements DatasetController {
 
 	@Override
 	public DatasetEntityRepresentation findByName(String datasetName) {
-		Dataset dataset = null;
+		Dataset dataset;
 		try {
 			dataset = datasetService.findByName(datasetName);
 		} catch (EntityNotFoundException e) {
@@ -140,9 +137,6 @@ public class DatasetControllerImpl implements DatasetController {
 		datasetMapper.update(datasetRepresentation, dataset);
 		try {
 			datasetService.update(originalDatasetName, dataset);
-		} catch (EntityNotFoundException e) {
-			logger.error(e.getMessage(), e);
-			throw new ResponseStatusException(HttpStatus.NOT_FOUND, e.getMessage());
 		} catch (IOException e) {
 			logger.error(e.getMessage(), e);
 			throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, e.getMessage());
@@ -324,13 +318,12 @@ public class DatasetControllerImpl implements DatasetController {
 	 * This method is intended to write uploaded file in temporal file to avoid
 	 * problems when the indexer tries to access to a file to detect media type and
 	 * extract metadata.
-	 * 
 	 * It also renames the uploaded file instead of creating a new one using the
 	 * transferTo method.
 	 * 
 	 * @param file the multi part file
 	 * @return resource persisted in file system
-	 * @throws IOException
+	 * @throws IOException i/o exception
 	 */
 	private Resource getTempResource(MultipartFile file) throws IOException {
 		File tempFile;

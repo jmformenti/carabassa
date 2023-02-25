@@ -9,9 +9,9 @@ import org.mapstruct.Mapper;
 public interface BoundingBoxMapper extends org.atypical.carabassa.restapi.representation.mapper.BoundingBoxMapper {
 
 	@Override
-	public BoundingBoxRepresentation toRepresentation(BoundingBox boundingBox);
+	BoundingBoxRepresentation toRepresentation(BoundingBox boundingBox);
 
 	@Override
-	public BoundingBoxEntity toEntity(BoundingBoxRepresentation boundingBoxRepresentation);
+	BoundingBoxEntity toEntity(BoundingBoxRepresentation boundingBoxRepresentation);
 
 }

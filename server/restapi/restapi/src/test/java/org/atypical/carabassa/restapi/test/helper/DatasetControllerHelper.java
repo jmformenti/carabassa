@@ -37,7 +37,7 @@ public class DatasetControllerHelper {
 	protected Tag tag;
 	protected TagEntityRepresentation tagRepresentation;
 
-	protected ObjectMapper objectMapper = new ObjectMapper();
+	protected final ObjectMapper objectMapper = new ObjectMapper();
 
 	protected void initData() {
 		Instant now = Instant.now();

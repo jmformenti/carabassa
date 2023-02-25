@@ -9,6 +9,6 @@ import org.mapstruct.ReportingPolicy;
 public interface TagMapper extends org.atypical.carabassa.restapi.representation.mapper.TagMapper {
 
 	@Override
-	public TagEntity toEntity(TagEditableRepresentation tagEditableRepresentation);
+	TagEntity toEntity(TagEditableRepresentation tagEditableRepresentation);
 
 }

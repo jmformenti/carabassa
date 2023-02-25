@@ -19,9 +19,9 @@ public enum ItemType {
 		}
 	}
 
-	private String code;
+	private final String code;
 
-	private ItemType(String code) {
+	ItemType(String code) {
 		this.code = code;
 	}
 

@@ -6,10 +6,10 @@ import org.atypical.carabassa.restapi.representation.model.DatasetEntityRepresen
 
 public interface DatasetMapper {
 
-	public DatasetEntityRepresentation toRepresentation(Dataset dataset);
+	DatasetEntityRepresentation toRepresentation(Dataset dataset);
 
-	public Dataset toEntity(DatasetEditableRepresentation datasetEditableRepresentation);
+	Dataset toEntity(DatasetEditableRepresentation datasetEditableRepresentation);
 
-	public void update(DatasetEditableRepresentation datasetEditableRepresentation, Dataset dataset);
+	void update(DatasetEditableRepresentation datasetEditableRepresentation, Dataset dataset);
 
 }

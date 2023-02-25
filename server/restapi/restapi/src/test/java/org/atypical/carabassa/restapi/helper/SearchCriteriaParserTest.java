@@ -47,7 +47,7 @@ class SearchCriteriaParserTest {
 	}
 
 	@Test
-	void testPeriodTypes() throws ParseException {
+	void testPeriodTypes() {
 		DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss").withZone(ZoneOffset.UTC);
 
 		Instant instant = LocalDateTime.of(2005, 1, 1, 11, 11).toInstant(ZoneOffset.UTC);

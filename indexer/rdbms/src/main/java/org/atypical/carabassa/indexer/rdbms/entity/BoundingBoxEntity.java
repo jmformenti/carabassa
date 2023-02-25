@@ -12,7 +12,7 @@ import org.atypical.carabassa.core.model.BoundingBox;
 
 @Entity
 @Table(name = "BOUNDING_BOX")
-@SequenceGenerator(initialValue = 1, name = "bbox_id_gen", sequenceName = "bbox_sequence")
+@SequenceGenerator(name = "bbox_id_gen", sequenceName = "bbox_sequence")
 public class BoundingBoxEntity implements BoundingBox {
 
 	@Id

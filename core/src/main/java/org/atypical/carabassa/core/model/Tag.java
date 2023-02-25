@@ -4,24 +4,24 @@ import java.time.Instant;
 
 public interface Tag {
 
-	public Long getId();
+	Long getId();
 
-	public void setId(Long id);
+	void setId(Long id);
 
-	public Instant getCreation();
+	Instant getCreation();
 
-	public String getName();
+	String getName();
 
-	public void setName(String name);
+	void setName(String name);
 
-	public Object getValue();
+	Object getValue();
 
-	public <T> T getValue(Class<T> clazz);
+	<T> T getValue(Class<T> clazz);
 
-	public void setValue(Object value);
+	void setValue(Object value);
 
-	public BoundingBox getBoundingBox();
+	BoundingBox getBoundingBox();
 
-	public void setBoundingBox(BoundingBox boundingBox);
+	void setBoundingBox(BoundingBox boundingBox);
 
 }

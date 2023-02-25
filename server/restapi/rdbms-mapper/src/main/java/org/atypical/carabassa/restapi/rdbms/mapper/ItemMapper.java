@@ -16,9 +16,9 @@ public interface ItemMapper extends org.atypical.carabassa.restapi.representatio
 
 	@Override
 	@Mapping(target="tags", ignore=true)
-	public ItemRepresentation toBaseRepresentation(IndexedItem indexedItem);
+	ItemRepresentation toBaseRepresentation(IndexedItem indexedItem);
 
 	@Override
-	public ItemRepresentation toRepresentation(IndexedItem indexedItem);
+	ItemRepresentation toRepresentation(IndexedItem indexedItem);
 
 }

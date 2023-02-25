@@ -15,7 +15,7 @@ import picocli.CommandLine.ExitCode;
 import picocli.CommandLine.Option;
 
 @Component
-@Command(name = "reset", description = "reset items.", mixinStandardHelpOptions = true, exitCodeOnExecutionException = 1)
+@Command(name = "reset", description = "reset items.")
 public class ResetItemsCommand implements Callable<Integer> {
 
 	private static final CommandLogger cmdLogger = new CommandLogger();
@@ -35,7 +35,7 @@ public class ResetItemsCommand implements Callable<Integer> {
 	private int total;
 
 	@Override
-	public Integer call() throws Exception {
+	public Integer call() {
 		try {
 			Long datasetId = datasetApiService.findByName(dataset);
 			if (datasetId != null) {

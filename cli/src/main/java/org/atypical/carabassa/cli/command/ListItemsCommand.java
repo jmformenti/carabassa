@@ -17,7 +17,7 @@ import picocli.CommandLine.ExitCode;
 import picocli.CommandLine.Option;
 
 @Component
-@Command(name = "items", description = "list items.", mixinStandardHelpOptions = true, exitCodeOnExecutionException = 1)
+@Command(name = "items", description = "list items.")
 public class ListItemsCommand implements Callable<Integer> {
 
 	private static final String OUTPUT_FORMAT = "%8s\t%5s\t%50s\t%6s\t%19s\t%19s\t%19s\t%32s\n";
@@ -34,7 +34,7 @@ public class ListItemsCommand implements Callable<Integer> {
 	private String searchString;
 
 	@Override
-	public Integer call() throws Exception {
+	public Integer call() {
 		try {
 			Long datasetId = datasetApiService.findByName(dataset);
 			if (datasetId != null) {

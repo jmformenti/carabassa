@@ -9,49 +9,49 @@ import org.atypical.carabassa.core.model.enums.ItemType;
 
 public interface IndexedItem {
 
-	public Long getId();
+	Long getId();
 
-	public void setId(Long id);
+	void setId(Long id);
 
-	public ItemType getType();
+	ItemType getType();
 
-	public void setType(ItemType type);
+	void setType(ItemType type);
 
-	public String getFilename();
+	String getFilename();
 
-	public void setFilename(String filename);
+	void setFilename(String filename);
 
-	public String getFormat();
+	String getFormat();
 
-	public void setFormat(String format);
+	void setFormat(String format);
 
-	public String getHash();
+	String getHash();
 
-	public void setHash(String hash);
+	void setHash(String hash);
 
-	public Instant getCreation();
+	Instant getCreation();
 
-	public void setCreation(Instant creation);
+	void setCreation(Instant creation);
 
-	public Instant getModification();
+	Instant getModification();
 
-	public void setModification(Instant modification);
+	void setModification(Instant modification);
 
-	public Instant getArchiveTime();
+	Instant getArchiveTime();
 
-	public ZonedDateTime getArchiveTimeAsZoned(String zoneId);
+	ZonedDateTime getArchiveTimeAsZoned(String zoneId);
 
-	public void setArchiveTime(Instant archiveTime);
+	void setArchiveTime(Instant archiveTime);
 
-	public long getSize();
-	
-	public void setSize(long size);
+	long getSize();
 
-	public Set<Tag> getTags();
+	void setSize(long size);
 
-	public void setTags(Set<Tag> tags);
+	Set<Tag> getTags();
 
-	public default Set<Tag> getTags(String name) {
+	void setTags(Set<Tag> tags);
+
+	default Set<Tag> getTags(String name) {
 		if (name != null) {
 			return getTags().stream().filter(t -> name.equals(t.getName())).collect(Collectors.toSet());
 		} else {
@@ -59,7 +59,7 @@ public interface IndexedItem {
 		}
 	}
 
-	public default Tag getFirstTag(String name) {
+	default Tag getFirstTag(String name) {
 		if (name != null) {
 			return getTags().stream().filter(t -> name.equals(t.getName())).findFirst().orElse(null);
 		} else {
@@ -67,12 +67,12 @@ public interface IndexedItem {
 		}
 	}
 
-	public default boolean isArchived() {
+	default boolean isArchived() {
 		return getArchiveTime() != null;
 	}
 
-	public Dataset getDataset();
+	Dataset getDataset();
 
-	public void setDataset(Dataset dataset);
+	void setDataset(Dataset dataset);
 
 }

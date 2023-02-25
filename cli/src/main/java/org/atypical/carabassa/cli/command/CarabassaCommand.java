@@ -15,7 +15,7 @@ import picocli.CommandLine.ExitCode;
 public class CarabassaCommand implements Callable<Integer> {
 
 	@Override
-	public Integer call() throws Exception {
+	public Integer call() {
 		new CommandLine(new CarabassaCommand()).usage(System.out);
 		return ExitCode.OK;
 	}

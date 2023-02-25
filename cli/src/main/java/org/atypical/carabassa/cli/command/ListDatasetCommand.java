@@ -17,12 +17,12 @@ import picocli.CommandLine.ExitCode;
 import picocli.CommandLine.Option;
 
 @Component
-@Command(name = "list", description = "list datasets.", mixinStandardHelpOptions = true, exitCodeOnExecutionException = 1)
+@Command(name = "list", description = "list datasets.")
 public class ListDatasetCommand implements Callable<Integer> {
 
 	private static final String OUTPUT_FORMAT = "%10s\t%20s\t%40s\t%20s\t%20s\n";
 
-	private CommandLogger cmdLogger = new CommandLogger();
+	private final CommandLogger cmdLogger = new CommandLogger();
 
 	@Option(names = { "-d", "--dataset" }, description = "dataset name.")
 	private String dataset;
@@ -31,7 +31,7 @@ public class ListDatasetCommand implements Callable<Integer> {
 	private DatasetApiService datasetApiService;
 
 	@Override
-	public Integer call() throws Exception {
+	public Integer call() {
 		try {
 			List<DatasetEntityRepresentation> datasets = datasetApiService.findAll();
 			if (!datasets.isEmpty()) {

@@ -26,7 +26,7 @@ import picocli.CommandLine.ExitCode;
 import picocli.CommandLine.Option;
 
 @Component
-@Command(name = "upload", description = "upload items to dataset.", mixinStandardHelpOptions = true, exitCodeOnExecutionException = 1)
+@Command(name = "upload", description = "upload items to dataset.")
 public class UploadDatasetCommand implements Callable<Integer> {
 
 	@Option(names = { "-d", "--dataset" }, description = "dataset name.", required = true)
@@ -35,7 +35,7 @@ public class UploadDatasetCommand implements Callable<Integer> {
 	@Option(names = { "-p", "--path" }, description = "base path to upload items.", required = true)
 	private String basePath;
 
-	private CommandLogger cmdLogger = new CommandLogger();
+	private final CommandLogger cmdLogger = new CommandLogger();
 
 	@Autowired
 	private DatasetApiService datasetApiService;
@@ -92,9 +92,9 @@ public class UploadDatasetCommand implements Callable<Integer> {
 		cmdLogger.info(String.format("Looking for items in %s ...", basePath));
 
 		return Files.walk(Paths.get(basePath)) //
-				.filter(p -> Files.isRegularFile(p)) //
-				.map(p -> toItemToUpload(p)) //
-				.filter(i -> isSupportedType(i)) //
+				.filter(Files::isRegularFile) //
+				.map(this::toItemToUpload) //
+				.filter(this::isSupportedType) //
 				.collect(Collectors.toList());
 	}
 
@@ -122,7 +122,7 @@ public class UploadDatasetCommand implements Callable<Integer> {
 	}
 
 	private void upload(Long datasetId, ItemToUpload itemToUpload) {
-		long itemId = 0;
+		long itemId;
 		Path itemPath = itemToUpload.getPath();
 
 		cmdLogger.info(String.format("Uploading item %s ( %d / %d ) ...", itemPath, ++count, total));
