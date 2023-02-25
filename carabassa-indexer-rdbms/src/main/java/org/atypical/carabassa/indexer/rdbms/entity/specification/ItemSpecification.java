@@ -2,7 +2,12 @@ package org.atypical.carabassa.indexer.rdbms.entity.specification;
 
 import java.text.ParseException;
 import java.time.Instant;
+import java.time.LocalDateTime;
+import java.time.ZoneOffset;
 import java.util.ArrayList;
+import java.util.Calendar;
+import java.util.Date;
+import java.util.GregorianCalendar;
 import java.util.List;
 
 import javax.persistence.criteria.CriteriaBuilder;
@@ -125,20 +130,27 @@ public class ItemSpecification implements Specification<IndexedItemEntity> {
 	private Pair<Instant, Instant> getPeriodDates(String value) {
 		Instant startDate = null;
 		try {
-			startDate = DateUtils.parseDateStrictly(value, FULL_DATE).toInstant();
+			startDate = dateIgnoringTimeZoneToInstant(DateUtils.parseDateStrictly(value, FULL_DATE));
 			return PeriodType.DAY.getPeriodDates(startDate);
 		} catch (ParseException e) {
 			try {
-				startDate = DateUtils.parseDateStrictly(value, MONTH_DATE).toInstant();
+				startDate = dateIgnoringTimeZoneToInstant(DateUtils.parseDateStrictly(value, MONTH_DATE));
 				return PeriodType.MONTH.getPeriodDates(startDate);
 			} catch (ParseException e1) {
 				try {
-					startDate = DateUtils.parseDateStrictly(value, YEAR_DATE).toInstant();
+					startDate = dateIgnoringTimeZoneToInstant(DateUtils.parseDateStrictly(value, YEAR_DATE));
 					return PeriodType.YEAR.getPeriodDates(startDate);
 				} catch (ParseException e2) {
 					throw new IllegalArgumentException(String.format("Error parsing date value %s", value));
 				}
 			}
 		}
+	}
+
+	private Instant dateIgnoringTimeZoneToInstant(Date date) {
+		Calendar calendar = new GregorianCalendar();
+		calendar.setTime(date);
+		return LocalDateTime.of(calendar.get(Calendar.YEAR), calendar.get(Calendar.MONTH) + 1,
+				calendar.get(Calendar.DAY_OF_MONTH), 0, 0).toInstant(ZoneOffset.UTC);
 	}
 }
