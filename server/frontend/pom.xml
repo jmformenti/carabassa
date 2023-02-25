@@ -13,7 +13,7 @@
 
     <properties>
         <frontend.staging.dir>${project.build.directory}/frontend</frontend.staging.dir>
-        <node.version>v16.13.0</node.version>
+        <node.version>v18.14.2</node.version>
         <yarn.version>v1.22.19</yarn.version>
     </properties>
 
