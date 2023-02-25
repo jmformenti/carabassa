@@ -5,18 +5,19 @@
 	<modelVersion>4.0.0</modelVersion>
 
 	<parent>
-		<groupId>org.atypical</groupId>
-		<artifactId>carabassa</artifactId>
+		<groupId>org.atypical.carabassa.indexer</groupId>
+		<artifactId>carabassa-indexer-parent</artifactId>
 		<version>${revision}</version>
 	</parent>
+
 	<artifactId>carabassa-indexer-rdbms</artifactId>
 	<packaging>jar</packaging>
 
 	<dependencies>
 		<dependency>
-			<groupId>org.atypical</groupId>
+			<groupId>org.atypical.carabassa</groupId>
 			<artifactId>carabassa-core</artifactId>
-			<version>${revision}</version>
+			<version>0.1.0-SNAPSHOT</version>
 		</dependency>
 		<dependency>
 			<groupId>org.springframework.boot</groupId>
@@ -25,7 +26,7 @@
 
 		<!-- test -->
 		<dependency>
-			<groupId>org.atypical</groupId>
+			<groupId>org.atypical.carabassa.storage</groupId>
 			<artifactId>carabassa-storage-fs</artifactId>
 			<version>${revision}</version>
 			<scope>test</scope>

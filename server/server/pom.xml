@@ -3,30 +3,32 @@
 	xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 https://maven.apache.org/xsd/maven-4.0.0.xsd">
 	<modelVersion>4.0.0</modelVersion>
 	<parent>
-		<groupId>org.atypical</groupId>
-		<artifactId>carabassa</artifactId>
+		<groupId>org.atypical.carabassa.server</groupId>
+		<artifactId>carabassa-server-parent</artifactId>
 		<version>${revision}</version>
 	</parent>
-	<artifactId>carabassa-web</artifactId>
+
+	<artifactId>carabassa-server</artifactId>
+	<packaging>jar</packaging>
 
 	<dependencies>
 		<dependency>
-			<groupId>org.atypical</groupId>
+			<groupId>org.atypical.carabassa.server.restapi</groupId>
 			<artifactId>carabassa-restapi</artifactId>
 			<version>${project.version}</version>
 		</dependency>
 		<dependency>
-			<groupId>org.atypical</groupId>
+			<groupId>org.atypical.carabassa.server.restapi</groupId>
 			<artifactId>carabassa-restapi-rdbms-mapper</artifactId>
 			<version>${project.version}</version>
 		</dependency>
 		<dependency>
-			<groupId>org.atypical</groupId>
+			<groupId>org.atypical.carabassa.storage</groupId>
 			<artifactId>carabassa-storage-fs</artifactId>
 			<version>${project.version}</version>
 		</dependency>
 		<dependency>
-			<groupId>org.atypical</groupId>
+			<groupId>org.atypical.carabassa.server</groupId>
 			<artifactId>carabassa-frontend</artifactId>
 			<version>${project.version}</version>
 		</dependency>

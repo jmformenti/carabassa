@@ -9,8 +9,9 @@
 		<version>2.7.4</version>
 		<relativePath /> <!-- lookup parent from repository -->
 	</parent>
-	<groupId>org.atypical</groupId>
-	<artifactId>carabassa</artifactId>
+
+	<groupId>org.atypical.carabassa</groupId>
+	<artifactId>carabassa-parent</artifactId>
 	<version>${revision}</version>
 	<packaging>pom</packaging>
 	<name>carabassa</name>
@@ -93,15 +94,11 @@
 	</build>
 
 	<modules>
-		<module>carabassa-core</module>
-		<module>carabassa-indexer-rdbms</module>
-		<module>carabassa-storage-fs</module>
-		<module>carabassa-restapi-representation</module>
-		<module>carabassa-restapi</module>
-		<module>carabassa-restapi-rdbms-mapper</module>
-		<module>carabassa-frontend</module>
-		<module>carabassa-web</module>
-		<module>carabassa-cli</module>
+		<module>core</module>
+		<module>indexer</module>
+		<module>storage</module>
+		<module>server</module>
+		<module>cli</module>
 	</modules>
 
 </project>
