@@ -29,7 +29,7 @@ public class DatasetEntity implements Dataset {
 	@GeneratedValue(strategy = GenerationType.AUTO, generator = "dataset_id_gen")
 	private Long id;
 
-	@Column(unique = true, nullable = false, updatable = false)
+	@Column(unique = true, nullable = false)
 	private String name;
 
 	@Column(length = 255)

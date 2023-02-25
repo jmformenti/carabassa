@@ -629,7 +629,7 @@ public class DatasetServiceTest {
 		dataset.setDescription(DESC);
 		
 		// WHEN
-		Dataset updatedDataset = datasetService.update(dataset);
+		Dataset updatedDataset = datasetService.update(DATASET_TEST_NAME, dataset);
 
 		// required to execute @PreUpdate on Dataset
 		entityManager.flush();
@@ -673,13 +673,15 @@ public class DatasetServiceTest {
 	@Test
 	void updateChangeName() throws EntityNotFoundException, IOException {
 		// GIVEN
+		final String DATASET_TEST_NEW_NAME = "othername";
 		Dataset dataset = datasetService.findByName(DATASET_TEST_NAME);
 		
 		// WHEN
-		dataset.setName("othername");
+		dataset.setName(DATASET_TEST_NEW_NAME);
+		datasetService.update(DATASET_TEST_NAME, dataset);
 
 		// THEN
-		assertThrows(IOException.class, () -> datasetService.update(dataset));
+		assertNotNull(datasetService.findByName(DATASET_TEST_NEW_NAME));
 	}
 
 }

@@ -26,143 +26,143 @@ import org.springframework.stereotype.Service;
 @Service
 public class DatasetServiceImpl implements org.atypical.carabassa.core.service.DatasetService {
 
-	private static final String DATASET_NAME_NOT_VALID_MESSAGE_KEY = "core.dataset.name_not_valid";
+    private static final String DATASET_NAME_NOT_VALID_MESSAGE_KEY = "core.dataset.name_not_valid";
 
-	private static final String REGEX_DATASET_NAME = "[a-zA-Z0-9_-]+";
+    private static final String REGEX_DATASET_NAME = "[a-zA-Z0-9_-]+";
 
-	@Autowired
-	private DatasetIndexer datasetIndexer;
+    @Autowired
+    private DatasetIndexer datasetIndexer;
 
-	@Autowired
-	private DatasetStorage datasetStorage;
+    @Autowired
+    private DatasetStorage datasetStorage;
 
-	@Autowired
-	private LocalizedMessage localizedMessage;
+    @Autowired
+    private LocalizedMessage localizedMessage;
 
-	@Override
-	public IndexedItem addItem(Dataset dataset, ItemType type, String originalFilename, Resource inputItem)
-			throws IOException, EntityExistsException {
-		IndexedItem item = datasetIndexer.addItem(dataset, type, originalFilename, inputItem);
-		datasetStorage.addItem(item, inputItem);
-		return item;
-	}
+    @Override
+    public IndexedItem addItem(Dataset dataset, ItemType type, String originalFilename, Resource inputItem)
+            throws IOException, EntityExistsException {
+        IndexedItem item = datasetIndexer.addItem(dataset, type, originalFilename, inputItem);
+        datasetStorage.addItem(item, inputItem);
+        return item;
+    }
 
-	@Override
-	public Long addItemTag(Dataset dataset, Long itemId, Tag tag) throws EntityNotFoundException {
-		return datasetIndexer.addItemTag(dataset, itemId, tag);
-	}
+    @Override
+    public Long addItemTag(Dataset dataset, Long itemId, Tag tag) throws EntityNotFoundException {
+        return datasetIndexer.addItemTag(dataset, itemId, tag);
+    }
 
-	@Override
-	public Dataset create(Dataset dataset) throws IOException, EntityExistsException {
-		checkDatasetName(dataset.getName());
-		datasetStorage.create(dataset);
-		return datasetIndexer.create(dataset);
-	}
+    @Override
+    public Dataset create(Dataset dataset) throws IOException, EntityExistsException {
+        checkDatasetName(dataset.getName());
+        datasetStorage.create(dataset);
+        return datasetIndexer.create(dataset);
+    }
 
-	@Override
-	public void delete(Dataset dataset) throws IOException {
-		datasetStorage.delete(dataset);
-		datasetIndexer.delete(dataset);
-	}
+    @Override
+    public void delete(Dataset dataset) throws IOException {
+        datasetStorage.delete(dataset);
+        datasetIndexer.delete(dataset);
+    }
 
-	@Override
-	public void deleteAll() throws IOException {
-		datasetStorage.deleteAll();
-		datasetIndexer.deleteAll();
-	}
+    @Override
+    public void deleteAll() throws IOException {
+        datasetStorage.deleteAll();
+        datasetIndexer.deleteAll();
+    }
 
-	@Override
-	public void deleteItem(Dataset dataset, Long itemId) throws IOException {
-		try {
-			IndexedItem item = datasetIndexer.findItemById(dataset, itemId);
-			datasetIndexer.deleteItem(item);
-			datasetStorage.deleteItem(item);
-		} catch (EntityNotFoundException e) {
-			// nothing to do
-		}
-	}
+    @Override
+    public void deleteItem(Dataset dataset, Long itemId) throws IOException {
+        try {
+            IndexedItem item = datasetIndexer.findItemById(dataset, itemId);
+            datasetIndexer.deleteItem(item);
+            datasetStorage.deleteItem(item);
+        } catch (EntityNotFoundException e) {
+            // nothing to do
+        }
+    }
 
-	@Override
-	public void deleteItemTag(Dataset dataset, Long itemId, Long tagId) throws EntityNotFoundException {
-		datasetIndexer.deleteItemTag(dataset, itemId, tagId);
-	}
+    @Override
+    public void deleteItemTag(Dataset dataset, Long itemId, Long tagId) throws EntityNotFoundException {
+        datasetIndexer.deleteItemTag(dataset, itemId, tagId);
+    }
 
-	@Override
-	public List<Dataset> findAll() {
-		return datasetIndexer.findAll();
-	}
+    @Override
+    public List<Dataset> findAll() {
+        return datasetIndexer.findAll();
+    }
 
-	@Override
-	public Page<Dataset> findAll(Pageable pageable) {
-		return datasetIndexer.findAll(pageable);
-	}
+    @Override
+    public Page<Dataset> findAll(Pageable pageable) {
+        return datasetIndexer.findAll(pageable);
+    }
 
-	@Override
-	public Dataset findById(Long datasetId) throws EntityNotFoundException {
-		return datasetIndexer.findById(datasetId);
-	}
+    @Override
+    public Dataset findById(Long datasetId) throws EntityNotFoundException {
+        return datasetIndexer.findById(datasetId);
+    }
 
-	@Override
-	public Page<IndexedItem> findItems(Dataset dataset, Pageable pageable) {
-		return datasetIndexer.findItems(dataset, pageable);
-	}
+    @Override
+    public Page<IndexedItem> findItems(Dataset dataset, Pageable pageable) {
+        return datasetIndexer.findItems(dataset, pageable);
+    }
 
-	@Override
-	public Page<IndexedItem> findItems(Dataset dataset, SearchCriteria searchCriteria, Pageable pageable) {
-		return datasetIndexer.findItems(dataset, searchCriteria, pageable);
-	}
+    @Override
+    public Page<IndexedItem> findItems(Dataset dataset, SearchCriteria searchCriteria, Pageable pageable) {
+        return datasetIndexer.findItems(dataset, searchCriteria, pageable);
+    }
 
-	@Override
-	public Dataset findByName(String datasetName) throws EntityNotFoundException {
-		return datasetIndexer.findByName(datasetName);
-	}
+    @Override
+    public Dataset findByName(String datasetName) throws EntityNotFoundException {
+        return datasetIndexer.findByName(datasetName);
+    }
 
-	@Override
-	public IndexedItem findItemById(Dataset dataset, Long itemId) throws EntityNotFoundException {
-		return datasetIndexer.findItemById(dataset, itemId);
-	}
+    @Override
+    public IndexedItem findItemById(Dataset dataset, Long itemId) throws EntityNotFoundException {
+        return datasetIndexer.findItemById(dataset, itemId);
+    }
 
-	@Override
-	public IndexedItem findItemByHash(Dataset dataset, String hash) throws EntityNotFoundException {
-		return datasetIndexer.findItemByHash(dataset, hash);
-	}
+    @Override
+    public IndexedItem findItemByHash(Dataset dataset, String hash) throws EntityNotFoundException {
+        return datasetIndexer.findItemByHash(dataset, hash);
+    }
 
-	@Override
-	public Tag findItemTagById(Dataset dataset, Long itemId, Long tagId) throws EntityNotFoundException {
-		return datasetIndexer.findItemTagById(dataset, itemId, tagId);
-	}
+    @Override
+    public Tag findItemTagById(Dataset dataset, Long itemId, Long tagId) throws EntityNotFoundException {
+        return datasetIndexer.findItemTagById(dataset, itemId, tagId);
+    }
 
-	@Override
-	public StoredItem getStoredItem(Dataset dataset, IndexedItem item) throws IOException, EntityNotFoundException {
-		return datasetStorage.getItem(item);
-	}
+    @Override
+    public StoredItem getStoredItem(Dataset dataset, IndexedItem item) throws IOException, EntityNotFoundException {
+        return datasetStorage.getItem(item);
+    }
 
-	@Override
-	public StoredItemThumbnail getStoredItemThumbnail(Dataset dataset, IndexedItem item)
-			throws IOException, EntityNotFoundException {
-		return datasetStorage.getItemThumbnail(item);
-	}
+    @Override
+    public StoredItemThumbnail getStoredItemThumbnail(Dataset dataset, IndexedItem item)
+            throws IOException, EntityNotFoundException {
+        return datasetStorage.getItemThumbnail(item);
+    }
 
-	@Override
-	public void resetItem(Dataset dataset, Long itemId)
-			throws EntityExistsException, EntityNotFoundException, IOException {
-		IndexedItem item = new IndexedItemImpl(datasetIndexer.findItemById(dataset, itemId));
-		StoredItem storedItem = datasetStorage.getItem(item);
-		IndexedItem updatedItem = datasetIndexer.resetItem(dataset, itemId, storedItem.getResource());
-		datasetStorage.resetItem(updatedItem, item);
-	}
+    @Override
+    public void resetItem(Dataset dataset, Long itemId)
+            throws EntityExistsException, EntityNotFoundException, IOException {
+        IndexedItem item = new IndexedItemImpl(datasetIndexer.findItemById(dataset, itemId));
+        StoredItem storedItem = datasetStorage.getItem(item);
+        IndexedItem updatedItem = datasetIndexer.resetItem(dataset, itemId, storedItem.getResource());
+        datasetStorage.resetItem(updatedItem, item);
+    }
 
-	@Override
-	public Dataset update(Dataset dataset) throws IOException {
-		Dataset persistedDataset = datasetIndexer.update(dataset);
-		datasetStorage.update(persistedDataset);
-		return persistedDataset;
-	}
+    @Override
+    public Dataset update(String originalDatasetName, Dataset dataset) throws EntityNotFoundException, IOException {
+        Dataset updatedDataset = datasetIndexer.update(dataset);
+        datasetStorage.update(originalDatasetName, updatedDataset);
+        return updatedDataset;
+    }
 
-	private void checkDatasetName(String name) {
-		if (StringUtils.isBlank(name) || !name.matches(REGEX_DATASET_NAME)) {
-			throw new IllegalArgumentException(localizedMessage.getText(DATASET_NAME_NOT_VALID_MESSAGE_KEY));
-		}
-	}
+    private void checkDatasetName(String name) {
+        if (StringUtils.isBlank(name) || !name.matches(REGEX_DATASET_NAME)) {
+            throw new IllegalArgumentException(localizedMessage.getText(DATASET_NAME_NOT_VALID_MESSAGE_KEY));
+        }
+    }
 
 }

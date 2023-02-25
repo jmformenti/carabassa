@@ -10,7 +10,7 @@
 		</encoder>
 	</appender>
 
-	<logger name="org.springframework.test.web.servlet.result" level="debug" additivity="false">
+	<logger name="org.springframework.test.web.servlet.result" level="info" additivity="false">
 		<appender-ref ref="CONSOLE" />
 	</logger>
 

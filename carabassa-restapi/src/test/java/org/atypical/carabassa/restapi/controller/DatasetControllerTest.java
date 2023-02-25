@@ -223,7 +223,7 @@ public class DatasetControllerTest extends DatasetControllerHelper {
 		String json = objectMapper.writeValueAsString(new DatasetEditableRepresentation(DATASET_NAME, "description"));
 
 		when(datasetService.findById(DATASET_ID)).thenReturn(dataset);
-		when(datasetService.update(dataset)).thenReturn(dataset);
+		when(datasetService.update(DATASET_NAME, dataset)).thenReturn(dataset);
 
 		mvc.perform(put("/api/dataset/{datasetId}", DATASET_ID) //
 				.contentType(MediaType.APPLICATION_JSON).content(json)) //

@@ -58,6 +58,6 @@ public interface DatasetService {
 
 	public void resetItem(Dataset dataset, Long itemId) throws EntityExistsException, EntityNotFoundException, IOException;
 
-	public Dataset update(Dataset dataset) throws IOException;
+	public Dataset update(String originalDatasetName, Dataset dataset) throws EntityNotFoundException, IOException;
 
 }

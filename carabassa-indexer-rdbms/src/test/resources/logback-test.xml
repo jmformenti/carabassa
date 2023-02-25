@@ -14,7 +14,15 @@
 		</encoder>
 	</appender>
 
-	<logger name="org.atypical" level="info" additivity="false">
+	<logger name="org.hibernate.SQL" level="info" additivity="false">
+		<appender-ref ref="CONSOLE" />
+	</logger>
+
+	<logger name="org.hibernate.type" level="info" additivity="false">
+		<appender-ref ref="CONSOLE" />
+	</logger>
+
+	<logger name="org.atypical" level="debug" additivity="false">
 		<appender-ref ref="CONSOLE" />
 	</logger>
 

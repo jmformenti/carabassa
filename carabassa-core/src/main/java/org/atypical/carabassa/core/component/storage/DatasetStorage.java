@@ -28,6 +28,6 @@ public interface DatasetStorage {
 
 	public void resetItem(IndexedItem updatedItem, IndexedItem previousItem) throws IOException, EntityExistsException;
 
-	public void update(Dataset dataset) throws IOException;
+	public void update(String originalDatasetName, Dataset updatedDataset) throws IOException;
 
 }

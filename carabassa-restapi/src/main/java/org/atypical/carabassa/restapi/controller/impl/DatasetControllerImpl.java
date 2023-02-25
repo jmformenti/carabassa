@@ -136,9 +136,13 @@ public class DatasetControllerImpl implements DatasetController {
 	@Override
 	public void update(Long datasetId, DatasetEditableRepresentation datasetRepresentation) {
 		Dataset dataset = getDataset(datasetId);
+		String originalDatasetName = dataset.getName();
 		datasetMapper.update(datasetRepresentation, dataset);
 		try {
-			datasetService.update(dataset);
+			datasetService.update(originalDatasetName, dataset);
+		} catch (EntityNotFoundException e) {
+			logger.error(e.getMessage(), e);
+			throw new ResponseStatusException(HttpStatus.NOT_FOUND, e.getMessage());
 		} catch (IOException e) {
 			logger.error(e.getMessage(), e);
 			throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, e.getMessage());
@@ -232,9 +236,6 @@ public class DatasetControllerImpl implements DatasetController {
 			IndexedItem indexedItem = datasetService.addItem(dataset, MediaTypeDetector.convert(file.getContentType()),
 					file.getOriginalFilename(), getTempResource(file));
 			return new IdRepresentation(indexedItem.getId());
-		} catch (IllegalArgumentException e) {
-			logger.error(String.format("Error adding file %s.", file.getOriginalFilename()), e);
-			throw new ResponseStatusException(HttpStatus.CONFLICT, e.getMessage());
 		} catch (EntityExistsException e) {
 			logger.error(String.format("Error adding file %s.", file.getOriginalFilename()), e);
 			throw new ResponseStatusException(HttpStatus.CONFLICT, e.getMessage());
