@@ -1,101 +1,101 @@
 <project xmlns="http://maven.apache.org/POM/4.0.0"
-	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-	xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 https://maven.apache.org/xsd/maven-4.0.0.xsd">
-	<modelVersion>4.0.0</modelVersion>
-	<parent>
-		<groupId>org.atypical.carabassa.server</groupId>
-		<artifactId>carabassa-server-parent</artifactId>
-		<version>${revision}</version>
-	</parent>
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 https://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <modelVersion>4.0.0</modelVersion>
+    <parent>
+        <groupId>org.atypical.carabassa.server</groupId>
+        <artifactId>carabassa-server-parent</artifactId>
+        <version>${revision}</version>
+    </parent>
 
-	<artifactId>carabassa-frontend</artifactId>
-	<packaging>jar</packaging>
+    <artifactId>carabassa-frontend</artifactId>
+    <packaging>jar</packaging>
 
-	<properties>
-		<frontend.staging.dir>${project.build.directory}/frontend</frontend.staging.dir>
-		<node.version>v16.13.0</node.version>
-		<yarn.version>v1.22.19</yarn.version>
-	</properties>
+    <properties>
+        <frontend.staging.dir>${project.build.directory}/frontend</frontend.staging.dir>
+        <node.version>v16.13.0</node.version>
+        <yarn.version>v1.22.19</yarn.version>
+    </properties>
 
-	<build>
-		<plugins>
-			<plugin>
-				<groupId>org.apache.maven.plugins</groupId>
-				<artifactId>maven-resources-plugin</artifactId>
-				<executions>
-					<execution>
-						<id>Copy sources to staging dir</id>
-						<phase>initialize</phase>
-						<goals>
-							<goal>copy-resources</goal>
-						</goals>
-						<configuration>
-							<outputDirectory>${frontend.staging.dir}</outputDirectory>
-							<resources>
-								<resource>
-									<directory>${project.basedir}/src/main/js/frontend</directory>
-									<filtering>false</filtering>
-									<excludes>
-										<exclude>node_modules/**</exclude>
-									</excludes>
-								</resource>
-							</resources>
-						</configuration>
-					</execution>
-					<execution>
-						<id>Copy frontend dist to target resources</id>
-						<phase>prepare-package</phase>
-						<goals>
-							<goal>copy-resources</goal>
-						</goals>
-						<configuration>
-							<outputDirectory>${project.build.directory}/classes/resources</outputDirectory>
-							<resources>
-								<resource>
-									<directory>${frontend.staging.dir}/dist</directory>
-									<filtering>false</filtering>
-								</resource>
-							</resources>
-						</configuration>
-					</execution>
-				</executions>
-			</plugin>
-			<plugin>
-				<groupId>com.github.eirslett</groupId>
-				<artifactId>frontend-maven-plugin</artifactId>
-				<version>1.12.0</version>
-				<configuration>
-					<nodeVersion>${node.version}</nodeVersion>
-					<yarnVersion>${yarn.version}</yarnVersion>
-					<workingDirectory>${frontend.staging.dir}</workingDirectory>
-				</configuration>
-				<executions>
-					<execution>
-						<id>Install node and yarn locally to the project</id>
-						<goals>
-							<goal>install-node-and-yarn</goal>
-						</goals>
-					</execution>
-					<execution>
-						<id>yarn install</id>
-						<goals>
-							<goal>yarn</goal>
-						</goals>
-					</execution>
-					<execution>
-						<id>Build frontend</id>
-						<goals>
-							<goal>yarn</goal>
-						</goals>
-						<configuration>
-							<environmentVariables>
-								<NUXT_PUBLIC_API_BASE_URL>.</NUXT_PUBLIC_API_BASE_URL>
-							</environmentVariables>
-							<arguments>run generate</arguments>
-						</configuration>
-					</execution>
-				</executions>
-			</plugin>
-		</plugins>
-	</build>
+    <build>
+        <plugins>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-resources-plugin</artifactId>
+                <executions>
+                    <execution>
+                        <id>Copy sources to staging dir</id>
+                        <phase>initialize</phase>
+                        <goals>
+                            <goal>copy-resources</goal>
+                        </goals>
+                        <configuration>
+                            <outputDirectory>${frontend.staging.dir}</outputDirectory>
+                            <resources>
+                                <resource>
+                                    <directory>${project.basedir}/src/main/js/frontend</directory>
+                                    <filtering>false</filtering>
+                                    <excludes>
+                                        <exclude>node_modules/**</exclude>
+                                    </excludes>
+                                </resource>
+                            </resources>
+                        </configuration>
+                    </execution>
+                    <execution>
+                        <id>Copy frontend dist to target resources</id>
+                        <phase>prepare-package</phase>
+                        <goals>
+                            <goal>copy-resources</goal>
+                        </goals>
+                        <configuration>
+                            <outputDirectory>${project.build.directory}/classes/resources</outputDirectory>
+                            <resources>
+                                <resource>
+                                    <directory>${frontend.staging.dir}/dist</directory>
+                                    <filtering>false</filtering>
+                                </resource>
+                            </resources>
+                        </configuration>
+                    </execution>
+                </executions>
+            </plugin>
+            <plugin>
+                <groupId>com.github.eirslett</groupId>
+                <artifactId>frontend-maven-plugin</artifactId>
+                <version>1.12.0</version>
+                <configuration>
+                    <nodeVersion>${node.version}</nodeVersion>
+                    <yarnVersion>${yarn.version}</yarnVersion>
+                    <workingDirectory>${frontend.staging.dir}</workingDirectory>
+                </configuration>
+                <executions>
+                    <execution>
+                        <id>Install node and yarn locally to the project</id>
+                        <goals>
+                            <goal>install-node-and-yarn</goal>
+                        </goals>
+                    </execution>
+                    <execution>
+                        <id>yarn install</id>
+                        <goals>
+                            <goal>yarn</goal>
+                        </goals>
+                    </execution>
+                    <execution>
+                        <id>Build frontend</id>
+                        <goals>
+                            <goal>yarn</goal>
+                        </goals>
+                        <configuration>
+                            <environmentVariables>
+                                <NUXT_PUBLIC_API_BASE_URL>.</NUXT_PUBLIC_API_BASE_URL>
+                            </environmentVariables>
+                            <arguments>run generate</arguments>
+                        </configuration>
+                    </execution>
+                </executions>
+            </plugin>
+        </plugins>
+    </build>
 </project>

@@ -11,16 +11,16 @@ import org.springframework.stereotype.Component;
 @Component
 public class DatasetModelAssembler extends RepresentationModelAssemblerSupport<Dataset, DatasetEntityRepresentation> {
 
-	@Autowired
-	private DatasetMapper datasetMapper;
+    @Autowired
+    private DatasetMapper datasetMapper;
 
-	public DatasetModelAssembler() {
-		super(DatasetController.class, DatasetEntityRepresentation.class);
-	}
+    public DatasetModelAssembler() {
+        super(DatasetController.class, DatasetEntityRepresentation.class);
+    }
 
-	@Override
-	public DatasetEntityRepresentation toModel(Dataset dataset) {
-		return datasetMapper.toRepresentation(dataset);
-	}
+    @Override
+    public DatasetEntityRepresentation toModel(Dataset dataset) {
+        return datasetMapper.toRepresentation(dataset);
+    }
 
 }

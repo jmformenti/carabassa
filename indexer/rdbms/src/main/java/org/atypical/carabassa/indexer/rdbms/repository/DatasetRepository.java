@@ -9,6 +9,6 @@ import org.springframework.stereotype.Repository;
 @Repository
 public interface DatasetRepository extends PagingAndSortingRepository<DatasetEntity, Long> {
 
-	Optional<DatasetEntity> findByName(String name);
+    Optional<DatasetEntity> findByName(String name);
 
 }

@@ -17,20 +17,20 @@ import org.springframework.core.io.Resource;
 
 public class TestHelper {
 
-	public static Resource getImageResource(String filename) throws IOException {
-		return getTempResource(new ClassPathResource("images/" + filename));
-	}
+    public static Resource getImageResource(String filename) throws IOException {
+        return getTempResource(new ClassPathResource("images/" + filename));
+    }
 
-	private static Resource getTempResource(Resource resource) throws IOException {
-		File tempFile = File.createTempFile("test", null);
-		tempFile.deleteOnExit();
-		Files.copy(resource.getInputStream(), Paths.get(tempFile.getPath()), StandardCopyOption.REPLACE_EXISTING);
-		return new FileSystemResource(tempFile);
-	}
+    private static Resource getTempResource(Resource resource) throws IOException {
+        File tempFile = File.createTempFile("test", null);
+        tempFile.deleteOnExit();
+        Files.copy(resource.getInputStream(), Paths.get(tempFile.getPath()), StandardCopyOption.REPLACE_EXISTING);
+        return new FileSystemResource(tempFile);
+    }
 
-	public static void assertDateInUTC(String expected, ZonedDateTime actual) {
-		Assertions.assertEquals(LocalDateTime.parse(expected, DateTimeFormatter.ISO_DATE_TIME).atZone(ZoneId.of("UTC")),
-				actual.withZoneSameInstant(ZoneId.of("UTC")));
-	}
+    public static void assertDateInUTC(String expected, ZonedDateTime actual) {
+        Assertions.assertEquals(LocalDateTime.parse(expected, DateTimeFormatter.ISO_DATE_TIME).atZone(ZoneId.of("UTC")),
+                actual.withZoneSameInstant(ZoneId.of("UTC")));
+    }
 
 }

@@ -1,31 +1,31 @@
 <project xmlns="http://maven.apache.org/POM/4.0.0"
-	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-	xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 https://maven.apache.org/xsd/maven-4.0.0.xsd">
-	<modelVersion>4.0.0</modelVersion>
-	<parent>
-		<groupId>org.atypical.carabassa.server.restapi</groupId>
-		<artifactId>carabassa-restapi-parent</artifactId>
-		<version>${revision}</version>
-	</parent>
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 https://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <modelVersion>4.0.0</modelVersion>
+    <parent>
+        <groupId>org.atypical.carabassa.server.restapi</groupId>
+        <artifactId>carabassa-restapi-parent</artifactId>
+        <version>${revision}</version>
+    </parent>
 
-	<artifactId>carabassa-restapi-rdbms-mapper</artifactId>
-	<packaging>jar</packaging>
+    <artifactId>carabassa-restapi-rdbms-mapper</artifactId>
+    <packaging>jar</packaging>
 
-	<dependencies>
-		<dependency>
-			<groupId>org.atypical.carabassa.server.restapi</groupId>
-			<artifactId>carabassa-restapi-representation</artifactId>
-			<version>${revision}</version>
-		</dependency>
-		<dependency>
-			<groupId>org.atypical.carabassa.indexer</groupId>
-			<artifactId>carabassa-indexer-rdbms</artifactId>
-			<version>${revision}</version>
-		</dependency>
-		<dependency>
-			<groupId>org.mapstruct</groupId>
-			<artifactId>mapstruct</artifactId>
-		</dependency>
-	</dependencies>
+    <dependencies>
+        <dependency>
+            <groupId>org.atypical.carabassa.server.restapi</groupId>
+            <artifactId>carabassa-restapi-representation</artifactId>
+            <version>${revision}</version>
+        </dependency>
+        <dependency>
+            <groupId>org.atypical.carabassa.indexer</groupId>
+            <artifactId>carabassa-indexer-rdbms</artifactId>
+            <version>${revision}</version>
+        </dependency>
+        <dependency>
+            <groupId>org.mapstruct</groupId>
+            <artifactId>mapstruct</artifactId>
+        </dependency>
+    </dependencies>
 
 </project>

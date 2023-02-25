@@ -5,8 +5,8 @@ import org.atypical.carabassa.restapi.representation.model.BoundingBoxRepresenta
 
 public interface BoundingBoxMapper {
 
-	BoundingBoxRepresentation toRepresentation(BoundingBox boundingBox);
+    BoundingBoxRepresentation toRepresentation(BoundingBox boundingBox);
 
-	BoundingBox toEntity(BoundingBoxRepresentation boundingBoxRepresentation);
+    BoundingBox toEntity(BoundingBoxRepresentation boundingBoxRepresentation);
 
 }

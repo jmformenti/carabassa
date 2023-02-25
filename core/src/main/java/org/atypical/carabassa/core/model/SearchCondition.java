@@ -4,16 +4,16 @@ import org.atypical.carabassa.core.model.enums.SearchOperator;
 
 public interface SearchCondition {
 
-	String getKey();
+    String getKey();
 
-	void setKey(String key);
+    void setKey(String key);
 
-	SearchOperator getOperation();
+    SearchOperator getOperation();
 
-	void setOperation(SearchOperator operation);
+    void setOperation(SearchOperator operation);
 
-	Object getValue();
+    Object getValue();
 
-	void setValue(Object value);
+    void setValue(Object value);
 
 }

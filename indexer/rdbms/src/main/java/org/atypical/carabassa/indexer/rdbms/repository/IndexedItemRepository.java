@@ -14,15 +14,15 @@ import org.springframework.stereotype.Repository;
 
 @Repository
 public interface IndexedItemRepository
-		extends CrudRepository<IndexedItemEntity, Long>, JpaSpecificationExecutor<IndexedItemEntity> {
+        extends CrudRepository<IndexedItemEntity, Long>, JpaSpecificationExecutor<IndexedItemEntity> {
 
-	@Query("from IndexedItemEntity i where i.dataset=:dataset")
-	Page<IndexedItem> findItems(Dataset dataset, Pageable pageable);
+    @Query("from IndexedItemEntity i where i.dataset=:dataset")
+    Page<IndexedItem> findItems(Dataset dataset, Pageable pageable);
 
-	@Query("from IndexedItemEntity where dataset=:dataset and id=:itemId")
-	Optional<IndexedItem> findItemById(Dataset dataset, Long itemId);
+    @Query("from IndexedItemEntity where dataset=:dataset and id=:itemId")
+    Optional<IndexedItem> findItemById(Dataset dataset, Long itemId);
 
-	@Query("from IndexedItemEntity where dataset=:dataset and hash=:hash")
-	Optional<IndexedItem> findItemByHash(Dataset dataset, String hash);
+    @Query("from IndexedItemEntity where dataset=:dataset and hash=:hash")
+    Optional<IndexedItem> findItemByHash(Dataset dataset, String hash);
 
 }

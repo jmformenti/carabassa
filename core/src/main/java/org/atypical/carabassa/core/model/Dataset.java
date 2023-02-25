@@ -5,28 +5,28 @@ import java.util.Set;
 
 public interface Dataset {
 
-	Long getId();
+    Long getId();
 
-	void setId(Long id);
+    void setId(Long id);
 
-	String getName();
+    String getName();
 
-	void setName(String name);
+    void setName(String name);
 
-	String getDescription();
+    String getDescription();
 
-	void setDescription(String description);
+    void setDescription(String description);
 
-	Instant getCreation();
+    Instant getCreation();
 
-	void setCreation(Instant creation);
+    void setCreation(Instant creation);
 
-	Instant getModification();
+    Instant getModification();
 
-	void setModification(Instant modification);
+    void setModification(Instant modification);
 
-	Set<IndexedItem> getItems();
+    Set<IndexedItem> getItems();
 
-	void setItems(Set<IndexedItem> items);
+    void setItems(Set<IndexedItem> items);
 
 }

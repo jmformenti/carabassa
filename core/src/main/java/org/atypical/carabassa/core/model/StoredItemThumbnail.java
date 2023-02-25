@@ -2,18 +2,18 @@ package org.atypical.carabassa.core.model;
 
 public interface StoredItemThumbnail {
 
-	String THUMBNAIL_FORMAT = "jpg";
+    String THUMBNAIL_FORMAT = "jpg";
 
-	String getFilename();
-	
-	void setFilename(String filename);
+    String getFilename();
 
-	default String getFormat() {
-		return THUMBNAIL_FORMAT;
-	}
+    void setFilename(String filename);
 
-	byte[] getContent();
+    default String getFormat() {
+        return THUMBNAIL_FORMAT;
+    }
 
-	void setContent(byte[] content);
+    byte[] getContent();
+
+    void setContent(byte[] content);
 
 }

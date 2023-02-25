@@ -6,9 +6,9 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.data.jpa.repository.config.EnableJpaRepositories;
 
 @Configuration
-@ComponentScan(basePackages = { "org.atypical.carabassa.indexer.rdbms.component" })
-@EnableJpaRepositories(basePackages = { "org.atypical.carabassa.indexer.rdbms.repository" })
-@EntityScan({ "org.atypical.carabassa.indexer.rdbms.entity" })
+@ComponentScan(basePackages = {"org.atypical.carabassa.indexer.rdbms.component"})
+@EnableJpaRepositories(basePackages = {"org.atypical.carabassa.indexer.rdbms.repository"})
+@EntityScan({"org.atypical.carabassa.indexer.rdbms.entity"})
 public class IndexerRdbmsConfiguration {
 
 }

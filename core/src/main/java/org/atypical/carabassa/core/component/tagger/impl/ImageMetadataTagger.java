@@ -46,187 +46,187 @@ import atlas.City;
 @Component
 public class ImageMetadataTagger implements Tagger {
 
-	private static final Logger logger = LoggerFactory.getLogger(ImageMetadataTagger.class);
+    private static final Logger logger = LoggerFactory.getLogger(ImageMetadataTagger.class);
 
-	public static final String TAG_DHASH = TAG_PREFIX + "Dhash";
-	public static final String TAG_GEO_LATITUDE = TAG_PREFIX + "GeoLatitude";
-	public static final String TAG_GEO_LONGITUDE = TAG_PREFIX + "GeoLongitude";
-	public static final String TAG_CITY = TAG_PREFIX + "City";
+    public static final String TAG_DHASH = TAG_PREFIX + "Dhash";
+    public static final String TAG_GEO_LATITUDE = TAG_PREFIX + "GeoLatitude";
+    public static final String TAG_GEO_LONGITUDE = TAG_PREFIX + "GeoLongitude";
+    public static final String TAG_CITY = TAG_PREFIX + "City";
 
-	private static final String IMAGE_ERROR_META_MESSAGE_KEY = "core.tagger.meta.image.error";
-	private static final String IMAGE_ERROR_PHASH_MESSAGE_KEY = "core.tagger.phash.error";
+    private static final String IMAGE_ERROR_META_MESSAGE_KEY = "core.tagger.meta.image.error";
+    private static final String IMAGE_ERROR_PHASH_MESSAGE_KEY = "core.tagger.phash.error";
 
-	private static final DifferenceHash differenceHash = new DifferenceHash(64, Precision.Double);
-	
-	@Value("${carabassa.default-tz}")
-	private String defaultTimeZone;
+    private static final DifferenceHash differenceHash = new DifferenceHash(64, Precision.Double);
 
-	@Value("${carabassa.tempdir:#{null}}")
-	private String tempDirLocation;
+    @Value("${carabassa.default-tz}")
+    private String defaultTimeZone;
 
-	@Autowired
-	private LocalizedMessage localizedMessage;
+    @Value("${carabassa.tempdir:#{null}}")
+    private String tempDirLocation;
 
-	private final Atlas atlas = new Atlas();
+    @Autowired
+    private LocalizedMessage localizedMessage;
 
-	@PostConstruct
-	public void init() {
-		if (tempDirLocation != null) {
-			ImageIO.setCacheDirectory(Paths.get(tempDirLocation).toFile());
-		}
-	}
+    private final Atlas atlas = new Atlas();
 
-	@Override
-	public Set<Tag> getTags(Resource inputItem) throws IOException {
-		Set<Tag> tags = new HashSet<>();
+    @PostConstruct
+    public void init() {
+        if (tempDirLocation != null) {
+            ImageIO.setCacheDirectory(Paths.get(tempDirLocation).toFile());
+        }
+    }
 
-		Metadata metadata = getMetaData(inputItem);
-		if (metadata != null) {
-			tags.addAll(getMetaTags(metadata));
-			tags.addAll(getCustomTags(inputItem, metadata));
-		}
+    @Override
+    public Set<Tag> getTags(Resource inputItem) throws IOException {
+        Set<Tag> tags = new HashSet<>();
 
-		if (logger.isTraceEnabled()) {
-			tags.forEach(t -> logger.debug("Tag {} = {}", t.getName(), t.getValue()));
-		}
+        Metadata metadata = getMetaData(inputItem);
+        if (metadata != null) {
+            tags.addAll(getMetaTags(metadata));
+            tags.addAll(getCustomTags(inputItem, metadata));
+        }
 
-		return tags;
-	}
+        if (logger.isTraceEnabled()) {
+            tags.forEach(t -> logger.debug("Tag {} = {}", t.getName(), t.getValue()));
+        }
 
-	private Set<Tag> getCustomTags(Resource inputItem, Metadata metadata) throws IOException {
-		Set<Tag> tags = new HashSet<>();
+        return tags;
+    }
 
-		tags.add(new TagImpl(TAG_HASH, HashGenerator.generate(inputItem)));
-		try {
-			tags.add(new TagImpl(TAG_DHASH, getPerceptualHash(inputItem)));
-		} catch (IOException e) {
-			logger.error(e.getMessage(), e);
-		}
-		Instant archiveTime = getArchiveTime(metadata);
-		if (archiveTime != null) {
-			tags.add(new TagImpl(TAG_ARCHIVE_TIME, archiveTime));
-		}
-		tags.add(new TagImpl(TAG_FILE_TYPE, getFileType(metadata)));
+    private Set<Tag> getCustomTags(Resource inputItem, Metadata metadata) throws IOException {
+        Set<Tag> tags = new HashSet<>();
 
-		return tags;
-	}
+        tags.add(new TagImpl(TAG_HASH, HashGenerator.generate(inputItem)));
+        try {
+            tags.add(new TagImpl(TAG_DHASH, getPerceptualHash(inputItem)));
+        } catch (IOException e) {
+            logger.error(e.getMessage(), e);
+        }
+        Instant archiveTime = getArchiveTime(metadata);
+        if (archiveTime != null) {
+            tags.add(new TagImpl(TAG_ARCHIVE_TIME, archiveTime));
+        }
+        tags.add(new TagImpl(TAG_FILE_TYPE, getFileType(metadata)));
 
-	private Metadata getMetaData(Resource inputItem) throws IOException {
-		Metadata metadata;
-		try {
-			metadata = ImageMetadataReader.readMetadata(inputItem.getInputStream());
-		} catch (ImageProcessingException | IOException e) {
-			throw new IOException(localizedMessage.getText(IMAGE_ERROR_META_MESSAGE_KEY, e.getMessage()), e);
-		}
-		if (logger.isTraceEnabled()) {
-			printMetadata(metadata);
-		}
-		return metadata;
-	}
+        return tags;
+    }
 
-	private void printMetadata(Metadata metadata) {
-		for (Directory directory : metadata.getDirectories()) {
-			for (com.drew.metadata.Tag tag : directory.getTags()) {
-				logger.debug(String.format("%s (%s) = str(%s), date(%s)", directory.getTagName(tag.getTagType()),
-						tag.getTagTypeHex(), directory.getString(tag.getTagType()),
-						directory.getDate(tag.getTagType())));
-			}
-		}
-	}
+    private Metadata getMetaData(Resource inputItem) throws IOException {
+        Metadata metadata;
+        try {
+            metadata = ImageMetadataReader.readMetadata(inputItem.getInputStream());
+        } catch (ImageProcessingException | IOException e) {
+            throw new IOException(localizedMessage.getText(IMAGE_ERROR_META_MESSAGE_KEY, e.getMessage()), e);
+        }
+        if (logger.isTraceEnabled()) {
+            printMetadata(metadata);
+        }
+        return metadata;
+    }
 
-	private Set<Tag> getMetaTags(Metadata metadata) {
-		Set<Tag> metaTags = new HashSet<>();
-		for (Directory directory : metadata.getDirectories()) {
-			if (directory instanceof GpsDirectory) {
-				addGeoTags((GpsDirectory) directory, metaTags);
-			}
-			for (com.drew.metadata.Tag metaTag : directory.getTags()) {
-				Object tagValue = directory.getObject(metaTag.getTagType());
-				if (isValidTag(metaTag.getTagName(), tagValue)) {
-					Tag tag = new TagImpl(TAG_PREFIX + toCamelCase(metaTag.getTagName()), tagValue);
-					metaTags.add(tag);
-				}
-			}
-		}
-		return metaTags;
-	}
+    private void printMetadata(Metadata metadata) {
+        for (Directory directory : metadata.getDirectories()) {
+            for (com.drew.metadata.Tag tag : directory.getTags()) {
+                logger.debug(String.format("%s (%s) = str(%s), date(%s)", directory.getTagName(tag.getTagType()),
+                        tag.getTagTypeHex(), directory.getString(tag.getTagType()),
+                        directory.getDate(tag.getTagType())));
+            }
+        }
+    }
 
-	private void addGeoTags(GpsDirectory directory, Set<Tag> metaTags) {
-		GeoLocation geoLocation = directory.getGeoLocation();
-		if (geoLocation != null && !geoLocation.isZero()) {
-			metaTags.add(new TagImpl(TAG_GEO_LATITUDE, geoLocation.getLatitude()));
-			metaTags.add(new TagImpl(TAG_GEO_LONGITUDE, geoLocation.getLongitude()));
-			City city = atlas.find(geoLocation.getLatitude(), geoLocation.getLongitude());
-			if (city != null) {
-				metaTags.add(new TagImpl(TAG_CITY, city.name));
-			}
-		}
-	}
+    private Set<Tag> getMetaTags(Metadata metadata) {
+        Set<Tag> metaTags = new HashSet<>();
+        for (Directory directory : metadata.getDirectories()) {
+            if (directory instanceof GpsDirectory) {
+                addGeoTags((GpsDirectory) directory, metaTags);
+            }
+            for (com.drew.metadata.Tag metaTag : directory.getTags()) {
+                Object tagValue = directory.getObject(metaTag.getTagType());
+                if (isValidTag(metaTag.getTagName(), tagValue)) {
+                    Tag tag = new TagImpl(TAG_PREFIX + toCamelCase(metaTag.getTagName()), tagValue);
+                    metaTags.add(tag);
+                }
+            }
+        }
+        return metaTags;
+    }
 
-	private boolean isValidTag(String tagName, Object value) {
-		if (tagName == null) {
-			return false;
-		} else if (tagName.startsWith("Unknown tag")) {
-			return false;
-		} else if (value == null) {
-			return false;
-		} else if (value instanceof String) {
-			return !((String) value).isEmpty();
-		} else if (value instanceof byte[]) {
-			byte[] data = (byte[]) value;
-			return !IntStream.range(0, data.length).parallel().allMatch(i -> data[i] == 0);
-		}
-		return true;
-	}
+    private void addGeoTags(GpsDirectory directory, Set<Tag> metaTags) {
+        GeoLocation geoLocation = directory.getGeoLocation();
+        if (geoLocation != null && !geoLocation.isZero()) {
+            metaTags.add(new TagImpl(TAG_GEO_LATITUDE, geoLocation.getLatitude()));
+            metaTags.add(new TagImpl(TAG_GEO_LONGITUDE, geoLocation.getLongitude()));
+            City city = atlas.find(geoLocation.getLatitude(), geoLocation.getLongitude());
+            if (city != null) {
+                metaTags.add(new TagImpl(TAG_CITY, city.name));
+            }
+        }
+    }
 
-	private String toCamelCase(String name) {
-		return WordUtils.capitalizeFully(name.replaceAll("/", ""), new char[] { '_', ' ' }).replaceAll("[ _]", "");
-	}
+    private boolean isValidTag(String tagName, Object value) {
+        if (tagName == null) {
+            return false;
+        } else if (tagName.startsWith("Unknown tag")) {
+            return false;
+        } else if (value == null) {
+            return false;
+        } else if (value instanceof String) {
+            return !((String) value).isEmpty();
+        } else if (value instanceof byte[]) {
+            byte[] data = (byte[]) value;
+            return !IntStream.range(0, data.length).parallel().allMatch(i -> data[i] == 0);
+        }
+        return true;
+    }
 
-	private Instant getArchiveTime(Metadata metadata) {
-		ExifSubIFDDirectory directory = metadata.getFirstDirectoryOfType(ExifSubIFDDirectory.class);
-		if (directory != null) {
-			Date dateOriginal = directory.getDateOriginal(TimeZone.getTimeZone(ZoneId.of(defaultTimeZone)));
-			if (dateOriginal != null) {
-				return dateOriginal.toInstant();
-			} else {
-				Date dateModified = directory.getDateModified(TimeZone.getTimeZone(ZoneId.of(defaultTimeZone)));
-				if (dateModified != null) {
-					return dateModified.toInstant();
-				}
-			}
-		}
-		return null;
-	}
+    private String toCamelCase(String name) {
+        return WordUtils.capitalizeFully(name.replaceAll("/", ""), new char[]{'_', ' '}).replaceAll("[ _]", "");
+    }
 
-	private String getFileType(Metadata metadata) {
-		FileTypeDirectory directory = metadata.getFirstDirectoryOfType(FileTypeDirectory.class);
-		if (directory != null) {
-			String extension = directory.getString(FileTypeDirectory.TAG_EXPECTED_FILE_NAME_EXTENSION);
-			if (extension != null) {
-				return extension;
-			} else {
-				return directory.getString(FileTypeDirectory.TAG_DETECTED_FILE_TYPE_NAME);
-			}
-		} else {
-			return null;
-		}
-	}
+    private Instant getArchiveTime(Metadata metadata) {
+        ExifSubIFDDirectory directory = metadata.getFirstDirectoryOfType(ExifSubIFDDirectory.class);
+        if (directory != null) {
+            Date dateOriginal = directory.getDateOriginal(TimeZone.getTimeZone(ZoneId.of(defaultTimeZone)));
+            if (dateOriginal != null) {
+                return dateOriginal.toInstant();
+            } else {
+                Date dateModified = directory.getDateModified(TimeZone.getTimeZone(ZoneId.of(defaultTimeZone)));
+                if (dateModified != null) {
+                    return dateModified.toInstant();
+                }
+            }
+        }
+        return null;
+    }
 
-	private String getPerceptualHash(Resource inputItem) throws IOException {
-		BufferedImage image;
-		try {
-			image = ImageIO.read(inputItem.getInputStream());
-		} catch (IOException e) {
-			throw new IOException(localizedMessage.getText(IMAGE_ERROR_PHASH_MESSAGE_KEY, e.getMessage()), e);
-		}
-		if (image == null) {
-			throw new IOException(localizedMessage.getText(IMAGE_ERROR_PHASH_MESSAGE_KEY, "null image"));
-		}
+    private String getFileType(Metadata metadata) {
+        FileTypeDirectory directory = metadata.getFirstDirectoryOfType(FileTypeDirectory.class);
+        if (directory != null) {
+            String extension = directory.getString(FileTypeDirectory.TAG_EXPECTED_FILE_NAME_EXTENSION);
+            if (extension != null) {
+                return extension;
+            } else {
+                return directory.getString(FileTypeDirectory.TAG_DETECTED_FILE_TYPE_NAME);
+            }
+        } else {
+            return null;
+        }
+    }
 
-		Hash hash = differenceHash.hash(image);
+    private String getPerceptualHash(Resource inputItem) throws IOException {
+        BufferedImage image;
+        try {
+            image = ImageIO.read(inputItem.getInputStream());
+        } catch (IOException e) {
+            throw new IOException(localizedMessage.getText(IMAGE_ERROR_PHASH_MESSAGE_KEY, e.getMessage()), e);
+        }
+        if (image == null) {
+            throw new IOException(localizedMessage.getText(IMAGE_ERROR_PHASH_MESSAGE_KEY, "null image"));
+        }
 
-		return Hex.encodeHexString(hash.toByteArray());
-	}
+        Hash hash = differenceHash.hash(image);
+
+        return Hex.encodeHexString(hash.toByteArray());
+    }
 
 }

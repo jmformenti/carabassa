@@ -10,16 +10,16 @@ import org.springframework.stereotype.Component;
 @Component
 public class LocalizedMessage {
 
-	@Autowired
-	private MessageSource messageSource;
+    @Autowired
+    private MessageSource messageSource;
 
-	public String getText(String key) {
-		Locale locale = LocaleContextHolder.getLocale();
-		return messageSource.getMessage(key, null, locale);
-	}
+    public String getText(String key) {
+        Locale locale = LocaleContextHolder.getLocale();
+        return messageSource.getMessage(key, null, locale);
+    }
 
-	public String getText(String key, Object... args) {
-		Locale locale = LocaleContextHolder.getLocale();
-		return messageSource.getMessage(key, args, locale);
-	}
+    public String getText(String key, Object... args) {
+        Locale locale = LocaleContextHolder.getLocale();
+        return messageSource.getMessage(key, args, locale);
+    }
 }

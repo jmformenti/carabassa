@@ -5,7 +5,7 @@ import org.springframework.hateoas.RepresentationModel;
 
 public class NoContentRepresentation extends RepresentationModel<NoContentRepresentation> {
 
-	public NoContentRepresentation(Link link) {
-		super(link);
-	}
+    public NoContentRepresentation(Link link) {
+        super(link);
+    }
 }

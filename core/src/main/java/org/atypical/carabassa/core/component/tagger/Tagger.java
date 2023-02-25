@@ -8,11 +8,11 @@ import org.springframework.core.io.Resource;
 
 public interface Tagger {
 
-	String TAG_PREFIX = "meta.";
-	String TAG_HASH = TAG_PREFIX + "Hash";
-	String TAG_ARCHIVE_TIME = TAG_PREFIX + "ArchiveTime";
-	String TAG_FILE_TYPE = TAG_PREFIX + "FileType";
+    String TAG_PREFIX = "meta.";
+    String TAG_HASH = TAG_PREFIX + "Hash";
+    String TAG_ARCHIVE_TIME = TAG_PREFIX + "ArchiveTime";
+    String TAG_FILE_TYPE = TAG_PREFIX + "FileType";
 
-	Set<Tag> getTags(Resource inputItem) throws IOException;
+    Set<Tag> getTags(Resource inputItem) throws IOException;
 
 }

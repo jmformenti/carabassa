@@ -10,13 +10,13 @@ import picocli.CommandLine.ExitCode;
 
 @Component
 @Command(name = "carabassa", mixinStandardHelpOptions = true, versionProvider = CarabassaVersion.class, subcommands = {
-		CreateDatasetCommand.class, ListDatasetCommand.class, UpdateDatasetCommand.class, DeleteDatasetCommand.class,
-		UploadDatasetCommand.class, ListItemsCommand.class, ResetItemsCommand.class, DeleteItemCommand.class })
+        CreateDatasetCommand.class, ListDatasetCommand.class, UpdateDatasetCommand.class, DeleteDatasetCommand.class,
+        UploadDatasetCommand.class, ListItemsCommand.class, ResetItemsCommand.class, DeleteItemCommand.class})
 public class CarabassaCommand implements Callable<Integer> {
 
-	@Override
-	public Integer call() {
-		new CommandLine(new CarabassaCommand()).usage(System.out);
-		return ExitCode.OK;
-	}
+    @Override
+    public Integer call() {
+        new CommandLine(new CarabassaCommand()).usage(System.out);
+        return ExitCode.OK;
+    }
 }

@@ -21,71 +21,71 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 
 public class DatasetControllerHelper {
 
-	protected final static Long DATASET_ID = 1L;
-	protected final static Long ITEM_ID = 2L;
-	protected final static Long TAG_ID = 3L;
-	protected final static String ITEM_HASH = "hash";
+    protected final static Long DATASET_ID = 1L;
+    protected final static Long ITEM_ID = 2L;
+    protected final static Long TAG_ID = 3L;
+    protected final static String ITEM_HASH = "hash";
 
-	protected final static String DATASET_NAME = "mydataset";
-	protected final static String TAG_NAME = "tag_name";
-	protected final static String TAG_VALUE = "tag_value";
+    protected final static String DATASET_NAME = "mydataset";
+    protected final static String TAG_NAME = "tag_name";
+    protected final static String TAG_VALUE = "tag_value";
 
-	protected Dataset dataset;
-	protected DatasetEntityRepresentation datasetRepresentation;
-	protected IndexedItem indexedItem;
-	protected ItemRepresentation itemRepresentation;
-	protected Tag tag;
-	protected TagEntityRepresentation tagRepresentation;
+    protected Dataset dataset;
+    protected DatasetEntityRepresentation datasetRepresentation;
+    protected IndexedItem indexedItem;
+    protected ItemRepresentation itemRepresentation;
+    protected Tag tag;
+    protected TagEntityRepresentation tagRepresentation;
 
-	protected final ObjectMapper objectMapper = new ObjectMapper();
+    protected final ObjectMapper objectMapper = new ObjectMapper();
 
-	protected void initData() {
-		Instant now = Instant.now();
-		Instant dayBefore = now.minus(Duration.ofDays(1));
+    protected void initData() {
+        Instant now = Instant.now();
+        Instant dayBefore = now.minus(Duration.ofDays(1));
 
-		dataset = new DatasetImpl(DATASET_NAME);
-		dataset.setId(DATASET_ID);
-		dataset.setDescription("description");
-		dataset.setCreation(dayBefore);
-		dataset.setModification(now);
+        dataset = new DatasetImpl(DATASET_NAME);
+        dataset.setId(DATASET_ID);
+        dataset.setDescription("description");
+        dataset.setCreation(dayBefore);
+        dataset.setModification(now);
 
-		datasetRepresentation = new DatasetEntityRepresentation(DATASET_NAME);
-		datasetRepresentation.setId(DATASET_ID);
-		datasetRepresentation.setDescription("description");
-		datasetRepresentation.setCreation(dayBefore);
-		datasetRepresentation.setModification(dayBefore);
+        datasetRepresentation = new DatasetEntityRepresentation(DATASET_NAME);
+        datasetRepresentation.setId(DATASET_ID);
+        datasetRepresentation.setDescription("description");
+        datasetRepresentation.setCreation(dayBefore);
+        datasetRepresentation.setModification(dayBefore);
 
-		tag = new TagImpl(TAG_NAME, TAG_VALUE);
-		tag.setId(TAG_ID);
-		tag.setBoundingBox(new BoundingBoxImpl(1, 2, 3, 4));
+        tag = new TagImpl(TAG_NAME, TAG_VALUE);
+        tag.setId(TAG_ID);
+        tag.setBoundingBox(new BoundingBoxImpl(1, 2, 3, 4));
 
-		tagRepresentation = new TagEntityRepresentation(TAG_ID, TAG_NAME, TAG_VALUE);
+        tagRepresentation = new TagEntityRepresentation(TAG_ID, TAG_NAME, TAG_VALUE);
 
-		indexedItem = new IndexedItemImpl();
-		indexedItem.setId(ITEM_ID);
-		indexedItem.setType(ItemType.IMAGE);
-		indexedItem.setFilename("test.jpg");
-		indexedItem.setFormat("jpg");
-		indexedItem.setHash("12345");
-		indexedItem.setCreation(now);
-		indexedItem.setModification(now);
-		indexedItem.setArchiveTime(Instant.now());
-		indexedItem.setTags(new HashSet<>());
-		indexedItem.getTags().add(new TagImpl(tag));
+        indexedItem = new IndexedItemImpl();
+        indexedItem.setId(ITEM_ID);
+        indexedItem.setType(ItemType.IMAGE);
+        indexedItem.setFilename("test.jpg");
+        indexedItem.setFormat("jpg");
+        indexedItem.setHash("12345");
+        indexedItem.setCreation(now);
+        indexedItem.setModification(now);
+        indexedItem.setArchiveTime(Instant.now());
+        indexedItem.setTags(new HashSet<>());
+        indexedItem.getTags().add(new TagImpl(tag));
 
-		itemRepresentation = new ItemRepresentation();
-		itemRepresentation.setId(ITEM_ID);
-		indexedItem.setType(ItemType.IMAGE);
-		itemRepresentation.setFilename("test.jpg");
-		itemRepresentation.setFormat("jpg");
-		itemRepresentation.setHash("12345");
-		itemRepresentation.setCreation(now);
-		itemRepresentation.setModification(now);
-		itemRepresentation.setArchiveTime(Instant.now());
-		itemRepresentation.setTags(new TreeSet<>());
-		itemRepresentation.getTags().add(tagRepresentation);
+        itemRepresentation = new ItemRepresentation();
+        itemRepresentation.setId(ITEM_ID);
+        indexedItem.setType(ItemType.IMAGE);
+        itemRepresentation.setFilename("test.jpg");
+        itemRepresentation.setFormat("jpg");
+        itemRepresentation.setHash("12345");
+        itemRepresentation.setCreation(now);
+        itemRepresentation.setModification(now);
+        itemRepresentation.setArchiveTime(Instant.now());
+        itemRepresentation.setTags(new TreeSet<>());
+        itemRepresentation.getTags().add(tagRepresentation);
 
-		dataset.getItems().add(indexedItem);
-	}
+        dataset.getItems().add(indexedItem);
+    }
 
 }

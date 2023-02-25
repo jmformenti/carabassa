@@ -1,19 +1,19 @@
 {
-	"properties": [
-		{
-			"name": "carabassa.version",
-			"type": "java.lang.String",
-			"description": "Project version"
-		},
-		{
-			"name": "carabassa.base-url",
-			"type": "java.lang.String",
-			"description": "REST API base url"
-		},
-		{
-			"name": "carabassa.upload.threads",
-			"type": "java.lang.Integer",
-			"description": "Number of threads when uploading images"
-		}
-	]
+  "properties": [
+    {
+      "name": "carabassa.version",
+      "type": "java.lang.String",
+      "description": "Project version"
+    },
+    {
+      "name": "carabassa.base-url",
+      "type": "java.lang.String",
+      "description": "REST API base url"
+    },
+    {
+      "name": "carabassa.upload.threads",
+      "type": "java.lang.Integer",
+      "description": "Number of threads when uploading images"
+    }
+  ]
 }

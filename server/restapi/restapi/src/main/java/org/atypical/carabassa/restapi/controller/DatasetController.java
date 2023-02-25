@@ -27,72 +27,72 @@ import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.multipart.MultipartFile;
 
 @RestController
-@RequestMapping(value = { "/api/dataset" })
+@RequestMapping(value = {"/api/dataset"})
 @CrossOrigin
 // TODO add authentication
 public interface DatasetController {
 
-	@PostMapping
-	@ResponseStatus(code = HttpStatus.CREATED)
-	IdRepresentation create(@RequestBody @Valid DatasetEditableRepresentation datasetRepresentation);
+    @PostMapping
+    @ResponseStatus(code = HttpStatus.CREATED)
+    IdRepresentation create(@RequestBody @Valid DatasetEditableRepresentation datasetRepresentation);
 
-	@GetMapping
-	PagedModel<DatasetEntityRepresentation> findAll(Pageable pageable);
+    @GetMapping
+    PagedModel<DatasetEntityRepresentation> findAll(Pageable pageable);
 
-	@GetMapping(value = "/{datasetId}")
-	DatasetEntityRepresentation findById(@PathVariable("datasetId") Long datasetId);
+    @GetMapping(value = "/{datasetId}")
+    DatasetEntityRepresentation findById(@PathVariable("datasetId") Long datasetId);
 
-	@GetMapping(value = "/name/{datasetName}")
-	DatasetEntityRepresentation findByName(@PathVariable("datasetName") String datasetName);
+    @GetMapping(value = "/name/{datasetName}")
+    DatasetEntityRepresentation findByName(@PathVariable("datasetName") String datasetName);
 
-	@PutMapping(value = "/{datasetId}", consumes = MediaType.APPLICATION_JSON_VALUE)
-	@ResponseStatus(code = HttpStatus.NO_CONTENT)
-	void update(@PathVariable("datasetId") Long datasetId,
-			@RequestBody @Valid DatasetEditableRepresentation datasetRepresentation);
+    @PutMapping(value = "/{datasetId}", consumes = MediaType.APPLICATION_JSON_VALUE)
+    @ResponseStatus(code = HttpStatus.NO_CONTENT)
+    void update(@PathVariable("datasetId") Long datasetId,
+                @RequestBody @Valid DatasetEditableRepresentation datasetRepresentation);
 
-	@DeleteMapping(value = "/{datasetId}")
-	@ResponseStatus(code = HttpStatus.NO_CONTENT)
-	void delete(@PathVariable("datasetId") Long datasetId);
+    @DeleteMapping(value = "/{datasetId}")
+    @ResponseStatus(code = HttpStatus.NO_CONTENT)
+    void delete(@PathVariable("datasetId") Long datasetId);
 
-	@GetMapping(value = "/{datasetId}/item")
-	PagedModel<ItemRepresentation> findItems(@PathVariable("datasetId") Long datasetId,
-			@RequestParam(value = "search", required = false) String search, Pageable pageable);
+    @GetMapping(value = "/{datasetId}/item")
+    PagedModel<ItemRepresentation> findItems(@PathVariable("datasetId") Long datasetId,
+                                             @RequestParam(value = "search", required = false) String search, Pageable pageable);
 
-	@GetMapping(value = "/{datasetId}/item/{id}")
-	ItemRepresentation findItem(@PathVariable("datasetId") Long datasetId, @PathVariable("id") Long itemId);
+    @GetMapping(value = "/{datasetId}/item/{id}")
+    ItemRepresentation findItem(@PathVariable("datasetId") Long datasetId, @PathVariable("id") Long itemId);
 
-	@GetMapping(value = "/{datasetId}/item/exists/{hash}")
-	void existsItem(@PathVariable("datasetId") Long datasetId, @PathVariable("hash") String hash);
+    @GetMapping(value = "/{datasetId}/item/exists/{hash}")
+    void existsItem(@PathVariable("datasetId") Long datasetId, @PathVariable("hash") String hash);
 
-	@GetMapping(value = "/{datasetId}/item/{id}/content")
-	ResponseEntity<Resource> findItemContent(@PathVariable("datasetId") Long datasetId,
-			@PathVariable("id") Long itemId);
+    @GetMapping(value = "/{datasetId}/item/{id}/content")
+    ResponseEntity<Resource> findItemContent(@PathVariable("datasetId") Long datasetId,
+                                             @PathVariable("id") Long itemId);
 
-	@GetMapping(value = "/{datasetId}/item/{id}/thumbnail")
-	ResponseEntity<byte[]> findItemThumbnail(@PathVariable("datasetId") Long datasetId,
-			@PathVariable("id") Long itemId);
+    @GetMapping(value = "/{datasetId}/item/{id}/thumbnail")
+    ResponseEntity<byte[]> findItemThumbnail(@PathVariable("datasetId") Long datasetId,
+                                             @PathVariable("id") Long itemId);
 
-	@PostMapping(value = "/{datasetId}/item")
-	@ResponseStatus(code = HttpStatus.CREATED)
-	IdRepresentation addItem(@PathVariable("datasetId") Long datasetId,
-			@RequestParam("file") MultipartFile file);
+    @PostMapping(value = "/{datasetId}/item")
+    @ResponseStatus(code = HttpStatus.CREATED)
+    IdRepresentation addItem(@PathVariable("datasetId") Long datasetId,
+                             @RequestParam("file") MultipartFile file);
 
-	@PostMapping(value = "/{datasetId}/item/{id}/tag")
-	@ResponseStatus(code = HttpStatus.CREATED)
-	IdRepresentation addItemTag(@PathVariable("datasetId") Long datasetId, @PathVariable("id") Long itemId,
-			@RequestBody @Valid TagEditableRepresentation tagRepresentation);
+    @PostMapping(value = "/{datasetId}/item/{id}/tag")
+    @ResponseStatus(code = HttpStatus.CREATED)
+    IdRepresentation addItemTag(@PathVariable("datasetId") Long datasetId, @PathVariable("id") Long itemId,
+                                @RequestBody @Valid TagEditableRepresentation tagRepresentation);
 
-	@DeleteMapping(value = "/{datasetId}/item/{id}")
-	@ResponseStatus(code = HttpStatus.NO_CONTENT)
-	void deleteItem(@PathVariable("datasetId") Long datasetId, @PathVariable("id") Long itemId);
+    @DeleteMapping(value = "/{datasetId}/item/{id}")
+    @ResponseStatus(code = HttpStatus.NO_CONTENT)
+    void deleteItem(@PathVariable("datasetId") Long datasetId, @PathVariable("id") Long itemId);
 
-	@DeleteMapping(value = "/{datasetId}/item/{id}/tag/{tagId}")
-	@ResponseStatus(code = HttpStatus.NO_CONTENT)
-	void deleteItemTag(@PathVariable("datasetId") Long datasetId, @PathVariable("id") Long itemId,
-			@PathVariable("tagId") Long tagId);
+    @DeleteMapping(value = "/{datasetId}/item/{id}/tag/{tagId}")
+    @ResponseStatus(code = HttpStatus.NO_CONTENT)
+    void deleteItemTag(@PathVariable("datasetId") Long datasetId, @PathVariable("id") Long itemId,
+                       @PathVariable("tagId") Long tagId);
 
-	@PutMapping(value = "/{datasetId}/item/{id}/reset")
-	@ResponseStatus(code = HttpStatus.NO_CONTENT)
-	void resetItem(@PathVariable("datasetId") Long datasetId, @PathVariable("id") Long itemId);
+    @PutMapping(value = "/{datasetId}/item/{id}/reset")
+    @ResponseStatus(code = HttpStatus.NO_CONTENT)
+    void resetItem(@PathVariable("datasetId") Long datasetId, @PathVariable("id") Long itemId);
 
 }

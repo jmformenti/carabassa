@@ -17,21 +17,21 @@ import org.springframework.core.io.ClassPathResource;
 @Configuration
 public class TestConfiguration {
 
-	@PostConstruct
-	private void postConstruct() throws IOException {
-		// a progamatically way to create repo dir before DatasetFSStorage's
-		// postconstruct
-		InputStream stream = new ClassPathResource("application.properties").getInputStream();
-		Properties prop = new Properties();
-		prop.load(stream);
-		Files.createDirectories(Paths.get(prop.getProperty("carabassa.repodir")));
-	}
+    @PostConstruct
+    private void postConstruct() throws IOException {
+        // a progamatically way to create repo dir before DatasetFSStorage's
+        // postconstruct
+        InputStream stream = new ClassPathResource("application.properties").getInputStream();
+        Properties prop = new Properties();
+        prop.load(stream);
+        Files.createDirectories(Paths.get(prop.getProperty("carabassa.repodir")));
+    }
 
-	@Bean
-	public MessageSource messageSource() {
-		// default message source to avoid NoSuchMessageException during tests
-		ResourceBundleMessageSource messageSource = new ResourceBundleMessageSource();
-		messageSource.setUseCodeAsDefaultMessage(true);
-		return messageSource;
-	}
+    @Bean
+    public MessageSource messageSource() {
+        // default message source to avoid NoSuchMessageException during tests
+        ResourceBundleMessageSource messageSource = new ResourceBundleMessageSource();
+        messageSource.setUseCodeAsDefaultMessage(true);
+        return messageSource;
+    }
 }

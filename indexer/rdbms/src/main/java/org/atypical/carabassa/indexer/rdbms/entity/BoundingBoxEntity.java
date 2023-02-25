@@ -15,52 +15,52 @@ import org.atypical.carabassa.core.model.BoundingBox;
 @SequenceGenerator(name = "bbox_id_gen", sequenceName = "bbox_sequence")
 public class BoundingBoxEntity implements BoundingBox {
 
-	@Id
-	@GeneratedValue(strategy = GenerationType.AUTO, generator = "bbox_id_gen")
-	private Long id;
-	
-	@Column(nullable = false)
-	private int minX;
-	
-	@Column(nullable = false)
-	private int minY;
-	
-	@Column(nullable = false)
-	private int width;
-	
-	@Column(nullable = false)
-	private int height;
+    @Id
+    @GeneratedValue(strategy = GenerationType.AUTO, generator = "bbox_id_gen")
+    private Long id;
 
-	public int getMinX() {
-		return minX;
-	}
+    @Column(nullable = false)
+    private int minX;
 
-	public void setMinX(int minX) {
-		this.minX = minX;
-	}
+    @Column(nullable = false)
+    private int minY;
 
-	public int getMinY() {
-		return minY;
-	}
+    @Column(nullable = false)
+    private int width;
 
-	public void setMinY(int minY) {
-		this.minY = minY;
-	}
+    @Column(nullable = false)
+    private int height;
 
-	public int getWidth() {
-		return width;
-	}
+    public int getMinX() {
+        return minX;
+    }
 
-	public void setWidth(int width) {
-		this.width = width;
-	}
+    public void setMinX(int minX) {
+        this.minX = minX;
+    }
 
-	public int getHeight() {
-		return height;
-	}
+    public int getMinY() {
+        return minY;
+    }
 
-	public void setHeight(int height) {
-		this.height = height;
-	}
+    public void setMinY(int minY) {
+        this.minY = minY;
+    }
+
+    public int getWidth() {
+        return width;
+    }
+
+    public void setWidth(int width) {
+        this.width = width;
+    }
+
+    public int getHeight() {
+        return height;
+    }
+
+    public void setHeight(int height) {
+        this.height = height;
+    }
 
 }

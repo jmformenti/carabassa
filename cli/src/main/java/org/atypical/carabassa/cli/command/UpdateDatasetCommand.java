@@ -16,31 +16,31 @@ import picocli.CommandLine.Option;
 @Command(name = "update", description = "update dataset.")
 public class UpdateDatasetCommand implements Callable<Integer> {
 
-	private final CommandLogger cmdLogger = new CommandLogger();
+    private final CommandLogger cmdLogger = new CommandLogger();
 
-	@Autowired
-	private DatasetApiService datasetApiService;
+    @Autowired
+    private DatasetApiService datasetApiService;
 
-	@Option(names = { "-d", "--dataset" }, description = "dataset name.", required = true)
-	private String dataset;
+    @Option(names = {"-d", "--dataset"}, description = "dataset name.", required = true)
+    private String dataset;
 
-	@Option(names = { "-e", "--description" }, description = "dataset description.")
-	private String description;
+    @Option(names = {"-e", "--description"}, description = "dataset description.")
+    private String description;
 
-	@Override
-	public Integer call() {
-		try {
-			cmdLogger.info(String.format("Updating dataset %s ...", dataset));
+    @Override
+    public Integer call() {
+        try {
+            cmdLogger.info(String.format("Updating dataset %s ...", dataset));
 
-			Long datasetId = datasetApiService.findByName(dataset);
-			datasetApiService.update(datasetId, description);
+            Long datasetId = datasetApiService.findByName(dataset);
+            datasetApiService.update(datasetId, description);
 
-			cmdLogger.info("updated.");
-		} catch (ApiException e) {
-			cmdLogger.error("API error", e);
-			return ExitCode.SOFTWARE;
-		}
-		return ExitCode.OK;
-	}
+            cmdLogger.info("updated.");
+        } catch (ApiException e) {
+            cmdLogger.error("API error", e);
+            return ExitCode.SOFTWARE;
+        }
+        return ExitCode.OK;
+    }
 
 }

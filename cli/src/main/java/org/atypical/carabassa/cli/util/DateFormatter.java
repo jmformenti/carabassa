@@ -6,9 +6,9 @@ import java.time.format.DateTimeFormatter;
 
 public class DateFormatter {
 
-	private final static DateTimeFormatter formatter = DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm:ss");
+    private final static DateTimeFormatter formatter = DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm:ss");
 
-	public static String toLocalDateFormatted(ZonedDateTime zonedDateTime) {
-		return zonedDateTime.withZoneSameInstant(ZoneId.systemDefault()).format(formatter);
-	}
+    public static String toLocalDateFormatted(ZonedDateTime zonedDateTime) {
+        return zonedDateTime.withZoneSameInstant(ZoneId.systemDefault()).format(formatter);
+    }
 }

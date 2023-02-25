@@ -16,41 +16,41 @@ import org.springframework.data.domain.Pageable;
 
 public interface DatasetIndexer {
 
-	IndexedItem addItem(Dataset dataset, ItemType type, String originalFilename, Resource inputItem)
-			throws IOException, EntityExistsException;
+    IndexedItem addItem(Dataset dataset, ItemType type, String originalFilename, Resource inputItem)
+            throws IOException, EntityExistsException;
 
-	Long addItemTag(Dataset dataset, Long itemId, Tag tag) throws EntityNotFoundException;
+    Long addItemTag(Dataset dataset, Long itemId, Tag tag) throws EntityNotFoundException;
 
-	Dataset create(Dataset dataset) throws EntityExistsException;
+    Dataset create(Dataset dataset) throws EntityExistsException;
 
-	void delete(Dataset dataset);
+    void delete(Dataset dataset);
 
-	void deleteAll();
+    void deleteAll();
 
-	void deleteItem(IndexedItem item);
+    void deleteItem(IndexedItem item);
 
-	void deleteItemTag(Dataset dataset, Long itemId, Long tagId) throws EntityNotFoundException;
+    void deleteItemTag(Dataset dataset, Long itemId, Long tagId) throws EntityNotFoundException;
 
-	List<Dataset> findAll();
+    List<Dataset> findAll();
 
-	Page<Dataset> findAll(Pageable pageable);
+    Page<Dataset> findAll(Pageable pageable);
 
-	Dataset findById(Long datasetId) throws EntityNotFoundException;
+    Dataset findById(Long datasetId) throws EntityNotFoundException;
 
-	Dataset findByName(String datasetName) throws EntityNotFoundException;
+    Dataset findByName(String datasetName) throws EntityNotFoundException;
 
-	IndexedItem findItemByHash(Dataset dataset, String hash) throws EntityNotFoundException;
+    IndexedItem findItemByHash(Dataset dataset, String hash) throws EntityNotFoundException;
 
-	IndexedItem findItemById(Dataset dataset, Long itemId) throws EntityNotFoundException;
+    IndexedItem findItemById(Dataset dataset, Long itemId) throws EntityNotFoundException;
 
-	Page<IndexedItem> findItems(Dataset dataset, Pageable pageable);
+    Page<IndexedItem> findItems(Dataset dataset, Pageable pageable);
 
-	Page<IndexedItem> findItems(Dataset dataset, SearchCriteria searchCriteria, Pageable pageable);
+    Page<IndexedItem> findItems(Dataset dataset, SearchCriteria searchCriteria, Pageable pageable);
 
-	Tag findItemTagById(Dataset dataset, Long itemId, Long tagId) throws EntityNotFoundException;
+    Tag findItemTagById(Dataset dataset, Long itemId, Long tagId) throws EntityNotFoundException;
 
-	IndexedItem resetItem(Dataset dataset, Long itemId, Resource inputItem) throws EntityNotFoundException, IOException;
+    IndexedItem resetItem(Dataset dataset, Long itemId, Resource inputItem) throws EntityNotFoundException, IOException;
 
-	Dataset update(Dataset dataset);
+    Dataset update(Dataset dataset);
 
 }

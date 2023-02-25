@@ -9,70 +9,70 @@ import org.atypical.carabassa.core.model.enums.ItemType;
 
 public interface IndexedItem {
 
-	Long getId();
+    Long getId();
 
-	void setId(Long id);
+    void setId(Long id);
 
-	ItemType getType();
+    ItemType getType();
 
-	void setType(ItemType type);
+    void setType(ItemType type);
 
-	String getFilename();
+    String getFilename();
 
-	void setFilename(String filename);
+    void setFilename(String filename);
 
-	String getFormat();
+    String getFormat();
 
-	void setFormat(String format);
+    void setFormat(String format);
 
-	String getHash();
+    String getHash();
 
-	void setHash(String hash);
+    void setHash(String hash);
 
-	Instant getCreation();
+    Instant getCreation();
 
-	void setCreation(Instant creation);
+    void setCreation(Instant creation);
 
-	Instant getModification();
+    Instant getModification();
 
-	void setModification(Instant modification);
+    void setModification(Instant modification);
 
-	Instant getArchiveTime();
+    Instant getArchiveTime();
 
-	ZonedDateTime getArchiveTimeAsZoned(String zoneId);
+    ZonedDateTime getArchiveTimeAsZoned(String zoneId);
 
-	void setArchiveTime(Instant archiveTime);
+    void setArchiveTime(Instant archiveTime);
 
-	long getSize();
+    long getSize();
 
-	void setSize(long size);
+    void setSize(long size);
 
-	Set<Tag> getTags();
+    Set<Tag> getTags();
 
-	void setTags(Set<Tag> tags);
+    void setTags(Set<Tag> tags);
 
-	default Set<Tag> getTags(String name) {
-		if (name != null) {
-			return getTags().stream().filter(t -> name.equals(t.getName())).collect(Collectors.toSet());
-		} else {
-			return null;
-		}
-	}
+    default Set<Tag> getTags(String name) {
+        if (name != null) {
+            return getTags().stream().filter(t -> name.equals(t.getName())).collect(Collectors.toSet());
+        } else {
+            return null;
+        }
+    }
 
-	default Tag getFirstTag(String name) {
-		if (name != null) {
-			return getTags().stream().filter(t -> name.equals(t.getName())).findFirst().orElse(null);
-		} else {
-			return null;
-		}
-	}
+    default Tag getFirstTag(String name) {
+        if (name != null) {
+            return getTags().stream().filter(t -> name.equals(t.getName())).findFirst().orElse(null);
+        } else {
+            return null;
+        }
+    }
 
-	default boolean isArchived() {
-		return getArchiveTime() != null;
-	}
+    default boolean isArchived() {
+        return getArchiveTime() != null;
+    }
 
-	Dataset getDataset();
+    Dataset getDataset();
 
-	void setDataset(Dataset dataset);
+    void setDataset(Dataset dataset);
 
 }

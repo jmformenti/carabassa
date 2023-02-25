@@ -13,20 +13,20 @@ import org.springframework.web.client.RestTemplate;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
 @Configuration
-@Import(value = { org.atypical.carabassa.core.component.util.LocalizedMessage.class })
+@Import(value = {org.atypical.carabassa.core.component.util.LocalizedMessage.class})
 public class CliConfiguration {
 
-	@Autowired
-	private ObjectMapper objectMapper;
+    @Autowired
+    private ObjectMapper objectMapper;
 
-	@PostConstruct
-	private void postConstruct() {
-		this.objectMapper.registerModule(new Jackson2HalModule());
-	}
+    @PostConstruct
+    private void postConstruct() {
+        this.objectMapper.registerModule(new Jackson2HalModule());
+    }
 
-	@Bean
-	public RestTemplate restTemplate(RestTemplateBuilder builder) {
-		return builder.build();
-	}
+    @Bean
+    public RestTemplate restTemplate(RestTemplateBuilder builder) {
+        return builder.build();
+    }
 
 }

@@ -10,8 +10,8 @@ import org.springframework.stereotype.Component;
 @Component
 public class IndexControllerImpl implements IndexController {
 
-	@Override
-	public NoContentRepresentation index() {
-		return new NoContentRepresentation(linkTo(DatasetController.class).withRel("datasets"));
-	}
+    @Override
+    public NoContentRepresentation index() {
+        return new NoContentRepresentation(linkTo(DatasetController.class).withRel("datasets"));
+    }
 }

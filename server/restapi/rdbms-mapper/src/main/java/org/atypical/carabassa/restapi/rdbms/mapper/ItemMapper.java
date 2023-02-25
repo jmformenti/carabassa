@@ -10,15 +10,15 @@ import org.mapstruct.ReportingPolicy;
 @Mapper(uses = TagMapper.class, unmappedTargetPolicy = ReportingPolicy.IGNORE)
 public interface ItemMapper extends org.atypical.carabassa.restapi.representation.mapper.ItemMapper {
 
-	default String itemTypeConverter(ItemType value) {
-		return value.normalized();
-	}
+    default String itemTypeConverter(ItemType value) {
+        return value.normalized();
+    }
 
-	@Override
-	@Mapping(target="tags", ignore=true)
-	ItemRepresentation toBaseRepresentation(IndexedItem indexedItem);
+    @Override
+    @Mapping(target = "tags", ignore = true)
+    ItemRepresentation toBaseRepresentation(IndexedItem indexedItem);
 
-	@Override
-	ItemRepresentation toRepresentation(IndexedItem indexedItem);
+    @Override
+    ItemRepresentation toRepresentation(IndexedItem indexedItem);
 
 }

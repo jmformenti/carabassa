@@ -11,16 +11,16 @@ import org.springframework.stereotype.Component;
 @Component
 public class ItemModelAssembler extends RepresentationModelAssemblerSupport<IndexedItem, ItemRepresentation> {
 
-	@Autowired
-	private ItemMapper itemMapper;
+    @Autowired
+    private ItemMapper itemMapper;
 
-	public ItemModelAssembler() {
-		super(DatasetController.class, ItemRepresentation.class);
-	}
+    public ItemModelAssembler() {
+        super(DatasetController.class, ItemRepresentation.class);
+    }
 
-	@Override
-	public ItemRepresentation toModel(IndexedItem indexedItem) {
-		return itemMapper.toBaseRepresentation(indexedItem);
-	}
+    @Override
+    public ItemRepresentation toModel(IndexedItem indexedItem) {
+        return itemMapper.toBaseRepresentation(indexedItem);
+    }
 
 }

@@ -18,46 +18,46 @@ import org.springframework.data.domain.Pageable;
 
 public interface DatasetService {
 
-	IndexedItem addItem(Dataset dataset, ItemType type, String originalFilename, Resource inputItem)
-			throws IOException, EntityExistsException;
+    IndexedItem addItem(Dataset dataset, ItemType type, String originalFilename, Resource inputItem)
+            throws IOException, EntityExistsException;
 
-	Long addItemTag(Dataset dataset, Long itemId, Tag tag) throws EntityNotFoundException;
+    Long addItemTag(Dataset dataset, Long itemId, Tag tag) throws EntityNotFoundException;
 
-	Dataset create(Dataset dataset) throws IOException, EntityExistsException;
+    Dataset create(Dataset dataset) throws IOException, EntityExistsException;
 
-	void delete(Dataset dataset) throws IOException;
+    void delete(Dataset dataset) throws IOException;
 
-	void deleteAll() throws IOException;
+    void deleteAll() throws IOException;
 
-	void deleteItem(Dataset dataset, Long itemId) throws IOException;
+    void deleteItem(Dataset dataset, Long itemId) throws IOException;
 
-	void deleteItemTag(Dataset dataset, Long itemId, Long tagId) throws EntityNotFoundException;
+    void deleteItemTag(Dataset dataset, Long itemId, Long tagId) throws EntityNotFoundException;
 
-	List<Dataset> findAll();
+    List<Dataset> findAll();
 
-	Page<Dataset> findAll(Pageable pageable);
+    Page<Dataset> findAll(Pageable pageable);
 
-	Dataset findById(Long datasetId) throws EntityNotFoundException;
+    Dataset findById(Long datasetId) throws EntityNotFoundException;
 
-	Page<IndexedItem> findItems(Dataset dataset, Pageable pageable);
+    Page<IndexedItem> findItems(Dataset dataset, Pageable pageable);
 
-	Page<IndexedItem> findItems(Dataset dataset, SearchCriteria searchCriteria, Pageable pageable);
+    Page<IndexedItem> findItems(Dataset dataset, SearchCriteria searchCriteria, Pageable pageable);
 
-	Dataset findByName(String datasetName) throws EntityNotFoundException;
+    Dataset findByName(String datasetName) throws EntityNotFoundException;
 
-	IndexedItem findItemById(Dataset dataset, Long itemId) throws EntityNotFoundException;
+    IndexedItem findItemById(Dataset dataset, Long itemId) throws EntityNotFoundException;
 
-	IndexedItem findItemByHash(Dataset dataset, String hash) throws EntityNotFoundException;
+    IndexedItem findItemByHash(Dataset dataset, String hash) throws EntityNotFoundException;
 
-	Tag findItemTagById(Dataset dataset, Long itemId, Long tagId) throws EntityNotFoundException;
+    Tag findItemTagById(Dataset dataset, Long itemId, Long tagId) throws EntityNotFoundException;
 
-	StoredItem getStoredItem(Dataset dataset, IndexedItem item) throws IOException, EntityNotFoundException;
+    StoredItem getStoredItem(Dataset dataset, IndexedItem item) throws IOException, EntityNotFoundException;
 
-	StoredItemThumbnail getStoredItemThumbnail(Dataset dataset, IndexedItem item)
-			throws IOException, EntityNotFoundException;
+    StoredItemThumbnail getStoredItemThumbnail(Dataset dataset, IndexedItem item)
+            throws IOException, EntityNotFoundException;
 
-	void resetItem(Dataset dataset, Long itemId) throws EntityExistsException, EntityNotFoundException, IOException;
+    void resetItem(Dataset dataset, Long itemId) throws EntityExistsException, EntityNotFoundException, IOException;
 
-	Dataset update(String originalDatasetName, Dataset dataset) throws IOException;
+    Dataset update(String originalDatasetName, Dataset dataset) throws IOException;
 
 }

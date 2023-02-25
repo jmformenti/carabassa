@@ -29,40 +29,40 @@ import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 import org.springframework.web.context.WebApplicationContext;
 
-@ContextConfiguration(classes = { RestApiConfiguration.class })
-@ExtendWith({ RestDocumentationExtension.class })
+@ContextConfiguration(classes = {RestApiConfiguration.class})
+@ExtendWith({RestDocumentationExtension.class})
 @WebMvcTest(IndexController.class)
 public class IndexControllerTest {
 
-	@Autowired
-	private MockMvc mvc;
+    @Autowired
+    private MockMvc mvc;
 
-	@MockBean
-	private DatasetService datasetService;
+    @MockBean
+    private DatasetService datasetService;
 
-	@MockBean
-	private DatasetMapper datasetMapper;
+    @MockBean
+    private DatasetMapper datasetMapper;
 
-	@MockBean
-	private ItemMapper itemMapper;
+    @MockBean
+    private ItemMapper itemMapper;
 
-	@MockBean
-	private TagMapper tagMapper;
+    @MockBean
+    private TagMapper tagMapper;
 
-	@BeforeEach
-	public void setUp(WebApplicationContext webApplicationContext, RestDocumentationContextProvider restDocumentation) {
-		this.mvc = MockMvcBuilders.webAppContextSetup(webApplicationContext)
-				.apply(documentationConfiguration(restDocumentation).operationPreprocessors()
-						.withRequestDefaults(prettyPrint()).withResponseDefaults(prettyPrint()))
-				.build();
-	}
+    @BeforeEach
+    public void setUp(WebApplicationContext webApplicationContext, RestDocumentationContextProvider restDocumentation) {
+        this.mvc = MockMvcBuilders.webAppContextSetup(webApplicationContext)
+                .apply(documentationConfiguration(restDocumentation).operationPreprocessors()
+                        .withRequestDefaults(prettyPrint()).withResponseDefaults(prettyPrint()))
+                .build();
+    }
 
-	@Test
-	public void index() throws Exception {
-		this.mvc.perform(get("/api/")).andExpect(status().isOk()) //
-				.andDo(document("index", //
-						links(linkWithRel("datasets").description("Datasets resources")),
-						responseFields(subsectionWithPath("_links").description("Links to other resources").type(Links.class))));
-	}
+    @Test
+    public void index() throws Exception {
+        this.mvc.perform(get("/api/")).andExpect(status().isOk()) //
+                .andDo(document("index", //
+                        links(linkWithRel("datasets").description("Datasets resources")),
+                        responseFields(subsectionWithPath("_links").description("Links to other resources").type(Links.class))));
+    }
 
 }

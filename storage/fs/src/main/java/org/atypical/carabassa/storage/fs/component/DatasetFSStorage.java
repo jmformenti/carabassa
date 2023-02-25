@@ -171,7 +171,7 @@ public class DatasetFSStorage implements DatasetStorage {
     @Override
     public void update(String originalDatasetName, Dataset updatedDataset) throws IOException {
         if (!originalDatasetName.equals(updatedDataset.getName())) {
-			Files.move(getDatasetPath(originalDatasetName), getDatasetPath(updatedDataset.getName()));
+            Files.move(getDatasetPath(originalDatasetName), getDatasetPath(updatedDataset.getName()));
         }
     }
 

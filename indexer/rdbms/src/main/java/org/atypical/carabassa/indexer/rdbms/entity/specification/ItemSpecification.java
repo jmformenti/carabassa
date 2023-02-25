@@ -34,117 +34,117 @@ import org.springframework.data.util.Pair;
 
 public class ItemSpecification implements Specification<IndexedItemEntity> {
 
-	private static final long serialVersionUID = -8307610449472579379L;
+    private static final long serialVersionUID = -8307610449472579379L;
 
-	private static final String ATTR_ID = "id";
-	private static final String ATTR_TYPE = "type";
-	private static final String ATTR_ON = "on";
-	private static final String ATTR_FROM = "from";
-	private static final String ATTR_TO = "to";
-	private static final String ATTR_CITY = "city";
+    private static final String ATTR_ID = "id";
+    private static final String ATTR_TYPE = "type";
+    private static final String ATTR_ON = "on";
+    private static final String ATTR_FROM = "from";
+    private static final String ATTR_TO = "to";
+    private static final String ATTR_CITY = "city";
 
-	private static final String FULL_DATE = "yyyy-MM-dd";
-	private static final String MONTH_DATE = "yyyy-MM";
-	private static final String YEAR_DATE = "yyyy";
+    private static final String FULL_DATE = "yyyy-MM-dd";
+    private static final String MONTH_DATE = "yyyy-MM";
+    private static final String YEAR_DATE = "yyyy";
 
-	private final Dataset dataset;
-	private final SearchCriteria searchCriteria;
+    private final Dataset dataset;
+    private final SearchCriteria searchCriteria;
 
-	public ItemSpecification(Dataset dataset, SearchCriteria searchCriteria) {
-		this.dataset = dataset;
-		this.searchCriteria = searchCriteria;
-	}
+    public ItemSpecification(Dataset dataset, SearchCriteria searchCriteria) {
+        this.dataset = dataset;
+        this.searchCriteria = searchCriteria;
+    }
 
-	@Override
-	public Predicate toPredicate(Root<IndexedItemEntity> root, CriteriaQuery<?> query, CriteriaBuilder builder) {
+    @Override
+    public Predicate toPredicate(Root<IndexedItemEntity> root, CriteriaQuery<?> query, CriteriaBuilder builder) {
 
-		final List<Predicate> predicates = new ArrayList<>();
+        final List<Predicate> predicates = new ArrayList<>();
 
-		predicates.add(builder.equal(root.get(IndexedItemEntity_.DATASET), this.dataset.getId()));
+        predicates.add(builder.equal(root.get(IndexedItemEntity_.DATASET), this.dataset.getId()));
 
-		for (SearchCondition condition : searchCriteria.getConditions()) {
-			predicates.add(toPredicateFromCondition(condition, root, query, builder));
-		}
+        for (SearchCondition condition : searchCriteria.getConditions()) {
+            predicates.add(toPredicateFromCondition(condition, root, query, builder));
+        }
 
-		query.orderBy(builder.asc(root.get(IndexedItemEntity_.ARCHIVE_TIME)),
-				builder.asc(root.get(IndexedItemEntity_.ID)));
+        query.orderBy(builder.asc(root.get(IndexedItemEntity_.ARCHIVE_TIME)),
+                builder.asc(root.get(IndexedItemEntity_.ID)));
 
-		return builder.and(predicates.toArray(new Predicate[0]));
-	}
+        return builder.and(predicates.toArray(new Predicate[0]));
+    }
 
-	private Predicate toPredicateFromCondition(SearchCondition condition, Root<IndexedItemEntity> root,
-			CriteriaQuery<?> query, CriteriaBuilder builder) {
+    private Predicate toPredicateFromCondition(SearchCondition condition, Root<IndexedItemEntity> root,
+                                               CriteriaQuery<?> query, CriteriaBuilder builder) {
 
-		if (condition.getOperation() == null) {
-			Join<IndexedItemEntity, TagEntity> tags = addTagsJoin(root, query);
-			return builder.like(builder.lower(tags.get(TagEntity_.TEXT_VALUE)),
-					builder.lower(builder.literal("%" + condition.getValue() + "%")));
-		} else if (condition.getOperation() == SearchOperator.EQUAL) {
-			Pair<Instant, Instant> periodDates;
-			switch (condition.getKey()) {
-			case ATTR_ID:
-				return builder.equal(root.get(IndexedItemEntity_.ID), condition.getValue().toString());
-			case ATTR_TYPE:
-				return builder.equal(root.get(IndexedItemEntity_.TYPE),
-						ItemType.fromCode(condition.getValue().toString()));
-			case ATTR_ON:
-				periodDates = getPeriodDates(condition.getValue().toString());
-				return builder.between(root.get(IndexedItemEntity_.ARCHIVE_TIME), periodDates.getFirst(),
-						periodDates.getSecond());
-			case ATTR_FROM:
-				periodDates = getPeriodDates(condition.getValue().toString());
-				return builder.greaterThanOrEqualTo(root.get(IndexedItemEntity_.ARCHIVE_TIME), periodDates.getFirst());
-			case ATTR_TO:
-				periodDates = getPeriodDates(condition.getValue().toString());
-				return builder.lessThanOrEqualTo(root.get(IndexedItemEntity_.ARCHIVE_TIME), periodDates.getSecond());
-			case ATTR_CITY: {
-				Join<IndexedItemEntity, TagEntity> tags = addTagsJoin(root, query);
-				return builder.and(builder.equal(tags.get(TagEntity_.NAME), ImageMetadataTagger.TAG_CITY),
-						builder.like(builder.lower(tags.get(TagEntity_.TEXT_VALUE)),
-								builder.lower(builder.literal("%" + condition.getValue() + "%"))));
-			}
-			default:
-				Join<IndexedItemEntity, TagEntity> tags = addTagsJoin(root, query);
-				return builder.and(builder.equal(tags.get(TagEntity_.NAME), condition.getKey()),
-						builder.equal(tags.get(TagEntity_.TEXT_VALUE), condition.getValue()));
-			}
-		} else if (condition.getOperation() == SearchOperator.LESS_THAN && ATTR_ID.equals(condition.getKey())) {
-			return builder.lessThan(root.get(IndexedItemEntity_.ID), condition.getValue().toString());
-		} else if (condition.getOperation() == SearchOperator.GREATER_THAN && ATTR_ID.equals(condition.getKey())) {
-			return builder.greaterThan(root.get(IndexedItemEntity_.ID), condition.getValue().toString());
-		}
-		throw new IllegalArgumentException(String.format("Operation %s not implemented yet", condition.getOperation()));
-	}
+        if (condition.getOperation() == null) {
+            Join<IndexedItemEntity, TagEntity> tags = addTagsJoin(root, query);
+            return builder.like(builder.lower(tags.get(TagEntity_.TEXT_VALUE)),
+                    builder.lower(builder.literal("%" + condition.getValue() + "%")));
+        } else if (condition.getOperation() == SearchOperator.EQUAL) {
+            Pair<Instant, Instant> periodDates;
+            switch (condition.getKey()) {
+                case ATTR_ID:
+                    return builder.equal(root.get(IndexedItemEntity_.ID), condition.getValue().toString());
+                case ATTR_TYPE:
+                    return builder.equal(root.get(IndexedItemEntity_.TYPE),
+                            ItemType.fromCode(condition.getValue().toString()));
+                case ATTR_ON:
+                    periodDates = getPeriodDates(condition.getValue().toString());
+                    return builder.between(root.get(IndexedItemEntity_.ARCHIVE_TIME), periodDates.getFirst(),
+                            periodDates.getSecond());
+                case ATTR_FROM:
+                    periodDates = getPeriodDates(condition.getValue().toString());
+                    return builder.greaterThanOrEqualTo(root.get(IndexedItemEntity_.ARCHIVE_TIME), periodDates.getFirst());
+                case ATTR_TO:
+                    periodDates = getPeriodDates(condition.getValue().toString());
+                    return builder.lessThanOrEqualTo(root.get(IndexedItemEntity_.ARCHIVE_TIME), periodDates.getSecond());
+                case ATTR_CITY: {
+                    Join<IndexedItemEntity, TagEntity> tags = addTagsJoin(root, query);
+                    return builder.and(builder.equal(tags.get(TagEntity_.NAME), ImageMetadataTagger.TAG_CITY),
+                            builder.like(builder.lower(tags.get(TagEntity_.TEXT_VALUE)),
+                                    builder.lower(builder.literal("%" + condition.getValue() + "%"))));
+                }
+                default:
+                    Join<IndexedItemEntity, TagEntity> tags = addTagsJoin(root, query);
+                    return builder.and(builder.equal(tags.get(TagEntity_.NAME), condition.getKey()),
+                            builder.equal(tags.get(TagEntity_.TEXT_VALUE), condition.getValue()));
+            }
+        } else if (condition.getOperation() == SearchOperator.LESS_THAN && ATTR_ID.equals(condition.getKey())) {
+            return builder.lessThan(root.get(IndexedItemEntity_.ID), condition.getValue().toString());
+        } else if (condition.getOperation() == SearchOperator.GREATER_THAN && ATTR_ID.equals(condition.getKey())) {
+            return builder.greaterThan(root.get(IndexedItemEntity_.ID), condition.getValue().toString());
+        }
+        throw new IllegalArgumentException(String.format("Operation %s not implemented yet", condition.getOperation()));
+    }
 
-	private Join<IndexedItemEntity, TagEntity> addTagsJoin(Root<IndexedItemEntity> root, CriteriaQuery<?> query) {
-		query.distinct(true);
-		return root.join(IndexedItemEntity_.TAGS, JoinType.INNER);
-	}
+    private Join<IndexedItemEntity, TagEntity> addTagsJoin(Root<IndexedItemEntity> root, CriteriaQuery<?> query) {
+        query.distinct(true);
+        return root.join(IndexedItemEntity_.TAGS, JoinType.INNER);
+    }
 
-	private Pair<Instant, Instant> getPeriodDates(String value) {
-		Instant startDate;
-		try {
-			startDate = dateIgnoringTimeZoneToInstant(DateUtils.parseDateStrictly(value, FULL_DATE));
-			return PeriodType.DAY.getPeriodDates(startDate);
-		} catch (ParseException e) {
-			try {
-				startDate = dateIgnoringTimeZoneToInstant(DateUtils.parseDateStrictly(value, MONTH_DATE));
-				return PeriodType.MONTH.getPeriodDates(startDate);
-			} catch (ParseException e1) {
-				try {
-					startDate = dateIgnoringTimeZoneToInstant(DateUtils.parseDateStrictly(value, YEAR_DATE));
-					return PeriodType.YEAR.getPeriodDates(startDate);
-				} catch (ParseException e2) {
-					throw new IllegalArgumentException(String.format("Error parsing date value %s", value));
-				}
-			}
-		}
-	}
+    private Pair<Instant, Instant> getPeriodDates(String value) {
+        Instant startDate;
+        try {
+            startDate = dateIgnoringTimeZoneToInstant(DateUtils.parseDateStrictly(value, FULL_DATE));
+            return PeriodType.DAY.getPeriodDates(startDate);
+        } catch (ParseException e) {
+            try {
+                startDate = dateIgnoringTimeZoneToInstant(DateUtils.parseDateStrictly(value, MONTH_DATE));
+                return PeriodType.MONTH.getPeriodDates(startDate);
+            } catch (ParseException e1) {
+                try {
+                    startDate = dateIgnoringTimeZoneToInstant(DateUtils.parseDateStrictly(value, YEAR_DATE));
+                    return PeriodType.YEAR.getPeriodDates(startDate);
+                } catch (ParseException e2) {
+                    throw new IllegalArgumentException(String.format("Error parsing date value %s", value));
+                }
+            }
+        }
+    }
 
-	private Instant dateIgnoringTimeZoneToInstant(Date date) {
-		Calendar calendar = new GregorianCalendar();
-		calendar.setTime(date);
-		return LocalDateTime.of(calendar.get(Calendar.YEAR), calendar.get(Calendar.MONTH) + 1,
-				calendar.get(Calendar.DAY_OF_MONTH), 0, 0).toInstant(ZoneOffset.UTC);
-	}
+    private Instant dateIgnoringTimeZoneToInstant(Date date) {
+        Calendar calendar = new GregorianCalendar();
+        calendar.setTime(date);
+        return LocalDateTime.of(calendar.get(Calendar.YEAR), calendar.get(Calendar.MONTH) + 1,
+                calendar.get(Calendar.DAY_OF_MONTH), 0, 0).toInstant(ZoneOffset.UTC);
+    }
 }

@@ -20,38 +20,38 @@ import picocli.CommandLine.Option;
 @Command(name = "list", description = "list datasets.")
 public class ListDatasetCommand implements Callable<Integer> {
 
-	private static final String OUTPUT_FORMAT = "%10s\t%20s\t%40s\t%20s\t%20s\n";
+    private static final String OUTPUT_FORMAT = "%10s\t%20s\t%40s\t%20s\t%20s\n";
 
-	private final CommandLogger cmdLogger = new CommandLogger();
+    private final CommandLogger cmdLogger = new CommandLogger();
 
-	@Option(names = { "-d", "--dataset" }, description = "dataset name.")
-	private String dataset;
+    @Option(names = {"-d", "--dataset"}, description = "dataset name.")
+    private String dataset;
 
-	@Autowired
-	private DatasetApiService datasetApiService;
+    @Autowired
+    private DatasetApiService datasetApiService;
 
-	@Override
-	public Integer call() {
-		try {
-			List<DatasetEntityRepresentation> datasets = datasetApiService.findAll();
-			if (!datasets.isEmpty()) {
-				System.out.format(OUTPUT_FORMAT, "id", "name", "description", "creation", "modification");
-				for (DatasetEntityRepresentation datasetRepresentation : datasets) {
-					System.out.format(OUTPUT_FORMAT, datasetRepresentation.getId(), datasetRepresentation.getName(),
-							datasetRepresentation.getDescription(),
-							DateFormatter.toLocalDateFormatted(datasetRepresentation.getCreationAsZoned(ZoneId.systemDefault().getId())),
-							datasetRepresentation.getModification() == null ? ""
-									: DateFormatter.toLocalDateFormatted(datasetRepresentation.getModificationAsZoned(ZoneId.systemDefault().getId())));
-				}
-				cmdLogger.info("done.");
-			} else {
-				cmdLogger.info("No datasets found.");
-			}
-		} catch (ApiException e) {
-			cmdLogger.error("API error", e);
-			return ExitCode.SOFTWARE;
-		}
-		return ExitCode.OK;
-	}
+    @Override
+    public Integer call() {
+        try {
+            List<DatasetEntityRepresentation> datasets = datasetApiService.findAll();
+            if (!datasets.isEmpty()) {
+                System.out.format(OUTPUT_FORMAT, "id", "name", "description", "creation", "modification");
+                for (DatasetEntityRepresentation datasetRepresentation : datasets) {
+                    System.out.format(OUTPUT_FORMAT, datasetRepresentation.getId(), datasetRepresentation.getName(),
+                            datasetRepresentation.getDescription(),
+                            DateFormatter.toLocalDateFormatted(datasetRepresentation.getCreationAsZoned(ZoneId.systemDefault().getId())),
+                            datasetRepresentation.getModification() == null ? ""
+                                    : DateFormatter.toLocalDateFormatted(datasetRepresentation.getModificationAsZoned(ZoneId.systemDefault().getId())));
+                }
+                cmdLogger.info("done.");
+            } else {
+                cmdLogger.info("No datasets found.");
+            }
+        } catch (ApiException e) {
+            cmdLogger.error("API error", e);
+            return ExitCode.SOFTWARE;
+        }
+        return ExitCode.OK;
+    }
 
 }

@@ -16,30 +16,30 @@ import picocli.CommandLine.Option;
 @Command(name = "create", description = "create new dataset.")
 public class CreateDatasetCommand implements Callable<Integer> {
 
-	private final CommandLogger cmdLogger = new CommandLogger();
+    private final CommandLogger cmdLogger = new CommandLogger();
 
-	@Option(names = { "-d", "--dataset" }, description = "dataset name.", required = true)
-	private String dataset;
+    @Option(names = {"-d", "--dataset"}, description = "dataset name.", required = true)
+    private String dataset;
 
-	@Option(names = { "-e", "--description" }, description = "dataset description.")
-	private String description;
+    @Option(names = {"-e", "--description"}, description = "dataset description.")
+    private String description;
 
-	@Autowired
-	private DatasetApiService datasetApiService;
+    @Autowired
+    private DatasetApiService datasetApiService;
 
-	@Override
-	public Integer call() throws Exception {
-		try {
-			cmdLogger.info(String.format("Creating dataset %s ...", dataset));
+    @Override
+    public Integer call() throws Exception {
+        try {
+            cmdLogger.info(String.format("Creating dataset %s ...", dataset));
 
-			Long id = datasetApiService.create(dataset, description);
+            Long id = datasetApiService.create(dataset, description);
 
-			cmdLogger.info(String.format("created dataset with id = %d.", id));
-		} catch (ApiException e) {
-			cmdLogger.error("API error", e);
-			return ExitCode.SOFTWARE;
-		}
-		return ExitCode.OK;
-	}
+            cmdLogger.info(String.format("created dataset with id = %d.", id));
+        } catch (ApiException e) {
+            cmdLogger.error("API error", e);
+            return ExitCode.SOFTWARE;
+        }
+        return ExitCode.OK;
+    }
 
 }
