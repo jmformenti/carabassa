@@ -103,7 +103,7 @@ export default {
     this.$carabassa.getDatasets()
       .then(data => {
         this.datasets = data
-        this.changeDataset(this.datasets[0])
+        this.initDataset()
       }
     )
   },
@@ -111,6 +111,21 @@ export default {
   methods: {
     changeDataset (dataset) {
       this.datasetStore.dataset = dataset
+    },
+
+    initDataset () {
+      const datasetName = this.$route.query.dataset
+      if (datasetName) {
+        this.$carabassa.getDatasetByName(datasetName)
+          .then(data => {
+            this.changeDataset(data)
+          })
+          .catch(() => {
+            this.changeDataset(this.datasets[0])
+          })
+      } else {
+        this.changeDataset(this.datasets[0])
+      }
     }
   }
 }

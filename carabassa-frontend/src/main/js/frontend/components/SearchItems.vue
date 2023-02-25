@@ -190,12 +190,17 @@ export default {
 
   mounted () {
     this.enableInfiniteScroll()
+    const searchStringByQuery = this.$route.query.search
+    if (searchStringByQuery) {
+      this.searchString = searchStringByQuery
+      this.waitFor(this.datasetStore.dataset, () => this.getItems())
+    }
   },
 
   methods: {
     async getItems () {
       this.waitingResults = true
-      const newItems = await this.$carabassa.getItems(this.currentPage, this.pageSize, this.searchString)
+      await this.$carabassa.getItems(this.currentPage, this.pageSize, this.searchString)
       .then((data) => {
         let items = []
         if (data._embedded) {
@@ -204,13 +209,12 @@ export default {
           items = data._embedded.itemRepresentationList
         }
         this.searched = true
-        return items
+        this.items.push(...items)
       })
       .catch((err) => {
         this.$notification.alert(err)
       })
       this.waitingResults = false
-      this.items.push(...newItems)
     },
 
     reset () {
@@ -241,6 +245,15 @@ export default {
     expandImage (item) {
       this.overlay = true
       this.selectedItem = item
+    },
+
+    waitFor (variable, callback) {
+      const interval = setInterval(function() {
+        if (variable) {
+          clearInterval(interval);
+          callback();
+        }
+      }, 500);
     }
   }
 }

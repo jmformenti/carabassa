@@ -8,6 +8,14 @@ export class CarabassaService {
     this.datasetStore = datasetStore
   }
 
+  getDatasetByName (datasetName) {
+    return $fetch(
+      `${this.apiBaseURL}/api/dataset/name/${datasetName}`
+    ).then((data) => {
+      return Promise.resolve(data)
+    })
+  }
+
   getDatasets () {
     return $fetch(
       `${this.apiBaseURL}/api/dataset`
@@ -22,7 +30,7 @@ export class CarabassaService {
 
   getItems (currentPage, pageSize, searchString) {
     return $fetch(
-      `${this.apiBaseURL}/api/dataset/${this.datasetStore.dataset.id}/item?type=image&size=${pageSize}&page=${currentPage}&search=${searchString} type:I`
+      `${this.apiBaseURL}/api/dataset/${this.datasetStore.dataset.id}/item?size=${pageSize}&page=${currentPage}&search=${searchString} type:I`
     )
   }
 
