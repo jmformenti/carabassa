@@ -3,16 +3,20 @@
 	xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 https://maven.apache.org/xsd/maven-4.0.0.xsd">
 	<modelVersion>4.0.0</modelVersion>
 	<parent>
-		<groupId>org.atypical</groupId>
-		<artifactId>carabassa</artifactId>
+		<groupId>org.atypical.carabassa.server</groupId>
+		<artifactId>carabassa-server-parent</artifactId>
 		<version>${revision}</version>
 	</parent>
+
 	<artifactId>carabassa-frontend</artifactId>
+	<packaging>jar</packaging>
+
 	<properties>
 		<frontend.staging.dir>${project.build.directory}/frontend</frontend.staging.dir>
 		<node.version>v16.13.0</node.version>
 		<yarn.version>v1.22.19</yarn.version>
 	</properties>
+
 	<build>
 		<plugins>
 			<plugin>

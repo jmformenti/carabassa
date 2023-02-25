@@ -5,10 +5,11 @@
 	<modelVersion>4.0.0</modelVersion>
 
 	<parent>
-		<groupId>org.atypical</groupId>
-		<artifactId>carabassa</artifactId>
+		<groupId>org.atypical.carabassa</groupId>
+		<artifactId>carabassa-parent</artifactId>
 		<version>${revision}</version>
 	</parent>
+
 	<artifactId>carabassa-core</artifactId>
 	<packaging>jar</packaging>
 

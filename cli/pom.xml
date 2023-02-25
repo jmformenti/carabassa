@@ -3,11 +3,14 @@
 	xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 https://maven.apache.org/xsd/maven-4.0.0.xsd">
 	<modelVersion>4.0.0</modelVersion>
 	<parent>
-		<groupId>org.atypical</groupId>
-		<artifactId>carabassa</artifactId>
+		<groupId>org.atypical.carabassa</groupId>
+		<artifactId>carabassa-parent</artifactId>
 		<version>${revision}</version>
 	</parent>
+
+	<groupId>org.atypical.carabassa.cli</groupId>
 	<artifactId>carabassa-cli</artifactId>
+	<packaging>jar</packaging>
 
 	<properties>
 		<picocli.version>4.6.3</picocli.version>
@@ -15,7 +18,7 @@
 
 	<dependencies>
 		<dependency>
-			<groupId>org.atypical</groupId>
+			<groupId>org.atypical.carabassa.server.restapi</groupId>
 			<artifactId>carabassa-restapi-representation</artifactId>
 			<version>${revision}</version>
 		</dependency>
