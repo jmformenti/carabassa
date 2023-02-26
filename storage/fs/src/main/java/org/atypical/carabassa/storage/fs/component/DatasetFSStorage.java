@@ -1,16 +1,7 @@
 package org.atypical.carabassa.storage.fs.component;
 
-import java.io.ByteArrayOutputStream;
-import java.io.FileNotFoundException;
-import java.io.IOException;
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.nio.file.Paths;
-import java.nio.file.StandardCopyOption;
-import java.time.ZonedDateTime;
-
-import javax.annotation.PostConstruct;
-
+import com.fasterxml.jackson.databind.ObjectMapper;
+import net.coobird.thumbnailator.Thumbnails;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.FilenameUtils;
 import org.apache.commons.lang3.StringUtils;
@@ -34,12 +25,15 @@ import org.springframework.core.io.Resource;
 import org.springframework.stereotype.Component;
 import org.springframework.util.Assert;
 
-import com.fasterxml.jackson.core.JsonGenerationException;
-import com.fasterxml.jackson.core.JsonParseException;
-import com.fasterxml.jackson.databind.JsonMappingException;
-import com.fasterxml.jackson.databind.ObjectMapper;
-
-import net.coobird.thumbnailator.Thumbnails;
+import javax.annotation.PostConstruct;
+import java.io.ByteArrayOutputStream;
+import java.io.FileNotFoundException;
+import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
+import java.nio.file.StandardCopyOption;
+import java.time.ZonedDateTime;
 
 @Component
 public class DatasetFSStorage implements DatasetStorage {
@@ -63,6 +57,7 @@ public class DatasetFSStorage implements DatasetStorage {
 
     private final ObjectMapper mapper = new ObjectMapper();
 
+    @SuppressWarnings("PMD.UnusedPrivateMethod")
     @PostConstruct
     private void postConstruct() throws IOException {
         Assert.notNull(repoDir, localizedMessage.getText(NO_REPO_DIR_MESSAGE_KEY));

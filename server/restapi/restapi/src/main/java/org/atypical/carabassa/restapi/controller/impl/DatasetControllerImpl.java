@@ -259,6 +259,9 @@ public class DatasetControllerImpl implements DatasetController {
         Dataset dataset = getDataset(datasetId);
         try {
             datasetService.deleteItem(dataset, itemId);
+        } catch (EntityNotFoundException e) {
+            logger.error(e.getMessage(), e);
+            throw new ResponseStatusException(HttpStatus.NOT_FOUND, e.getMessage());
         } catch (IOException e) {
             logger.error(e.getMessage(), e);
             throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, e.getMessage());

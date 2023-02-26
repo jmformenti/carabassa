@@ -19,6 +19,7 @@ public class CliConfiguration {
     @Autowired
     private ObjectMapper objectMapper;
 
+    @SuppressWarnings("PMD.UnusedPrivateMethod")
     @PostConstruct
     private void postConstruct() {
         this.objectMapper.registerModule(new Jackson2HalModule());

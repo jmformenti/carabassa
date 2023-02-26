@@ -24,6 +24,7 @@ public class Application extends SpringBootServletInitializer {
     @Value("${carabassa.tempdir:#{null}}")
     private String tempDirLocation;
 
+    @SuppressWarnings("PMD.UnusedPrivateMethod")
     @PostConstruct
     private void postConstruct() throws IOException {
         resetTempDir();

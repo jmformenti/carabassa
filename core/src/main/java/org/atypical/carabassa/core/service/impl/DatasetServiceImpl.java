@@ -72,14 +72,10 @@ public class DatasetServiceImpl implements org.atypical.carabassa.core.service.D
     }
 
     @Override
-    public void deleteItem(Dataset dataset, Long itemId) throws IOException {
-        try {
-            IndexedItem item = datasetIndexer.findItemById(dataset, itemId);
-            datasetIndexer.deleteItem(item);
-            datasetStorage.deleteItem(item);
-        } catch (EntityNotFoundException e) {
-            // nothing to do
-        }
+    public void deleteItem(Dataset dataset, Long itemId) throws EntityNotFoundException, IOException {
+        IndexedItem item = datasetIndexer.findItemById(dataset, itemId);
+        datasetIndexer.deleteItem(item);
+        datasetStorage.deleteItem(item);
     }
 
     @Override

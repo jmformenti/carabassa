@@ -60,6 +60,7 @@ public class DatasetApiServiceImpl implements DatasetApiService {
 
     private String datasetUrl;
 
+    @SuppressWarnings("PMD.UnusedPrivateMethod")
     @PostConstruct
     private void postConstruct() {
         datasetUrl = getDatasetUrl();

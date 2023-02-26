@@ -29,7 +29,7 @@ public interface DatasetService {
 
     void deleteAll() throws IOException;
 
-    void deleteItem(Dataset dataset, Long itemId) throws IOException;
+    void deleteItem(Dataset dataset, Long itemId) throws EntityNotFoundException, IOException;
 
     void deleteItemTag(Dataset dataset, Long itemId, Long tagId) throws EntityNotFoundException;
 

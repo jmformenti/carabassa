@@ -430,7 +430,7 @@ public class DatasetControllerIT {
 
         // When / Then
         mvc.perform(delete("/api/dataset/{datasetId}/item/{itemId}", datasetId, 0)) //
-                .andExpect(status().isNoContent()) //
+                .andExpect(status().isNotFound()) //
                 .andDo(log());
     }
 
