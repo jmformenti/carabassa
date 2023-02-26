@@ -1,11 +1,11 @@
 package org.atypical.carabassa.core.model.impl;
 
+import org.atypical.carabassa.core.model.Dataset;
+import org.atypical.carabassa.core.model.IndexedItem;
+
 import java.time.Instant;
 import java.util.HashSet;
 import java.util.Set;
-
-import org.atypical.carabassa.core.model.Dataset;
-import org.atypical.carabassa.core.model.IndexedItem;
 
 public class DatasetImpl implements Dataset {
 

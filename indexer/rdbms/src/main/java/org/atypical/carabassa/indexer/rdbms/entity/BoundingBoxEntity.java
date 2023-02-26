@@ -1,5 +1,7 @@
 package org.atypical.carabassa.indexer.rdbms.entity;
 
+import org.atypical.carabassa.core.model.BoundingBox;
+
 import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.GeneratedValue;
@@ -7,8 +9,6 @@ import javax.persistence.GenerationType;
 import javax.persistence.Id;
 import javax.persistence.SequenceGenerator;
 import javax.persistence.Table;
-
-import org.atypical.carabassa.core.model.BoundingBox;
 
 @Entity
 @Table(name = "BOUNDING_BOX")

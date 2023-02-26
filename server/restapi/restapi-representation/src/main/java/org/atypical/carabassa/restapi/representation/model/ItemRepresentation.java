@@ -1,11 +1,11 @@
 package org.atypical.carabassa.restapi.representation.model;
 
+import org.springframework.hateoas.RepresentationModel;
+
 import java.time.Instant;
 import java.time.ZoneId;
 import java.time.ZonedDateTime;
 import java.util.SortedSet;
-
-import org.springframework.hateoas.RepresentationModel;
 
 public class ItemRepresentation extends RepresentationModel<ItemRepresentation> {
 

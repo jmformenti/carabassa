@@ -1,22 +1,5 @@
 package org.atypical.carabassa.indexer.rdbms.entity.specification;
 
-import java.text.ParseException;
-import java.time.Instant;
-import java.time.LocalDateTime;
-import java.time.ZoneOffset;
-import java.util.ArrayList;
-import java.util.Calendar;
-import java.util.Date;
-import java.util.GregorianCalendar;
-import java.util.List;
-
-import javax.persistence.criteria.CriteriaBuilder;
-import javax.persistence.criteria.CriteriaQuery;
-import javax.persistence.criteria.Join;
-import javax.persistence.criteria.JoinType;
-import javax.persistence.criteria.Predicate;
-import javax.persistence.criteria.Root;
-
 import org.apache.commons.lang3.time.DateUtils;
 import org.atypical.carabassa.core.component.tagger.impl.ImageMetadataTagger;
 import org.atypical.carabassa.core.model.Dataset;
@@ -31,6 +14,22 @@ import org.atypical.carabassa.indexer.rdbms.entity.TagEntity;
 import org.atypical.carabassa.indexer.rdbms.entity.TagEntity_;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.data.util.Pair;
+
+import javax.persistence.criteria.CriteriaBuilder;
+import javax.persistence.criteria.CriteriaQuery;
+import javax.persistence.criteria.Join;
+import javax.persistence.criteria.JoinType;
+import javax.persistence.criteria.Predicate;
+import javax.persistence.criteria.Root;
+import java.text.ParseException;
+import java.time.Instant;
+import java.time.LocalDateTime;
+import java.time.ZoneOffset;
+import java.util.ArrayList;
+import java.util.Calendar;
+import java.util.Date;
+import java.util.GregorianCalendar;
+import java.util.List;
 
 public class ItemSpecification implements Specification<IndexedItemEntity> {
 

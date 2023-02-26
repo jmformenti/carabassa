@@ -1,8 +1,5 @@
 package org.atypical.carabassa.core.service.impl;
 
-import java.io.IOException;
-import java.util.List;
-
 import org.apache.commons.lang3.StringUtils;
 import org.atypical.carabassa.core.component.indexer.DatasetIndexer;
 import org.atypical.carabassa.core.component.storage.DatasetStorage;
@@ -22,6 +19,9 @@ import org.springframework.core.io.Resource;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
+
+import java.io.IOException;
+import java.util.List;
 
 @Service
 public class DatasetServiceImpl implements org.atypical.carabassa.core.service.DatasetService {

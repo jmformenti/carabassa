@@ -1,5 +1,16 @@
 package org.atypical.carabassa.core.component.tagger.impl;
 
+import org.atypical.carabassa.core.component.tagger.Tagger;
+import org.atypical.carabassa.core.model.Tag;
+import org.atypical.carabassa.core.model.impl.TagImpl;
+import org.atypical.carabassa.core.util.HashGenerator;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.core.io.Resource;
+import org.springframework.stereotype.Component;
+import ws.schild.jave.EncoderException;
+import ws.schild.jave.MultimediaObject;
+import ws.schild.jave.info.MultimediaInfo;
+
 import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
@@ -8,18 +19,6 @@ import java.nio.file.StandardCopyOption;
 import java.time.ZonedDateTime;
 import java.util.HashSet;
 import java.util.Set;
-
-import org.atypical.carabassa.core.component.tagger.Tagger;
-import org.atypical.carabassa.core.model.Tag;
-import org.atypical.carabassa.core.model.impl.TagImpl;
-import org.atypical.carabassa.core.util.HashGenerator;
-import org.springframework.beans.factory.annotation.Value;
-import org.springframework.core.io.Resource;
-import org.springframework.stereotype.Component;
-
-import ws.schild.jave.EncoderException;
-import ws.schild.jave.MultimediaObject;
-import ws.schild.jave.info.MultimediaInfo;
 
 @Component
 public class VideoMetadataTagger implements Tagger {

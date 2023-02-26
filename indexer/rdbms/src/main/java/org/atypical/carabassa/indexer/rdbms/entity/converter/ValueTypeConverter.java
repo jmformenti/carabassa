@@ -1,9 +1,9 @@
 package org.atypical.carabassa.indexer.rdbms.entity.converter;
 
+import org.atypical.carabassa.indexer.rdbms.entity.enums.ValueType;
+
 import javax.persistence.AttributeConverter;
 import javax.persistence.Converter;
-
-import org.atypical.carabassa.indexer.rdbms.entity.enums.ValueType;
 
 @Converter
 public class ValueTypeConverter implements AttributeConverter<ValueType, String> {

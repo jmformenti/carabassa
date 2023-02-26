@@ -1,10 +1,10 @@
 package org.atypical.carabassa.core.model.impl;
 
-import java.util.ArrayList;
-import java.util.List;
-
 import org.atypical.carabassa.core.model.SearchCondition;
 import org.atypical.carabassa.core.model.SearchCriteria;
+
+import java.util.ArrayList;
+import java.util.List;
 
 public class SearchCriteriaImpl implements SearchCriteria {
 

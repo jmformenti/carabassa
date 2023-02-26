@@ -1,15 +1,14 @@
 package org.atypical.carabassa.cli.service;
 
-import java.io.IOException;
-import java.util.List;
-
+import com.fasterxml.jackson.core.JsonProcessingException;
 import org.atypical.carabassa.cli.dto.ItemToUpload;
 import org.atypical.carabassa.cli.exception.ApiException;
 import org.atypical.carabassa.cli.exception.ItemAlreadyExists;
 import org.atypical.carabassa.restapi.representation.model.DatasetEntityRepresentation;
 import org.atypical.carabassa.restapi.representation.model.ItemRepresentation;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
+import java.io.IOException;
+import java.util.List;
 
 // TODO Do junits
 public interface DatasetApiService {

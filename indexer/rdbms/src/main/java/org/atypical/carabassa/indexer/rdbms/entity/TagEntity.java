@@ -1,14 +1,12 @@
 package org.atypical.carabassa.indexer.rdbms.entity;
 
-import java.text.DateFormat;
-import java.text.DecimalFormat;
-import java.text.SimpleDateFormat;
-import java.time.Instant;
-import java.time.LocalDate;
-import java.time.ZoneId;
-import java.time.ZonedDateTime;
-import java.util.Arrays;
-import java.util.Date;
+import org.apache.commons.lang3.BooleanUtils;
+import org.apache.commons.lang3.StringUtils;
+import org.apache.commons.lang3.builder.ToStringBuilder;
+import org.atypical.carabassa.core.model.BoundingBox;
+import org.atypical.carabassa.core.model.Tag;
+import org.atypical.carabassa.indexer.rdbms.entity.converter.ValueTypeConverter;
+import org.atypical.carabassa.indexer.rdbms.entity.enums.ValueType;
 
 import javax.persistence.Column;
 import javax.persistence.Convert;
@@ -20,14 +18,15 @@ import javax.persistence.OneToOne;
 import javax.persistence.PrePersist;
 import javax.persistence.SequenceGenerator;
 import javax.persistence.Table;
-
-import org.apache.commons.lang3.BooleanUtils;
-import org.apache.commons.lang3.StringUtils;
-import org.apache.commons.lang3.builder.ToStringBuilder;
-import org.atypical.carabassa.core.model.BoundingBox;
-import org.atypical.carabassa.core.model.Tag;
-import org.atypical.carabassa.indexer.rdbms.entity.converter.ValueTypeConverter;
-import org.atypical.carabassa.indexer.rdbms.entity.enums.ValueType;
+import java.text.DateFormat;
+import java.text.DecimalFormat;
+import java.text.SimpleDateFormat;
+import java.time.Instant;
+import java.time.LocalDate;
+import java.time.ZoneId;
+import java.time.ZonedDateTime;
+import java.util.Arrays;
+import java.util.Date;
 
 @Entity
 @Table(name = "TAG")

@@ -4,7 +4,6 @@ import org.atypical.carabassa.cli.command.CarabassaCommand;
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.boot.ExitCodeGenerator;
 import org.springframework.stereotype.Component;
-
 import picocli.CommandLine;
 import picocli.CommandLine.IFactory;
 

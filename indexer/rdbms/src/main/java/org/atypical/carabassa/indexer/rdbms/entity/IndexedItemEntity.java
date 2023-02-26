@@ -1,9 +1,11 @@
 package org.atypical.carabassa.indexer.rdbms.entity;
 
-import java.time.Instant;
-import java.time.ZoneId;
-import java.time.ZonedDateTime;
-import java.util.Set;
+import org.apache.commons.lang3.builder.ToStringBuilder;
+import org.atypical.carabassa.core.model.Dataset;
+import org.atypical.carabassa.core.model.IndexedItem;
+import org.atypical.carabassa.core.model.Tag;
+import org.atypical.carabassa.core.model.enums.ItemType;
+import org.atypical.carabassa.indexer.rdbms.entity.converter.ItemTypeConverter;
 
 import javax.persistence.CascadeType;
 import javax.persistence.Column;
@@ -19,13 +21,10 @@ import javax.persistence.PrePersist;
 import javax.persistence.PreUpdate;
 import javax.persistence.SequenceGenerator;
 import javax.persistence.Table;
-
-import org.apache.commons.lang3.builder.ToStringBuilder;
-import org.atypical.carabassa.core.model.Dataset;
-import org.atypical.carabassa.core.model.IndexedItem;
-import org.atypical.carabassa.core.model.Tag;
-import org.atypical.carabassa.core.model.enums.ItemType;
-import org.atypical.carabassa.indexer.rdbms.entity.converter.ItemTypeConverter;
+import java.time.Instant;
+import java.time.ZoneId;
+import java.time.ZonedDateTime;
+import java.util.Set;
 
 @Entity
 @Table(name = "ITEM")

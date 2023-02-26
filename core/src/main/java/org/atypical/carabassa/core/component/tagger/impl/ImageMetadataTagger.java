@@ -1,19 +1,18 @@
 package org.atypical.carabassa.core.component.tagger.impl;
 
-import java.awt.image.BufferedImage;
-import java.io.IOException;
-import java.nio.file.Paths;
-import java.time.Instant;
-import java.time.ZoneId;
-import java.util.Date;
-import java.util.HashSet;
-import java.util.Set;
-import java.util.TimeZone;
-import java.util.stream.IntStream;
-
-import javax.annotation.PostConstruct;
-import javax.imageio.ImageIO;
-
+import atlas.Atlas;
+import atlas.City;
+import com.drew.imaging.ImageMetadataReader;
+import com.drew.imaging.ImageProcessingException;
+import com.drew.lang.GeoLocation;
+import com.drew.metadata.Directory;
+import com.drew.metadata.Metadata;
+import com.drew.metadata.exif.ExifSubIFDDirectory;
+import com.drew.metadata.exif.GpsDirectory;
+import com.drew.metadata.file.FileTypeDirectory;
+import com.github.kilianB.hash.Hash;
+import com.github.kilianB.hashAlgorithms.DifferenceHash;
+import com.github.kilianB.hashAlgorithms.DifferenceHash.Precision;
 import org.apache.commons.codec.binary.Hex;
 import org.apache.commons.text.WordUtils;
 import org.atypical.carabassa.core.component.tagger.Tagger;
@@ -28,20 +27,18 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.core.io.Resource;
 import org.springframework.stereotype.Component;
 
-import com.drew.imaging.ImageMetadataReader;
-import com.drew.imaging.ImageProcessingException;
-import com.drew.lang.GeoLocation;
-import com.drew.metadata.Directory;
-import com.drew.metadata.Metadata;
-import com.drew.metadata.exif.ExifSubIFDDirectory;
-import com.drew.metadata.exif.GpsDirectory;
-import com.drew.metadata.file.FileTypeDirectory;
-import com.github.kilianB.hash.Hash;
-import com.github.kilianB.hashAlgorithms.DifferenceHash;
-import com.github.kilianB.hashAlgorithms.DifferenceHash.Precision;
-
-import atlas.Atlas;
-import atlas.City;
+import javax.annotation.PostConstruct;
+import javax.imageio.ImageIO;
+import java.awt.image.BufferedImage;
+import java.io.IOException;
+import java.nio.file.Paths;
+import java.time.Instant;
+import java.time.ZoneId;
+import java.util.Date;
+import java.util.HashSet;
+import java.util.Set;
+import java.util.TimeZone;
+import java.util.stream.IntStream;
 
 @Component
 public class ImageMetadataTagger implements Tagger {

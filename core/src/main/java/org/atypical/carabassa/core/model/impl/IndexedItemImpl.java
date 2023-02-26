@@ -1,15 +1,15 @@
 package org.atypical.carabassa.core.model.impl;
 
+import org.atypical.carabassa.core.model.Dataset;
+import org.atypical.carabassa.core.model.IndexedItem;
+import org.atypical.carabassa.core.model.Tag;
+import org.atypical.carabassa.core.model.enums.ItemType;
+
 import java.time.Instant;
 import java.time.ZoneId;
 import java.time.ZonedDateTime;
 import java.util.Set;
 import java.util.stream.Collectors;
-
-import org.atypical.carabassa.core.model.Dataset;
-import org.atypical.carabassa.core.model.IndexedItem;
-import org.atypical.carabassa.core.model.Tag;
-import org.atypical.carabassa.core.model.enums.ItemType;
 
 public class IndexedItemImpl implements IndexedItem {
 

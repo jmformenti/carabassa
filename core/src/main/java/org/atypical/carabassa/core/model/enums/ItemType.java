@@ -1,9 +1,9 @@
 package org.atypical.carabassa.core.model.enums;
 
+import com.drew.imaging.FileType;
+
 import java.util.HashMap;
 import java.util.Map;
-
-import com.drew.imaging.FileType;
 
 public enum ItemType {
 

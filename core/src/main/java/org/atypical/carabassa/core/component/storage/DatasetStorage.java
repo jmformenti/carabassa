@@ -1,7 +1,5 @@
 package org.atypical.carabassa.core.component.storage;
 
-import java.io.IOException;
-
 import org.atypical.carabassa.core.exception.EntityExistsException;
 import org.atypical.carabassa.core.exception.EntityNotFoundException;
 import org.atypical.carabassa.core.model.Dataset;
@@ -9,6 +7,8 @@ import org.atypical.carabassa.core.model.IndexedItem;
 import org.atypical.carabassa.core.model.StoredItem;
 import org.atypical.carabassa.core.model.StoredItemThumbnail;
 import org.springframework.core.io.Resource;
+
+import java.io.IOException;
 
 public interface DatasetStorage {
 

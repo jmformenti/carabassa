@@ -1,9 +1,5 @@
 package org.atypical.carabassa.cli.command;
 
-import java.time.ZoneId;
-import java.util.List;
-import java.util.concurrent.Callable;
-
 import org.atypical.carabassa.cli.exception.ApiException;
 import org.atypical.carabassa.cli.service.DatasetApiService;
 import org.atypical.carabassa.cli.util.CommandLogger;
@@ -11,10 +7,13 @@ import org.atypical.carabassa.cli.util.DateFormatter;
 import org.atypical.carabassa.restapi.representation.model.ItemRepresentation;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
-
 import picocli.CommandLine.Command;
 import picocli.CommandLine.ExitCode;
 import picocli.CommandLine.Option;
+
+import java.time.ZoneId;
+import java.util.List;
+import java.util.concurrent.Callable;
 
 @Component
 @Command(name = "items", description = "list items.")

@@ -1,11 +1,11 @@
 package org.atypical.carabassa.core.model.enums;
 
+import org.springframework.data.util.Pair;
+
 import java.time.Instant;
 import java.time.LocalDate;
 import java.time.ZoneId;
 import java.time.ZonedDateTime;
-
-import org.springframework.data.util.Pair;
 
 public enum PeriodType {
     DAY, MONTH, YEAR;

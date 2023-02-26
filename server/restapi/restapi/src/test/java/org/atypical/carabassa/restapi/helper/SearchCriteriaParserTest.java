@@ -1,7 +1,11 @@
 package org.atypical.carabassa.restapi.helper;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertFalse;
+import org.apache.commons.lang3.time.DateUtils;
+import org.atypical.carabassa.core.model.SearchCriteria;
+import org.atypical.carabassa.core.model.enums.PeriodType;
+import org.atypical.carabassa.core.model.enums.SearchOperator;
+import org.junit.jupiter.api.Test;
+import org.springframework.data.util.Pair;
 
 import java.text.DateFormat;
 import java.text.ParseException;
@@ -11,12 +15,8 @@ import java.time.LocalDateTime;
 import java.time.ZoneOffset;
 import java.time.format.DateTimeFormatter;
 
-import org.apache.commons.lang3.time.DateUtils;
-import org.atypical.carabassa.core.model.SearchCriteria;
-import org.atypical.carabassa.core.model.enums.PeriodType;
-import org.atypical.carabassa.core.model.enums.SearchOperator;
-import org.junit.jupiter.api.Test;
-import org.springframework.data.util.Pair;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
 
 class SearchCriteriaParserTest {
 

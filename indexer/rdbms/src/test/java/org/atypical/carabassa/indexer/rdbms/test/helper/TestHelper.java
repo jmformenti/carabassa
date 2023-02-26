@@ -1,5 +1,10 @@
 package org.atypical.carabassa.indexer.rdbms.test.helper;
 
+import org.junit.jupiter.api.Assertions;
+import org.springframework.core.io.ClassPathResource;
+import org.springframework.core.io.FileSystemResource;
+import org.springframework.core.io.Resource;
+
 import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
@@ -9,11 +14,6 @@ import java.time.LocalDateTime;
 import java.time.ZoneId;
 import java.time.ZonedDateTime;
 import java.time.format.DateTimeFormatter;
-
-import org.junit.jupiter.api.Assertions;
-import org.springframework.core.io.ClassPathResource;
-import org.springframework.core.io.FileSystemResource;
-import org.springframework.core.io.Resource;
 
 public class TestHelper {
 

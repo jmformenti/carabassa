@@ -1,8 +1,7 @@
 package org.atypical.carabassa.indexer.rdbms.entity;
 
-import java.time.Instant;
-import java.util.HashSet;
-import java.util.Set;
+import org.atypical.carabassa.core.model.Dataset;
+import org.atypical.carabassa.core.model.IndexedItem;
 
 import javax.persistence.CascadeType;
 import javax.persistence.Column;
@@ -16,9 +15,9 @@ import javax.persistence.PrePersist;
 import javax.persistence.PreUpdate;
 import javax.persistence.SequenceGenerator;
 import javax.persistence.Table;
-
-import org.atypical.carabassa.core.model.Dataset;
-import org.atypical.carabassa.core.model.IndexedItem;
+import java.time.Instant;
+import java.util.HashSet;
+import java.util.Set;
 
 @Entity
 @Table(name = "DATASET")

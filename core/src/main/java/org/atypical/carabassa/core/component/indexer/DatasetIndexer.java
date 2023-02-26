@@ -1,8 +1,5 @@
 package org.atypical.carabassa.core.component.indexer;
 
-import java.io.IOException;
-import java.util.List;
-
 import org.atypical.carabassa.core.exception.EntityExistsException;
 import org.atypical.carabassa.core.exception.EntityNotFoundException;
 import org.atypical.carabassa.core.model.Dataset;
@@ -13,6 +10,9 @@ import org.atypical.carabassa.core.model.enums.ItemType;
 import org.springframework.core.io.Resource;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+
+import java.io.IOException;
+import java.util.List;
 
 public interface DatasetIndexer {
 

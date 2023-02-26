@@ -1,8 +1,8 @@
 package org.atypical.carabassa.cli.exception;
 
-import java.time.ZonedDateTime;
-
 import com.fasterxml.jackson.annotation.JsonFormat;
+
+import java.time.ZonedDateTime;
 
 public class ResponseBodyException {
     @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd'T'HH:mm:ss.SSSX")

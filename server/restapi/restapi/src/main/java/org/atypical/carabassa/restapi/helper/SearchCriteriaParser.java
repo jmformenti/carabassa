@@ -1,12 +1,12 @@
 package org.atypical.carabassa.restapi.helper;
 
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
-
 import org.atypical.carabassa.core.model.SearchCriteria;
 import org.atypical.carabassa.core.model.enums.SearchOperator;
 import org.atypical.carabassa.core.model.impl.SearchConditionImpl;
 import org.atypical.carabassa.core.model.impl.SearchCriteriaImpl;
+
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 public class SearchCriteriaParser {
 

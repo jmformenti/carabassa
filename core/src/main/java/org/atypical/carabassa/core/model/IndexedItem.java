@@ -1,11 +1,11 @@
 package org.atypical.carabassa.core.model;
 
+import org.atypical.carabassa.core.model.enums.ItemType;
+
 import java.time.Instant;
 import java.time.ZonedDateTime;
 import java.util.Set;
 import java.util.stream.Collectors;
-
-import org.atypical.carabassa.core.model.enums.ItemType;
 
 public interface IndexedItem {
 

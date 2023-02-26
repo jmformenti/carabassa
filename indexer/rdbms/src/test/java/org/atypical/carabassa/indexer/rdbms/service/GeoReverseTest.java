@@ -1,9 +1,7 @@
 package org.atypical.carabassa.indexer.rdbms.service;
 
-import java.io.IOException;
-import java.util.List;
-import java.util.Set;
-
+import atlas.Atlas;
+import atlas.City;
 import org.atypical.carabassa.core.component.tagger.impl.ImageMetadataTagger;
 import org.atypical.carabassa.core.configuration.CoreConfiguration;
 import org.atypical.carabassa.core.model.Tag;
@@ -17,8 +15,9 @@ import org.springframework.boot.test.autoconfigure.orm.jpa.DataJpaTest;
 import org.springframework.core.io.Resource;
 import org.springframework.test.context.ContextConfiguration;
 
-import atlas.Atlas;
-import atlas.City;
+import java.io.IOException;
+import java.util.List;
+import java.util.Set;
 
 @ContextConfiguration(classes = {CoreConfiguration.class, IndexerRdbmsConfiguration.class,
         StorageFSConfiguration.class, TestConfiguration.class})

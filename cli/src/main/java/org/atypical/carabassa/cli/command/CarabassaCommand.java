@@ -1,12 +1,11 @@
 package org.atypical.carabassa.cli.command;
 
-import java.util.concurrent.Callable;
-
 import org.springframework.stereotype.Component;
-
 import picocli.CommandLine;
 import picocli.CommandLine.Command;
 import picocli.CommandLine.ExitCode;
+
+import java.util.concurrent.Callable;
 
 @Component
 @Command(name = "carabassa", mixinStandardHelpOptions = true, versionProvider = CarabassaVersion.class, subcommands = {

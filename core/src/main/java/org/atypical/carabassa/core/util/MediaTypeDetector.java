@@ -1,10 +1,10 @@
 package org.atypical.carabassa.core.util;
 
+import org.atypical.carabassa.core.model.enums.ItemType;
+
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
-
-import org.atypical.carabassa.core.model.enums.ItemType;
 
 public class MediaTypeDetector {
 

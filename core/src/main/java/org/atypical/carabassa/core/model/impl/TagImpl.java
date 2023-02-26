@@ -1,9 +1,9 @@
 package org.atypical.carabassa.core.model.impl;
 
-import java.time.Instant;
-
 import org.atypical.carabassa.core.model.BoundingBox;
 import org.atypical.carabassa.core.model.Tag;
+
+import java.time.Instant;
 
 public class TagImpl implements Tag {
 

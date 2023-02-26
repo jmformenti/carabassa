@@ -1,9 +1,8 @@
 package org.atypical.carabassa.restapi.representation.model;
 
-import org.springframework.hateoas.RepresentationModel;
-
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonInclude.Include;
+import org.springframework.hateoas.RepresentationModel;
 
 public class TagEntityRepresentation extends RepresentationModel<TagEntityRepresentation>
         implements Comparable<TagEntityRepresentation> {
