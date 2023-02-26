@@ -10,9 +10,8 @@ import com.drew.metadata.Metadata;
 import com.drew.metadata.exif.ExifSubIFDDirectory;
 import com.drew.metadata.exif.GpsDirectory;
 import com.drew.metadata.file.FileTypeDirectory;
-import com.github.kilianB.hash.Hash;
-import com.github.kilianB.hashAlgorithms.DifferenceHash;
-import com.github.kilianB.hashAlgorithms.DifferenceHash.Precision;
+import dev.brachtendorf.jimagehash.hash.Hash;
+import dev.brachtendorf.jimagehash.hashAlgorithms.DifferenceHash;
 import org.apache.commons.codec.binary.Hex;
 import org.apache.commons.text.WordUtils;
 import org.atypical.carabassa.core.component.tagger.Tagger;
@@ -53,7 +52,7 @@ public class ImageMetadataTagger implements Tagger {
     private static final String IMAGE_ERROR_META_MESSAGE_KEY = "core.tagger.meta.image.error";
     private static final String IMAGE_ERROR_PHASH_MESSAGE_KEY = "core.tagger.phash.error";
 
-    private static final DifferenceHash differenceHash = new DifferenceHash(64, Precision.Double);
+    private static final DifferenceHash differenceHash = new DifferenceHash(64, DifferenceHash.Precision.Double);
 
     @Value("${carabassa.default-tz}")
     private String defaultTimeZone;

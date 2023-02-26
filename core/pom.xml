@@ -17,7 +17,7 @@
         <metadata-extractor.version>2.18.0</metadata-extractor.version>
         <commons-text.version>1.10.0</commons-text.version>
         <commons-io.version>2.11.0</commons-io.version>
-        <jimagehash.version>3.0.0</jimagehash.version>
+        <jimagehash.version>1.0.0</jimagehash.version>
         <jave.version>3.3.1</jave.version>
         <atlas.version>0.2.0</atlas.version>
     </properties>
@@ -63,7 +63,7 @@
             <version>${commons-io.version}</version>
         </dependency>
         <dependency>
-            <groupId>com.github.kilianB</groupId>
+            <groupId>dev.brachtendorf</groupId>
             <artifactId>JImageHash</artifactId>
             <version>${jimagehash.version}</version>
         </dependency>
