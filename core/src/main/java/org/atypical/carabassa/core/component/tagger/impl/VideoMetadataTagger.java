@@ -4,6 +4,8 @@ import org.atypical.carabassa.core.component.tagger.Tagger;
 import org.atypical.carabassa.core.model.Tag;
 import org.atypical.carabassa.core.model.impl.TagImpl;
 import org.atypical.carabassa.core.util.HashGenerator;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.core.io.Resource;
 import org.springframework.stereotype.Component;
@@ -17,11 +19,14 @@ import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.nio.file.StandardCopyOption;
 import java.time.ZonedDateTime;
+import java.time.format.DateTimeParseException;
 import java.util.HashSet;
 import java.util.Set;
 
 @Component
 public class VideoMetadataTagger implements Tagger {
+
+    private static final Logger logger = LoggerFactory.getLogger(VideoMetadataTagger.class);
 
     private final static String METADATA_CREATION_TIME_FIELD = "creation_time";
 
@@ -45,8 +50,12 @@ public class VideoMetadataTagger implements Tagger {
         tags.add(new TagImpl(TAG_FILE_TYPE, info.getFormat()));
         tags.add(new TagImpl(TAG_PREFIX + "Duration", info.getDuration()));
         if (info.getMetadata().get(METADATA_CREATION_TIME_FIELD) != null) {
-            tags.add(new TagImpl(TAG_ARCHIVE_TIME,
-                    ZonedDateTime.parse(info.getMetadata().get(METADATA_CREATION_TIME_FIELD))));
+            try {
+                tags.add(new TagImpl(TAG_ARCHIVE_TIME,
+                        ZonedDateTime.parse(info.getMetadata().get(METADATA_CREATION_TIME_FIELD))));
+            } catch (DateTimeParseException e) {
+                logger.debug("Invalid creation time {}, ignored.", info.getMetadata().get(METADATA_CREATION_TIME_FIELD));
+            }
         }
 
         if (info.getVideo() != null) {

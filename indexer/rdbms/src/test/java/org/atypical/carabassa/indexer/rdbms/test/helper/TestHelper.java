@@ -21,6 +21,10 @@ public class TestHelper {
         return getTempResource(new ClassPathResource("images/" + filename));
     }
 
+    public static Resource getVideoResource(String filename) throws IOException {
+        return getTempResource(new ClassPathResource("videos/" + filename));
+    }
+
     private static Resource getTempResource(Resource resource) throws IOException {
         File tempFile = File.createTempFile("test", null);
         tempFile.deleteOnExit();

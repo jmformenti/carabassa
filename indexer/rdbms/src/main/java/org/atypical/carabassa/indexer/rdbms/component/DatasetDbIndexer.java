@@ -29,10 +29,16 @@ import javax.persistence.PersistenceContext;
 import javax.transaction.Transactional;
 import java.io.IOException;
 import java.time.Instant;
+import java.time.LocalDateTime;
+import java.time.ZoneOffset;
+import java.time.format.DateTimeFormatter;
+import java.time.format.DateTimeParseException;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 import java.util.stream.StreamSupport;
 
@@ -246,6 +252,8 @@ public class DatasetDbIndexer implements DatasetIndexer {
         Instant archiveTime = null;
         if (archiveTimeTag != null) {
             archiveTime = archiveTimeTag.getValue(Instant.class);
+        } else {
+            archiveTime = extractDateFromOriginalName(indexedItem.getFilename());
         }
         indexedItem.setArchiveTime(archiveTime);
 
@@ -256,6 +264,28 @@ public class DatasetDbIndexer implements DatasetIndexer {
         indexedItem.setFormat(fileType);
 
         indexedItem.setSize(inputItem.contentLength());
+    }
+
+    private Instant extractDateFromOriginalName(String filename) {
+        final String DATE_REGEX = "\\d{8}_\\d{6}";
+        final Pattern pattern = Pattern.compile(DATE_REGEX);
+
+        Matcher matcher = pattern.matcher(filename);
+
+        if (matcher.find()) {
+            String dateString = matcher.group();
+
+            DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyyMMdd_HHmmss");
+            LocalDateTime localDateTime;
+            try {
+                localDateTime = LocalDateTime.parse(dateString, formatter);
+            } catch (DateTimeParseException e) {
+                return null;
+            }
+            return localDateTime.toInstant(ZoneOffset.UTC);
+        }
+
+        return null;
     }
 
 }

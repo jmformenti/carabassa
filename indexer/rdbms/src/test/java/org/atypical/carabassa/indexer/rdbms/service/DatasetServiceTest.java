@@ -157,6 +157,47 @@ public class DatasetServiceTest {
     }
 
     @Test
+    void addItemNoDateOriginalButWithDateInFilename() throws IOException, EntityExistsException, EntityNotFoundException {
+        final String FILENAME = "IMG_20200807_190102.jpg";
+
+        // GIVEN
+        Dataset dataset = datasetService.findByName(DATASET_TEST_NAME);
+
+        // WHEN
+        IndexedItem indexedItem = datasetService.addItem(dataset, ItemType.IMAGE, FILENAME,
+                TestHelper.getImageResource(FILENAME));
+
+        // THEN
+        assertNotNull(indexedItem);
+        assertNotNull(indexedItem.getCreation());
+        assertNull(indexedItem.getModification());
+        TestHelper.assertDateInUTC("2020-08-07T19:01:02", indexedItem.getArchiveTimeAsZoned("UTC"));
+        assertTrue(indexedItem.isArchived());
+        assertEquals("jpg", indexedItem.getFormat());
+        assertEquals(FILENAME, indexedItem.getFilename());
+        assertNotNull(indexedItem.getHash());
+        assertEquals("c90dc72d18cb6c62d8923fc2f276f94f", indexedItem.getHash());
+        assertEquals(22, indexedItem.getTags().size());
+
+        // required to save item in db
+        entityManager.flush();
+
+        dataset = datasetService.findByName(DATASET_TEST_NAME);
+
+        assertEquals(1, dataset.getItems().size());
+
+        indexedItem = dataset.getItems().iterator().next();
+
+        assertNotNull(indexedItem);
+        assertNotNull(indexedItem.getId());
+        assertTrue(indexedItem.isArchived());
+        assertNotNull(datasetService.findItemById(dataset, indexedItem.getId()));
+        StoredItem storedItem = datasetService.getStoredItem(dataset, indexedItem);
+        assertNotNull(storedItem);
+        assertEquals(FILENAME, storedItem.getStoredItemInfo().getOriginalFilename());
+    }
+
+    @Test
     void addItemNotArchived() throws IOException, EntityExistsException, EntityNotFoundException {
         final String FILENAME = "IMG_NO_DATE.jpg";
 
@@ -335,6 +376,47 @@ public class DatasetServiceTest {
         assertNotNull(indexedItem);
         assertNotNull(indexedItem.getId());
         TestHelper.assertDateInUTC("2005-01-17T15:20:40", indexedItem.getArchiveTimeAsZoned("UTC"));
+
+        StoredItem storedItem = datasetService.getStoredItem(dataset, indexedItem);
+        assertNotNull(storedItem);
+        assertEquals(FILENAME, storedItem.getStoredItemInfo().getOriginalFilename());
+    }
+
+    @Test
+    void addItemVideo() throws IOException, EntityExistsException, EntityNotFoundException {
+        final String FILENAME = "VID_20200807_190102.mp4";
+
+        // GIVEN
+        Dataset dataset = datasetService.findByName(DATASET_TEST_NAME);
+
+        // WHEN
+        IndexedItem indexedItem = datasetService.addItem(dataset, ItemType.VIDEO, FILENAME,
+                TestHelper.getVideoResource(FILENAME));
+
+        // THEN
+        assertNotNull(indexedItem);
+        assertEquals(ItemType.VIDEO, indexedItem.getType());
+        assertNotNull(indexedItem.getCreation());
+        assertNull(indexedItem.getModification());
+        TestHelper.assertDateInUTC("2020-08-07T19:01:02", indexedItem.getArchiveTimeAsZoned("UTC"));
+        assertTrue(indexedItem.isArchived());
+        assertEquals("mov", indexedItem.getFormat());
+        assertEquals(FILENAME, indexedItem.getFilename());
+        assertNotNull(indexedItem.getHash());
+        assertEquals("6206f0e6d42d699a285d5dc273d7d5a3", indexedItem.getHash());
+        assertEquals(784144, indexedItem.getSize());
+        assertEquals(12, indexedItem.getTags().size());
+
+        // required to save item in db
+        entityManager.flush();
+
+        dataset = datasetService.findByName(DATASET_TEST_NAME);
+        assertEquals(1, dataset.getItems().size());
+
+        indexedItem = datasetService.findItemById(dataset, indexedItem.getId());
+        assertNotNull(indexedItem);
+        assertNotNull(indexedItem.getId());
+        TestHelper.assertDateInUTC("2020-08-07T19:01:02", indexedItem.getArchiveTimeAsZoned("UTC"));
 
         StoredItem storedItem = datasetService.getStoredItem(dataset, indexedItem);
         assertNotNull(storedItem);
