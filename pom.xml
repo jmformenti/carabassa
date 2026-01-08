@@ -135,7 +135,7 @@
             <plugin>
                 <groupId>org.owasp</groupId>
                 <artifactId>dependency-check-maven</artifactId>
-                <version>8.1.0</version>
+                <version>12.1.9</version>
                 <configuration>
                     <!--failBuildOnCVSS>8</failBuildOnCVSS -->
                 </configuration>
@@ -151,9 +151,7 @@
     </build>
 
     <modules>
-        <module>core</module>
-        <module>indexer</module>
-        <module>storage</module>
+        <module>engine</module>
         <module>server</module>
         <module>cli</module>
         <module>aggregator</module>

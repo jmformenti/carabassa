@@ -18,8 +18,8 @@
 
     <dependencies>
         <dependency>
-            <groupId>org.atypical.carabassa.server.restapi</groupId>
-            <artifactId>carabassa-restapi-representation</artifactId>
+            <groupId>org.atypical.carabassa.server.api</groupId>
+            <artifactId>carabassa-api-model</artifactId>
             <version>${revision}</version>
         </dependency>
         <dependency>

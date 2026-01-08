@@ -8,18 +8,18 @@
         <version>${revision}</version>
     </parent>
 
-    <artifactId>carabassa-server</artifactId>
+    <artifactId>carabassa-boot</artifactId>
     <packaging>jar</packaging>
 
     <dependencies>
         <dependency>
-            <groupId>org.atypical.carabassa.server.restapi</groupId>
-            <artifactId>carabassa-restapi</artifactId>
+            <groupId>org.atypical.carabassa.server.api</groupId>
+            <artifactId>carabassa-api-rest</artifactId>
             <version>${project.version}</version>
         </dependency>
         <dependency>
-            <groupId>org.atypical.carabassa.server.restapi</groupId>
-            <artifactId>carabassa-restapi-rdbms-mapper</artifactId>
+            <groupId>org.atypical.carabassa.server.adapters</groupId>
+            <artifactId>carabassa-adapter-rdbms-mapper</artifactId>
             <version>${project.version}</version>
         </dependency>
         <dependency>

@@ -32,23 +32,23 @@
             <version>${revision}</version>
         </dependency>
         <dependency>
-            <groupId>org.atypical.carabassa.server.restapi</groupId>
-            <artifactId>carabassa-restapi-rdbms-mapper</artifactId>
+            <groupId>org.atypical.carabassa.server.adapters</groupId>
+            <artifactId>carabassa-adapter-rdbms-mapper</artifactId>
             <version>${revision}</version>
         </dependency>
         <dependency>
-            <groupId>org.atypical.carabassa.server.restapi</groupId>
-            <artifactId>carabassa-restapi-representation</artifactId>
+            <groupId>org.atypical.carabassa.server.api</groupId>
+            <artifactId>carabassa-api-model</artifactId>
             <version>${revision}</version>
         </dependency>
         <dependency>
-            <groupId>org.atypical.carabassa.server.restapi</groupId>
-            <artifactId>carabassa-restapi</artifactId>
+            <groupId>org.atypical.carabassa.server.api</groupId>
+            <artifactId>carabassa-api-rest</artifactId>
             <version>${revision}</version>
         </dependency>
         <dependency>
             <groupId>org.atypical.carabassa.server</groupId>
-            <artifactId>carabassa-server</artifactId>
+            <artifactId>carabassa-boot</artifactId>
             <version>${revision}</version>
         </dependency>
         <dependency>

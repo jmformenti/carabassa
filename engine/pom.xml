@@ -4,19 +4,18 @@
          xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
     <modelVersion>4.0.0</modelVersion>
     <parent>
-        <groupId>org.atypical.carabassa.server</groupId>
-        <artifactId>carabassa-server-parent</artifactId>
+        <groupId>org.atypical.carabassa</groupId>
+        <artifactId>carabassa-parent</artifactId>
         <version>${revision}</version>
     </parent>
 
-    <groupId>org.atypical.carabassa.server.restapi</groupId>
-    <artifactId>carabassa-restapi-parent</artifactId>
+    <artifactId>carabassa-engine</artifactId>
     <packaging>pom</packaging>
 
     <modules>
-        <module>rdbms-mapper</module>
-        <module>restapi-representation</module>
-        <module>restapi</module>
+        <module>core</module>
+        <module>indexer</module>
+        <module>storage</module>
     </modules>
 
 </project>

@@ -1,20 +1,21 @@
+<?xml version="1.0" encoding="UTF-8"?>
 <project xmlns="http://maven.apache.org/POM/4.0.0"
          xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
          xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 https://maven.apache.org/xsd/maven-4.0.0.xsd">
     <modelVersion>4.0.0</modelVersion>
     <parent>
-        <groupId>org.atypical.carabassa.server.restapi</groupId>
-        <artifactId>carabassa-restapi-parent</artifactId>
+        <groupId>org.atypical.carabassa.server.adapters</groupId>
+        <artifactId>carabassa-adapters-parent</artifactId>
         <version>${revision}</version>
     </parent>
 
-    <artifactId>carabassa-restapi-rdbms-mapper</artifactId>
+    <artifactId>carabassa-adapter-rdbms-mapper</artifactId>
     <packaging>jar</packaging>
 
     <dependencies>
         <dependency>
-            <groupId>org.atypical.carabassa.server.restapi</groupId>
-            <artifactId>carabassa-restapi-representation</artifactId>
+            <groupId>org.atypical.carabassa.server.api</groupId>
+            <artifactId>carabassa-api-model</artifactId>
             <version>${revision}</version>
         </dependency>
         <dependency>
