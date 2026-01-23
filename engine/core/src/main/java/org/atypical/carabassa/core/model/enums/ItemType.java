@@ -13,7 +13,7 @@ public enum ItemType {
     private static final Map<String, ItemType> names = new HashMap<>();
 
     static {
-        for (ItemType type : ItemType.values()) {
+        for (ItemType type : values()) {
             codes.put(type.getCode(), type);
             names.put(type.normalized(), type);
         }

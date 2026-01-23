@@ -15,12 +15,12 @@ import org.atypical.carabassa.indexer.rdbms.entity.TagEntity_;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.data.util.Pair;
 
-import javax.persistence.criteria.CriteriaBuilder;
-import javax.persistence.criteria.CriteriaQuery;
-import javax.persistence.criteria.Join;
-import javax.persistence.criteria.JoinType;
-import javax.persistence.criteria.Predicate;
-import javax.persistence.criteria.Root;
+import jakarta.persistence.criteria.CriteriaBuilder;
+import jakarta.persistence.criteria.CriteriaQuery;
+import jakarta.persistence.criteria.Join;
+import jakarta.persistence.criteria.JoinType;
+import jakarta.persistence.criteria.Predicate;
+import jakarta.persistence.criteria.Root;
 import java.text.ParseException;
 import java.time.Instant;
 import java.time.LocalDateTime;
@@ -59,7 +59,7 @@ public class ItemSpecification implements Specification<IndexedItemEntity> {
 
         final List<Predicate> predicates = new ArrayList<>();
 
-        predicates.add(builder.equal(root.get(IndexedItemEntity_.DATASET), this.dataset.getId()));
+        predicates.add(builder.equal(root.get(IndexedItemEntity_.DATASET), this.dataset));
 
         for (SearchCondition condition : searchCriteria.getConditions()) {
             predicates.add(toPredicateFromCondition(condition, root, query, builder));

@@ -1,4 +1,5 @@
 /**/*.iml
 /**/target/
+/**/.flattened-pom.xml
 /cli/log
 .vscode

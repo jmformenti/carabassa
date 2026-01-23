@@ -1,0 +1,10 @@
+TODO:
+- [x] Arreglar execució de carabassa-cli
+    - Verificar canvis -> OK
+    - Provar amb bd real -> Fer prova en local de pujar fotos/videos de Maria
+- Arreglar errors i warnings en log de build de maven
+- Mirar problema de versió de h2
+- Actualitzar frontend (vue/vuetify)
+
+Tips:
+- Error Service Worker -> rm -rf ~/.config/Code/Service Worker/

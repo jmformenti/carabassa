@@ -88,7 +88,7 @@ public class DatasetControllerImpl implements DatasetController {
             logger.error(e.getMessage(), e);
             throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, e.getMessage());
         } catch (IllegalArgumentException | EntityExistsException e) {
-            logger.error(e.getMessage(), e);
+            logger.error(e.getMessage());
             throw new ResponseStatusException(HttpStatus.CONFLICT, e.getMessage());
         }
 
@@ -124,7 +124,7 @@ public class DatasetControllerImpl implements DatasetController {
         try {
             dataset = datasetService.findByName(datasetName);
         } catch (EntityNotFoundException e) {
-            logger.error(e.getMessage(), e);
+            logger.error(e.getMessage());
             throw new ResponseStatusException(HttpStatus.NOT_FOUND, e.getMessage());
         }
         return datasetMapper.toRepresentation(dataset);
@@ -186,7 +186,7 @@ public class DatasetControllerImpl implements DatasetController {
         try {
             storedItem = datasetService.getStoredItem(dataset, indexedItem);
         } catch (EntityNotFoundException e) {
-            logger.error(e.getMessage(), e);
+            logger.error(e.getMessage());
             throw new ResponseStatusException(HttpStatus.NOT_FOUND, e.getMessage());
         } catch (IOException e) {
             logger.error(e.getMessage(), e);
@@ -208,7 +208,7 @@ public class DatasetControllerImpl implements DatasetController {
         try {
             storedItemThumbnail = datasetService.getStoredItemThumbnail(dataset, indexedItem);
         } catch (EntityNotFoundException e) {
-            logger.error(e.getMessage(), e);
+            logger.error(e.getMessage());
             throw new ResponseStatusException(HttpStatus.NOT_FOUND, e.getMessage());
         } catch (IOException e) {
             logger.error(e.getMessage(), e);
@@ -231,7 +231,7 @@ public class DatasetControllerImpl implements DatasetController {
                     file.getOriginalFilename(), getTempResource(file));
             return new IdRepresentation(indexedItem.getId());
         } catch (EntityExistsException e) {
-            logger.error(String.format("Error adding file %s.", file.getOriginalFilename()), e);
+            logger.error(String.format("Error adding file %s already exists.", file.getOriginalFilename()));
             throw new ResponseStatusException(HttpStatus.CONFLICT, e.getMessage());
         } catch (Exception e) {
             logger.error(String.format("Error adding file %s.", file.getOriginalFilename()), e);
@@ -249,7 +249,7 @@ public class DatasetControllerImpl implements DatasetController {
             logger.error(e.getMessage(), e);
             throw new ResponseStatusException(HttpStatus.CONFLICT, e.getMessage());
         } catch (EntityNotFoundException e) {
-            logger.error(e.getMessage(), e);
+            logger.error(e.getMessage());
             throw new ResponseStatusException(HttpStatus.NOT_FOUND, e.getMessage());
         }
     }
@@ -260,7 +260,7 @@ public class DatasetControllerImpl implements DatasetController {
         try {
             datasetService.deleteItem(dataset, itemId);
         } catch (EntityNotFoundException e) {
-            logger.error(e.getMessage(), e);
+            logger.error(e.getMessage());
             throw new ResponseStatusException(HttpStatus.NOT_FOUND, e.getMessage());
         } catch (IOException e) {
             logger.error(e.getMessage(), e);
@@ -274,7 +274,7 @@ public class DatasetControllerImpl implements DatasetController {
         try {
             datasetService.deleteItemTag(dataset, itemId, tagId);
         } catch (EntityNotFoundException e) {
-            logger.error(e.getMessage(), e);
+            logger.error(e.getMessage());
             throw new ResponseStatusException(HttpStatus.NOT_FOUND, e.getMessage());
         }
     }
@@ -285,7 +285,7 @@ public class DatasetControllerImpl implements DatasetController {
         try {
             datasetService.resetItem(dataset, itemId);
         } catch (EntityNotFoundException e) {
-            logger.error(e.getMessage(), e);
+            logger.error(e.getMessage());
             throw new ResponseStatusException(HttpStatus.NOT_FOUND, e.getMessage());
         } catch (EntityExistsException e) {
             throw new ResponseStatusException(HttpStatus.CONFLICT, e.getMessage());
@@ -300,7 +300,7 @@ public class DatasetControllerImpl implements DatasetController {
         try {
             dataset = datasetService.findById(datasetId);
         } catch (EntityNotFoundException e) {
-            logger.error(e.getMessage(), e);
+            logger.error(e.getMessage());
             throw new ResponseStatusException(HttpStatus.NOT_FOUND, e.getMessage());
         }
         return dataset;
@@ -311,7 +311,7 @@ public class DatasetControllerImpl implements DatasetController {
         try {
             indexedItem = datasetService.findItemById(dataset, itemId);
         } catch (EntityNotFoundException e) {
-            logger.error(e.getMessage(), e);
+            logger.error(e.getMessage());
             throw new ResponseStatusException(HttpStatus.NOT_FOUND, e.getMessage());
         }
         return indexedItem;

@@ -9,8 +9,8 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
-import org.springframework.boot.test.mock.mockito.MockBean;
+import org.springframework.boot.webmvc.test.autoconfigure.WebMvcTest;
+import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.hateoas.Links;
 import org.springframework.restdocs.RestDocumentationContextProvider;
 import org.springframework.restdocs.RestDocumentationExtension;
@@ -29,40 +29,43 @@ import static org.springframework.restdocs.payload.PayloadDocumentation.subsecti
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
-@ContextConfiguration(classes = {RestApiConfiguration.class})
-@ExtendWith({RestDocumentationExtension.class})
+@ContextConfiguration(classes = { RestApiConfiguration.class })
+@ExtendWith({ RestDocumentationExtension.class })
 @WebMvcTest(IndexController.class)
 public class IndexControllerTest {
 
-    @Autowired
-    private MockMvc mvc;
+        @Autowired
+        private MockMvc mvc;
 
-    @MockBean
-    private DatasetService datasetService;
+        @MockitoBean
+        private DatasetService datasetService;
 
-    @MockBean
-    private DatasetMapper datasetMapper;
+        @MockitoBean
+        private DatasetMapper datasetMapper;
 
-    @MockBean
-    private ItemMapper itemMapper;
+        @MockitoBean
+        private ItemMapper itemMapper;
 
-    @MockBean
-    private TagMapper tagMapper;
+        @MockitoBean
+        private TagMapper tagMapper;
 
-    @BeforeEach
-    public void setUp(WebApplicationContext webApplicationContext, RestDocumentationContextProvider restDocumentation) {
-        this.mvc = MockMvcBuilders.webAppContextSetup(webApplicationContext)
-                .apply(documentationConfiguration(restDocumentation).operationPreprocessors()
-                        .withRequestDefaults(prettyPrint()).withResponseDefaults(prettyPrint()))
-                .build();
-    }
+        @BeforeEach
+        public void setUp(WebApplicationContext webApplicationContext,
+                        RestDocumentationContextProvider restDocumentation) {
+                this.mvc = MockMvcBuilders.webAppContextSetup(webApplicationContext)
+                                .apply(documentationConfiguration(restDocumentation).operationPreprocessors()
+                                                .withRequestDefaults(prettyPrint()).withResponseDefaults(prettyPrint()))
+                                .build();
+        }
 
-    @Test
-    public void index() throws Exception {
-        this.mvc.perform(get("/api/")).andExpect(status().isOk()) //
-                .andDo(document("index", //
-                        links(linkWithRel("datasets").description("Datasets resources")),
-                        responseFields(subsectionWithPath("_links").description("Links to other resources").type(Links.class))));
-    }
+        @Test
+        public void index() throws Exception {
+                this.mvc.perform(get("/api/")).andExpect(status().isOk()) //
+                                .andDo(document("index", //
+                                                links(linkWithRel("datasets").description("Datasets resources")),
+                                                responseFields(subsectionWithPath("_links")
+                                                                .description("Links to other resources")
+                                                                .type(Links.class))));
+        }
 
 }

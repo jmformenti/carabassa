@@ -1,6 +1,6 @@
 package org.atypical.carabassa.cli.exception;
 
-import org.springframework.web.client.RestClientResponseException;
+import org.springframework.web.reactive.function.client.WebClientResponseException;
 
 public class ApiException extends Exception {
 
@@ -10,7 +10,7 @@ public class ApiException extends Exception {
         super(message);
     }
 
-    public ApiException(RestClientResponseException e) {
+    public ApiException(WebClientResponseException e) {
         super(e);
     }
 
