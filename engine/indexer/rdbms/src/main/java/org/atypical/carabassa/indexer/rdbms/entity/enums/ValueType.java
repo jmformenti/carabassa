@@ -11,7 +11,7 @@ public enum ValueType {
     private static final Map<String, ValueType> codes = new HashMap<>();
 
     static {
-        for (ValueType valueType : ValueType.values()) {
+        for (ValueType valueType : values()) {
             codes.put(valueType.getCode(), valueType);
         }
     }

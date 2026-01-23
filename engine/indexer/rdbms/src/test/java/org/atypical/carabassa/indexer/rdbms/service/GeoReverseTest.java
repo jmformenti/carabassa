@@ -11,7 +11,7 @@ import org.atypical.carabassa.indexer.rdbms.test.helper.TestHelper;
 import org.atypical.carabassa.storage.fs.configuration.StorageFSConfiguration;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.autoconfigure.orm.jpa.DataJpaTest;
+import org.springframework.boot.data.jpa.test.autoconfigure.DataJpaTest;
 import org.springframework.core.io.Resource;
 import org.springframework.test.context.ContextConfiguration;
 

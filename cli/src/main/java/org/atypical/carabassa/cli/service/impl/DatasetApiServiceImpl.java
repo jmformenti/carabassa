@@ -1,9 +1,10 @@
 package org.atypical.carabassa.cli.service.impl;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.DeserializationFeature;
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
+import tools.jackson.core.JacksonException;
+import tools.jackson.databind.DeserializationFeature;
+import tools.jackson.databind.JsonNode;
+import tools.jackson.databind.ObjectMapper;
+import tools.jackson.databind.json.JsonMapper;
 import org.atypical.carabassa.cli.dto.ItemToUpload;
 import org.atypical.carabassa.cli.exception.ApiException;
 import org.atypical.carabassa.cli.exception.ItemAlreadyExists;
@@ -15,57 +16,49 @@ import org.atypical.carabassa.restapi.representation.model.IdRepresentation;
 import org.atypical.carabassa.restapi.representation.model.ItemRepresentation;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.core.ParameterizedTypeReference;
+
 import org.springframework.core.io.FileSystemResource;
 import org.springframework.core.io.Resource;
-import org.springframework.hateoas.IanaLinkRelations;
-import org.springframework.hateoas.PagedModel;
-import org.springframework.hateoas.RepresentationModel;
-import org.springframework.hateoas.server.core.TypeReferences.PagedModelType;
 import org.springframework.http.ContentDisposition;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
-import org.springframework.http.HttpMethod;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
-import org.springframework.http.ResponseEntity;
-import org.springframework.http.client.SimpleClientHttpRequestFactory;
+
 import org.springframework.stereotype.Service;
 import org.springframework.util.Assert;
 import org.springframework.util.LinkedMultiValueMap;
 import org.springframework.util.MultiValueMap;
-import org.springframework.web.client.RestClientResponseException;
-import org.springframework.web.client.RestTemplate;
+import org.springframework.web.reactive.function.BodyInserters;
+import org.springframework.web.reactive.function.client.WebClient;
+import org.springframework.web.reactive.function.client.WebClientResponseException;
 
-import javax.annotation.PostConstruct;
+import jakarta.annotation.PostConstruct;
 import java.io.IOException;
-import java.net.URI;
 import java.util.ArrayList;
 import java.util.List;
 
 @Service
 public class DatasetApiServiceImpl implements DatasetApiService {
 
-    private final static String DATASET_PATH = "dataset/";
-
     @Value("${carabassa.base-url}")
     private String baseUrl;
 
     @Autowired
-    private RestTemplate restTemplate;
+    private WebClient.Builder webClientBuilder;
+
+    private WebClient webClient;
 
     private ObjectMapper objectMapper;
 
-    private String datasetUrl;
-
-    @SuppressWarnings("PMD.UnusedPrivateMethod")
     @PostConstruct
     private void postConstruct() {
-        datasetUrl = getDatasetUrl();
+        String baseApiUrl = baseUrl.endsWith("/") ? baseUrl : baseUrl + "/";
+        webClient = webClientBuilder.baseUrl(baseApiUrl).build();
 
-        objectMapper = new ObjectMapper();
-        objectMapper.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
-        objectMapper.registerModule(new JavaTimeModule());
+        objectMapper = JsonMapper.builder()
+                .disable(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES)
+                .build();
     }
 
     @Override
@@ -73,56 +66,52 @@ public class DatasetApiServiceImpl implements DatasetApiService {
         Resource item = new FileSystemResource(itemToUpload.getPath());
 
         if (!findItemByHash(datasetId, item)) {
-            HttpEntity<MultiValueMap<String, Object>> request = buildFileRequest(itemToUpload);
+            MultiValueMap<String, Object> body = buildFileRequest(itemToUpload);
 
-            ResponseEntity<IdRepresentation> response;
             try {
-                response = restTemplate.exchange(datasetUrl + "{datasetId}/item", HttpMethod.POST, request,
-                        new ParameterizedTypeReference<>() {
-                        }, datasetId);
-            } catch (RestClientResponseException e) {
+                return webClient.post()
+                        .uri("dataset/{datasetId}/item", datasetId)
+                        .contentType(MediaType.MULTIPART_FORM_DATA)
+                        .body(BodyInserters.fromMultipartData(body))
+                        .retrieve()
+                        .bodyToMono(IdRepresentation.class)
+                        .block()
+                        .getId();
+            } catch (WebClientResponseException e) {
                 throw buildApiException(e);
             }
-
-            return response.getBody().getId();
         } else {
             throw new ItemAlreadyExists("Item already exists.");
         }
     }
 
-    private HttpEntity<MultiValueMap<String, Object>> buildFileRequest(ItemToUpload itemToUpload) {
+    private MultiValueMap<String, Object> buildFileRequest(ItemToUpload itemToUpload) {
         Resource item = new FileSystemResource(itemToUpload.getPath());
-
-        // multi from data request
-        HttpHeaders headers = new HttpHeaders();
-        headers.setContentType(MediaType.MULTIPART_FORM_DATA);
-
-        // no buffer to avoid OOM in large files
-        SimpleClientHttpRequestFactory requestFactory = new SimpleClientHttpRequestFactory();
-        requestFactory.setBufferRequestBody(false);
-        restTemplate.setRequestFactory(requestFactory);
 
         // manually sets file and content type, this content type will be used in server
         // to index this file inside the dataset
-        MultiValueMap<String, String> fileMap = new LinkedMultiValueMap<>();
+        HttpHeaders fileHeaders = new HttpHeaders();
         ContentDisposition contentDisposition = ContentDisposition.builder("form-data").name("file")
                 .filename(itemToUpload.getFilename()).build();
-        fileMap.add(HttpHeaders.CONTENT_DISPOSITION, contentDisposition.toString());
-        fileMap.add(HttpHeaders.CONTENT_TYPE, itemToUpload.getContentType());
-        HttpEntity<Resource> entity = new HttpEntity<>(item, fileMap);
+        fileHeaders.setContentDisposition(contentDisposition);
+        fileHeaders.setContentType(MediaType.parseMediaType(itemToUpload.getContentType()));
+        HttpEntity<Resource> entity = new HttpEntity<>(item, fileHeaders);
 
         MultiValueMap<String, Object> body = new LinkedMultiValueMap<>();
         body.add("file", entity);
 
-        return new HttpEntity<>(body, headers);
+        return body;
     }
 
     private boolean findItemByHash(Long datasetId, Resource item) throws IOException {
         try {
-            restTemplate.getForEntity(datasetUrl + "{datasetId}/item/exists/{hash}", Void.class, datasetId,
-                    HashGenerator.generate(item));
-        } catch (RestClientResponseException e) {
-            if (e.getRawStatusCode() == HttpStatus.NOT_FOUND.value()) {
+            webClient.get()
+                    .uri("dataset/{datasetId}/item/exists/{hash}", datasetId, HashGenerator.generate(item))
+                    .retrieve()
+                    .toBodilessEntity()
+                    .block();
+        } catch (WebClientResponseException e) {
+            if (e.getStatusCode().value() == HttpStatus.NOT_FOUND.value()) {
                 return false;
             }
         }
@@ -130,33 +119,35 @@ public class DatasetApiServiceImpl implements DatasetApiService {
     }
 
     @Override
-    public Long create(String name, String description) throws ApiException, JsonProcessingException {
+    public Long create(String name, String description) throws ApiException, JacksonException {
         Assert.notNull(name, "Name can not be null.");
-
-        HttpHeaders headers = new HttpHeaders();
-        headers.setContentType(MediaType.APPLICATION_JSON);
 
         DatasetEntityRepresentation dataset = new DatasetEntityRepresentation(name);
         dataset.setDescription(description);
 
-        HttpEntity<String> request = new HttpEntity<>(objectMapper.writeValueAsString(dataset), headers);
-
-        ResponseEntity<IdRepresentation> response;
         try {
-            response = restTemplate.exchange(datasetUrl, HttpMethod.POST, request,
-                    new ParameterizedTypeReference<>() {
-                    });
-        } catch (RestClientResponseException e) {
+            return webClient.post()
+                    .uri("dataset")
+                    .contentType(MediaType.APPLICATION_JSON)
+                    .bodyValue(objectMapper.writeValueAsString(dataset))
+                    .retrieve()
+                    .bodyToMono(IdRepresentation.class)
+                    .block()
+                    .getId();
+        } catch (WebClientResponseException e) {
             throw buildApiException(e);
         }
-        return response.getBody().getId();
     }
 
     @Override
     public void delete(Long datasetId) throws ApiException {
         try {
-            restTemplate.delete(datasetUrl + "{datasetId}", datasetId);
-        } catch (RestClientResponseException e) {
+            webClient.delete()
+                    .uri("dataset/{datasetId}", datasetId)
+                    .retrieve()
+                    .toBodilessEntity()
+                    .block();
+        } catch (WebClientResponseException e) {
             throw buildApiException(e);
         }
     }
@@ -164,8 +155,12 @@ public class DatasetApiServiceImpl implements DatasetApiService {
     @Override
     public void deleteItem(Long datasetId, Long id) throws ApiException {
         try {
-            restTemplate.delete(datasetUrl + "/{datasetId}/item/{id}", datasetId, id);
-        } catch (RestClientResponseException e) {
+            webClient.delete()
+                    .uri("dataset/{datasetId}/item/{id}", datasetId, id)
+                    .retrieve()
+                    .toBodilessEntity()
+                    .block();
+        } catch (WebClientResponseException e) {
             throw buildApiException(e);
         }
     }
@@ -173,34 +168,41 @@ public class DatasetApiServiceImpl implements DatasetApiService {
     @Override
     public List<DatasetEntityRepresentation> findAll() throws ApiException {
         try {
-            PagedModel<DatasetEntityRepresentation> page = getPage(datasetUrl,
-                    new PagedModelType<DatasetEntityRepresentation>() {
-                    });
+            String json = webClient.get()
+                    .uri("dataset")
+                    .retrieve()
+                    .bodyToMono(String.class)
+                    .block();
 
-            List<DatasetEntityRepresentation> datasets = new ArrayList<>(page.getContent());
-            while (page.hasLink(IanaLinkRelations.NEXT)) {
-                page = getPage(page.getLink(IanaLinkRelations.NEXT_VALUE).get().toUri(),
-                        new PagedModelType<DatasetEntityRepresentation>() {
-                        });
-                datasets.addAll(page.getContent());
+            JsonNode root = objectMapper.readTree(json);
+            JsonNode embedded = root.path("_embedded");
+            JsonNode list = embedded.path("datasetEntityRepresentationList");
+            List<DatasetEntityRepresentation> datasets = new ArrayList<>();
+            if (list.isArray()) {
+                for (JsonNode node : list) {
+                    datasets.add(objectMapper.treeToValue(node, DatasetEntityRepresentation.class));
+                }
             }
-
             return datasets;
-        } catch (RestClientResponseException e) {
+        } catch (WebClientResponseException e) {
             throw buildApiException(e);
+        } catch (JacksonException e) {
+            throw new ApiException("Error parsing response: " + e.getMessage());
         }
     }
 
     @Override
     public Long findByName(String datasetName) throws ApiException {
-        ResponseEntity<DatasetEntityRepresentation> response;
         try {
-            response = restTemplate.getForEntity(datasetUrl + "name/{datasetName}", DatasetEntityRepresentation.class,
-                    datasetName);
-        } catch (RestClientResponseException e) {
+            return webClient.get()
+                    .uri("dataset/name/{datasetName}", datasetName)
+                    .retrieve()
+                    .bodyToMono(DatasetEntityRepresentation.class)
+                    .block()
+                    .getId();
+        } catch (WebClientResponseException e) {
             throw buildApiException(e);
         }
-        return response.getBody().getId();
     }
 
     @Override
@@ -211,30 +213,37 @@ public class DatasetApiServiceImpl implements DatasetApiService {
     @Override
     public List<ItemRepresentation> findItems(Long datasetId, String searchString) throws ApiException {
         try {
-            PagedModel<ItemRepresentation> page = getPage(
-                    datasetUrl + "{datasetId}/item?size={size}&search={searchString}",
-                    new PagedModelType<ItemRepresentation>() {
-                    }, datasetId, 100, searchString);
+            String json = webClient.get()
+                    .uri("dataset/{datasetId}/item?size={size}&search={searchString}", datasetId, 100, searchString)
+                    .retrieve()
+                    .bodyToMono(String.class)
+                    .block();
 
-            List<ItemRepresentation> items = new ArrayList<>(page.getContent());
-            while (page.hasLink(IanaLinkRelations.NEXT)) {
-                page = getPage(page.getLink(IanaLinkRelations.NEXT_VALUE).get().toUri(),
-                        new PagedModelType<ItemRepresentation>() {
-                        });
-                items.addAll(page.getContent());
+            JsonNode root = objectMapper.readTree(json);
+            JsonNode list = root.path("_embedded").path("itemRepresentationList");
+            List<ItemRepresentation> items = new ArrayList<>();
+            if (list.isArray()) {
+                for (JsonNode node : list) {
+                    items.add(objectMapper.treeToValue(node, ItemRepresentation.class));
+                }
             }
-
             return items;
-        } catch (RestClientResponseException e) {
+        } catch (WebClientResponseException e) {
             throw buildApiException(e);
+        } catch (JacksonException e) {
+            throw new ApiException("Error parsing response: " + e.getMessage());
         }
     }
 
     @Override
     public void resetItem(Long datasetId, Long itemId) throws ApiException {
         try {
-            restTemplate.put(datasetUrl + "{datasetId}/item/{itemId}/reset", null, datasetId, itemId);
-        } catch (RestClientResponseException e) {
+            webClient.put()
+                    .uri("dataset/{datasetId}/item/{itemId}/reset", datasetId, itemId)
+                    .retrieve()
+                    .toBodilessEntity()
+                    .block();
+        } catch (WebClientResponseException e) {
             throw buildApiException(e);
         }
     }
@@ -244,33 +253,25 @@ public class DatasetApiServiceImpl implements DatasetApiService {
         try {
             DatasetEntityRepresentation dataset = new DatasetEntityRepresentation();
             dataset.setDescription(description);
-            restTemplate.put(datasetUrl + "{datasetId}", dataset, datasetId);
-        } catch (RestClientResponseException e) {
+            webClient.put()
+                    .uri("dataset/{datasetId}", datasetId)
+                    .bodyValue(dataset)
+                    .retrieve()
+                    .toBodilessEntity()
+                    .block();
+        } catch (WebClientResponseException e) {
             throw buildApiException(e);
         }
     }
 
-    private <T extends RepresentationModel<T>> PagedModel<T> getPage(String uri, PagedModelType<T> responseType,
-                                                                     Object... uriVariables) {
-        return restTemplate.exchange(uri, HttpMethod.GET, null, responseType, uriVariables).getBody();
-    }
-
-    private <T extends RepresentationModel<T>> PagedModel<T> getPage(URI uri, PagedModelType<T> responseType) {
-        return restTemplate.exchange(uri, HttpMethod.GET, null, responseType).getBody();
-    }
-
-    private ApiException buildApiException(RestClientResponseException e) {
+    private ApiException buildApiException(WebClientResponseException e) {
         ResponseBodyException responseBody;
         try {
             responseBody = objectMapper.readValue(e.getResponseBodyAsString(), ResponseBodyException.class);
-        } catch (JsonProcessingException je) {
+        } catch (JacksonException je) {
             return new ApiException(e);
         }
-        return new ApiException(responseBody.getMessage() + " (status code: " + e.getRawStatusCode() + ")");
-    }
-
-    private String getDatasetUrl() {
-        return (baseUrl.endsWith("/") ? baseUrl : baseUrl + "/") + DATASET_PATH;
+        return new ApiException(responseBody.getMessage() + " (status code: " + e.getStatusCode().value() + ")");
     }
 
 }
