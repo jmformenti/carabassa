@@ -1,6 +1,6 @@
 package org.atypical.carabassa.restapi.test.helper;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
+import tools.jackson.databind.ObjectMapper;
 import org.atypical.carabassa.core.model.Dataset;
 import org.atypical.carabassa.core.model.IndexedItem;
 import org.atypical.carabassa.core.model.Tag;

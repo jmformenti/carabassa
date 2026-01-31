@@ -1,11 +1,13 @@
 package org.atypical.carabassa.restapi.representation.model;
 
 import org.springframework.hateoas.RepresentationModel;
+import org.springframework.hateoas.server.core.Relation;
 
 import java.time.Instant;
 import java.time.ZoneId;
 import java.time.ZonedDateTime;
 
+@Relation(collectionRelation = "datasetEntityRepresentationList")
 public class DatasetEntityRepresentation extends RepresentationModel<DatasetEntityRepresentation> {
 
     private Long id;

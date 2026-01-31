@@ -2,8 +2,8 @@ package org.atypical.carabassa.indexer.rdbms.entity.converter;
 
 import org.atypical.carabassa.core.model.enums.ItemType;
 
-import javax.persistence.AttributeConverter;
-import javax.persistence.Converter;
+import jakarta.persistence.AttributeConverter;
+import jakarta.persistence.Converter;
 
 @Converter
 public class ItemTypeConverter implements AttributeConverter<ItemType, String> {

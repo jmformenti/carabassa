@@ -81,8 +81,8 @@ Find all existing datasets in the repository.
 
 ==== Request
 
-===== Request parameters
-include::{snippets}/find-all/request-parameters.adoc[]
+===== Query parameters
+include::{snippets}/find-all/query-parameters.adoc[]
 
 ===== Example
 include::{snippets}/find-all/http-request.adoc[]
@@ -199,8 +199,8 @@ Get items from a dataset.
 ===== Path parameters
 include::{snippets}/find-items/path-parameters.adoc[]
 
-===== Request parameters
-include::{snippets}/find-items/request-parameters.adoc[]
+===== Query parameters
+include::{snippets}/find-items/query-parameters.adoc[]
 
 ===== Example
 include::{snippets}/find-items/http-request.adoc[]

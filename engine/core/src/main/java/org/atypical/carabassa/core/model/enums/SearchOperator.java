@@ -10,7 +10,7 @@ public enum SearchOperator {
     private static final Map<String, SearchOperator> codes = new HashMap<>();
 
     static {
-        for (SearchOperator operator : SearchOperator.values()) {
+        for (SearchOperator operator : values()) {
             codes.put(operator.getCode(), operator);
         }
     }

@@ -1,6 +1,6 @@
 package org.atypical.carabassa.web;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
+import tools.jackson.databind.ObjectMapper;
 import com.jayway.jsonpath.JsonPath;
 import org.apache.commons.io.IOUtils;
 import org.atypical.carabassa.core.service.DatasetService;
@@ -12,7 +12,7 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.TestInstance;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
+import org.springframework.boot.webmvc.test.autoconfigure.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.core.io.ClassPathResource;
 import org.springframework.http.HttpHeaders;
@@ -76,7 +76,7 @@ public class DatasetControllerIT {
 
         // When / Then
         mvc.perform(post("/api/dataset") //
-                        .contentType(MediaType.APPLICATION_JSON).content(json)) //
+                .contentType(MediaType.APPLICATION_JSON).content(json)) //
                 .andExpect(status().isConflict()) //
                 .andExpect(status().reason("Dataset name=dataset_name already exists")) //
                 .andDo(log());
@@ -89,7 +89,7 @@ public class DatasetControllerIT {
 
         // When / Then
         mvc.perform(post("/api/dataset") //
-                        .contentType(MediaType.APPLICATION_JSON).content(json)) //
+                .contentType(MediaType.APPLICATION_JSON).content(json)) //
                 .andExpect(status().isBadRequest()) //
                 .andDo(log());
     }
@@ -107,8 +107,9 @@ public class DatasetControllerIT {
 
     @Test
     void deleteNotFound() throws Exception {
-        mvc.perform(delete("/api/dataset/{datasetId}", 1000)) //
+        mvc.perform(delete("/api/dataset/{datasetId}", 999)) //
                 .andExpect(status().isNotFound()) //
+                .andExpect(status().reason("Dataset id=999 not found")) //
                 .andDo(log());
     }
 
@@ -148,6 +149,7 @@ public class DatasetControllerIT {
     void findByIdNotFound() throws Exception {
         mvc.perform(get("/api/dataset/{datasetId}", 0)) //
                 .andExpect(status().isNotFound()) //
+                .andExpect(status().reason("Dataset id=0 not found")) //
                 .andDo(log());
     }
 
@@ -171,6 +173,7 @@ public class DatasetControllerIT {
     void findByNameNotFound() throws Exception {
         mvc.perform(get("/api/dataset/name/{datasetName}", "none")) //
                 .andExpect(status().isNotFound()) //
+                .andExpect(status().reason("Dataset name=none not found")) //
                 .andDo(log());
     }
 
@@ -184,7 +187,7 @@ public class DatasetControllerIT {
 
         // When
         mvc.perform(put("/api/dataset/{datasetId}", datasetId) //
-                        .contentType(MediaType.APPLICATION_JSON).content(json)) //
+                .contentType(MediaType.APPLICATION_JSON).content(json)) //
                 .andExpect(status().isNoContent()) //
                 .andDo(log());
 
@@ -205,9 +208,10 @@ public class DatasetControllerIT {
 
         // When / Then
         mvc.perform(put("/api/dataset/{datasetId}", 0) //
-                        .contentType(MediaType.APPLICATION_JSON) //
-                        .content(json)) //
+                .contentType(MediaType.APPLICATION_JSON) //
+                .content(json)) //
                 .andExpect(status().isNotFound()) //
+                .andExpect(status().reason("Dataset id=0 not found")) //
                 .andDo(log());
     }
 
@@ -406,7 +410,7 @@ public class DatasetControllerIT {
 
         // When / Then
         mvc.perform(post("/api/dataset/{datasetId}/item/{itemId}/tag", datasetId, itemId) //
-                        .contentType(MediaType.APPLICATION_JSON).content(json)) //
+                .contentType(MediaType.APPLICATION_JSON).content(json)) //
                 .andExpect(status().isBadRequest()) //
                 .andDo(log());
     }
@@ -431,6 +435,7 @@ public class DatasetControllerIT {
         // When / Then
         mvc.perform(delete("/api/dataset/{datasetId}/item/{itemId}", datasetId, 0)) //
                 .andExpect(status().isNotFound()) //
+                .andExpect(status().reason("Item id=0 not found")) //
                 .andDo(log());
     }
 
@@ -447,7 +452,6 @@ public class DatasetControllerIT {
                 .andDo(log());
     }
 
-
     @Test
     void deleteItemTagNotFound() throws Exception {
         // Given
@@ -457,9 +461,9 @@ public class DatasetControllerIT {
         // When / Then
         mvc.perform(delete("/api/dataset/{datasetId}/item/{itemId}/tag/{tagId}", datasetId, itemId, 0)) //
                 .andExpect(status().isNotFound()) //
+                .andExpect(status().reason("Tag id=0 not found")) //
                 .andDo(log());
     }
-
 
     @Test
     void resetItemOK() throws Exception {
@@ -479,7 +483,7 @@ public class DatasetControllerIT {
         String json = objectMapper.writeValueAsString(dataset);
 
         MvcResult result = mvc.perform(post("/api/dataset") //
-                        .contentType(MediaType.APPLICATION_JSON).content(json)) //
+                .contentType(MediaType.APPLICATION_JSON).content(json)) //
                 .andExpect(status().isCreated()) //
                 .andExpect(jsonPath("$.id").exists()) //
                 .andDo(log())
@@ -507,7 +511,7 @@ public class DatasetControllerIT {
                 .writeValueAsString(new TagEntityRepresentation(TAG_ID, TAG_NAME, TAG_VALUE));
 
         MvcResult result = mvc.perform(post("/api/dataset/{datasetId}/item/{itemId}/tag", datasetId, itemId) //
-                        .contentType(MediaType.APPLICATION_JSON).content(json)) //
+                .contentType(MediaType.APPLICATION_JSON).content(json)) //
                 .andExpect(status().isCreated()) //
                 .andExpect(jsonPath("$.id").exists()) //
                 .andDo(log())

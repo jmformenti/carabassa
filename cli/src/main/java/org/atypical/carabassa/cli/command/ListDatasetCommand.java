@@ -9,7 +9,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 import picocli.CommandLine.Command;
 import picocli.CommandLine.ExitCode;
-import picocli.CommandLine.Option;
 
 import java.time.ZoneId;
 import java.util.List;
@@ -23,9 +22,6 @@ public class ListDatasetCommand implements Callable<Integer> {
 
     private final CommandLogger cmdLogger = new CommandLogger();
 
-    @Option(names = {"-d", "--dataset"}, description = "dataset name.")
-    private String dataset;
-
     @Autowired
     private DatasetApiService datasetApiService;
 
@@ -38,9 +34,11 @@ public class ListDatasetCommand implements Callable<Integer> {
                 for (DatasetEntityRepresentation datasetRepresentation : datasets) {
                     System.out.format(OUTPUT_FORMAT, datasetRepresentation.getId(), datasetRepresentation.getName(),
                             datasetRepresentation.getDescription(),
-                            DateFormatter.toLocalDateFormatted(datasetRepresentation.getCreationAsZoned(ZoneId.systemDefault().getId())),
+                            DateFormatter.toLocalDateFormatted(
+                                    datasetRepresentation.getCreationAsZoned(ZoneId.systemDefault().getId())),
                             datasetRepresentation.getModification() == null ? ""
-                                    : DateFormatter.toLocalDateFormatted(datasetRepresentation.getModificationAsZoned(ZoneId.systemDefault().getId())));
+                                    : DateFormatter.toLocalDateFormatted(datasetRepresentation
+                                            .getModificationAsZoned(ZoneId.systemDefault().getId())));
                 }
                 cmdLogger.info("done.");
             } else {
