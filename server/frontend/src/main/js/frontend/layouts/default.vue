@@ -89,11 +89,6 @@ export default {
           title: 'Search',
           icon: 'mdi-magnify',
           to: '/'
-        },
-        {
-          title: 'Test',
-          icon: 'mdi-test-tube',
-          to: '/test'
         }
       ]
     }

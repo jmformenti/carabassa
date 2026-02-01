@@ -1,6 +1,6 @@
 <project xmlns="http://maven.apache.org/POM/4.0.0"
-         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 https://maven.apache.org/xsd/maven-4.0.0.xsd">
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 https://maven.apache.org/xsd/maven-4.0.0.xsd">
     <modelVersion>4.0.0</modelVersion>
     <parent>
         <groupId>org.atypical.carabassa.server</groupId>
@@ -13,7 +13,7 @@
 
     <properties>
         <frontend.staging.dir>${project.build.directory}/frontend</frontend.staging.dir>
-        <node.version>v18.14.2</node.version>
+        <node.version>v24.13.0</node.version>
         <!-- this yarn version is only required for the maven plugin for bootstrap,
             the yarn version used in the project is defined in .yarnrc.yml -->
         <yarn.version>v1.22.19</yarn.version>
