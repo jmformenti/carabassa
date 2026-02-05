@@ -1,82 +1,86 @@
 package org.atypical.carabassa.core.component.tagger.impl;
 
-import org.atypical.carabassa.core.component.tagger.Tagger;
 import org.atypical.carabassa.core.model.Tag;
 import org.atypical.carabassa.core.model.impl.TagImpl;
-import org.atypical.carabassa.core.util.HashGenerator;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.core.io.FileSystemResource;
 import org.springframework.core.io.Resource;
 import org.springframework.stereotype.Component;
-import ws.schild.jave.EncoderException;
-import ws.schild.jave.MultimediaObject;
-import ws.schild.jave.info.MultimediaInfo;
+
+import com.drew.metadata.Metadata;
+import com.drew.metadata.mp4.Mp4Directory;
 
 import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.nio.file.StandardCopyOption;
-import java.time.ZonedDateTime;
-import java.time.format.DateTimeParseException;
+import java.time.Instant;
+import java.time.ZoneId;
+import java.util.Date;
 import java.util.HashSet;
 import java.util.Set;
+import java.util.TimeZone;
 
 @Component
-public class VideoMetadataTagger implements Tagger {
+public class VideoMetadataTagger extends GenericMetadataTagger {
 
     private static final Logger logger = LoggerFactory.getLogger(VideoMetadataTagger.class);
 
-    private final static String METADATA_CREATION_TIME_FIELD = "creation_time";
+    @Value("${carabassa.default-tz}")
+    private String defaultTimeZone;
 
     @Value("${carabassa.tempdir:#{null}}")
-    private String tempDirPath;
+    private String tempDirLocation;
 
     @Override
     public Set<Tag> getTags(Resource inputItem) throws IOException {
-        Set<Tag> tags = new HashSet<>();
-
         File inputFile = getFile(inputItem);
-        MultimediaObject mmObject = new MultimediaObject(inputFile);
 
-        MultimediaInfo info;
-        try {
-            info = mmObject.getInfo();
-        } catch (EncoderException e) {
-            throw new IOException(e);
+        Metadata metadata = super.getMetaData(new FileSystemResource(inputFile));
+        Set<Tag> tags = super.getTags(inputItem, metadata);
+
+        if (metadata != null) {
+            tags.addAll(getCustomVideoTags(metadata));
         }
 
-        tags.add(new TagImpl(TAG_FILE_TYPE, info.getFormat()));
-        tags.add(new TagImpl(TAG_PREFIX + "Duration", info.getDuration()));
-        if (info.getMetadata().get(METADATA_CREATION_TIME_FIELD) != null) {
-            try {
-                tags.add(new TagImpl(TAG_ARCHIVE_TIME,
-                        ZonedDateTime.parse(info.getMetadata().get(METADATA_CREATION_TIME_FIELD))));
-            } catch (DateTimeParseException e) {
-                logger.debug("Invalid creation time {}, ignored.", info.getMetadata().get(METADATA_CREATION_TIME_FIELD));
-            }
+        if (logger.isTraceEnabled()) {
+            super.printTags(tags);
         }
-
-        if (info.getVideo() != null) {
-            tags.add(new TagImpl(TAG_PREFIX + "VideoBitRate", info.getVideo().getBitRate()));
-            tags.add(new TagImpl(TAG_PREFIX + "VideoDecoder", info.getVideo().getDecoder()));
-            tags.add(new TagImpl(TAG_PREFIX + "VideoFrameRate", info.getVideo().getFrameRate()));
-            tags.add(new TagImpl(TAG_PREFIX + "VideoSizeHeight", info.getVideo().getSize().getHeight()));
-            tags.add(new TagImpl(TAG_PREFIX + "VideoSizeWidth", info.getVideo().getSize().getWidth()));
-        }
-        if (info.getAudio() != null) {
-            tags.add(new TagImpl(TAG_PREFIX + "AudioBitRate", info.getAudio().getBitRate()));
-            tags.add(new TagImpl(TAG_PREFIX + "AudioChannels", info.getAudio().getChannels()));
-            tags.add(new TagImpl(TAG_PREFIX + "AudioDecoder", info.getAudio().getDecoder()));
-            tags.add(new TagImpl(TAG_PREFIX + "AudioSamplingRate", info.getAudio().getSamplingRate()));
-        }
-
-        tags.add(new TagImpl(TAG_HASH, HashGenerator.generate(inputItem)));
 
         releaseFile(inputItem, inputFile);
 
         return tags;
+    }
+
+    private Set<Tag> getCustomVideoTags(Metadata metadata) {
+        Set<Tag> tags = new HashSet<>();
+
+        Instant archiveTime = getArchiveTime(metadata);
+        if (archiveTime != null) {
+            tags.add(new TagImpl(TAG_ARCHIVE_TIME, archiveTime));
+        }
+
+        return tags;
+    }
+
+    private Instant getArchiveTime(Metadata metadata) {
+        TimeZone timeZone = TimeZone.getTimeZone(ZoneId.of(defaultTimeZone));
+        Mp4Directory directory = metadata.getFirstDirectoryOfType(Mp4Directory.class);
+        if (directory != null) {
+            Date dateOriginal = directory.getDate(Mp4Directory.TAG_CREATION_TIME, timeZone);
+            if (dateOriginal != null) {
+                return dateOriginal.toInstant();
+            } else {
+                Date dateModified = directory.getDate(Mp4Directory.TAG_MODIFICATION_TIME, timeZone);
+                if (dateModified != null) {
+                    return dateModified.toInstant();
+                }
+            }
+        }
+        return null;
     }
 
     private File getFile(Resource inputItem) throws IOException {
@@ -84,8 +88,8 @@ public class VideoMetadataTagger implements Tagger {
             return inputItem.getFile();
         } else {
             File tempFile;
-            if (tempDirPath != null) {
-                tempFile = File.createTempFile("vid", null, Paths.get(tempDirPath).toFile());
+            if (tempDirLocation != null) {
+                tempFile = File.createTempFile("vid", null, Paths.get(tempDirLocation).toFile());
             } else {
                 tempFile = File.createTempFile("vid", null);
             }

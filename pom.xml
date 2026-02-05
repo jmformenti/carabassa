@@ -27,7 +27,7 @@
         <!-- TODO: update to 2.4.240, unit tests fail validating check constraints for enum types -->
         <h2.version>2.3.232</h2.version>
 
-        <revision>0.2.1-SNAPSHOT</revision>
+        <revision>0.2.2-SNAPSHOT</revision>
     </properties>
 
     <dependencyManagement>
