@@ -203,7 +203,7 @@ public class TagEntity implements Tag {
         } else if (value instanceof Date) {
             this.valueType = ValueType.DATE;
             this.dateValue = ((Date) value).toInstant().atZone(ZoneId.of("UTC")).toInstant();
-            this.textValue = formatter.format(this.dateValue);
+            this.textValue = formatter.format(Date.from(this.dateValue));
         } else {
             // if not supported type save as string
             this.valueType = ValueType.STRING;

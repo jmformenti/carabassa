@@ -1,7 +1,7 @@
 <?xml version="1.0"?>
 <project xmlns="http://maven.apache.org/POM/4.0.0"
-         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
     <modelVersion>4.0.0</modelVersion>
 
     <parent>
@@ -14,11 +14,11 @@
     <packaging>jar</packaging>
 
     <properties>
-        <metadata-extractor.version>2.18.0</metadata-extractor.version>
-        <commons-text.version>1.10.0</commons-text.version>
-        <commons-io.version>2.11.0</commons-io.version>
+        <metadata-extractor.version>2.19.0</metadata-extractor.version>
+        <commons-text.version>1.15.0</commons-text.version>
+        <commons-io.version>2.21.0</commons-io.version>
         <jimagehash.version>1.0.0</jimagehash.version>
-        <jave.version>3.3.1</jave.version>
+
         <atlas.version>0.2.0</atlas.version>
     </properties>
 
@@ -72,19 +72,14 @@
             <artifactId>commons-codec</artifactId>
         </dependency>
         <dependency>
-            <groupId>ws.schild</groupId>
-            <artifactId>jave-all-deps</artifactId>
-            <version>${jave.version}</version>
-        </dependency>
-        <dependency>
-            <groupId>ws.schild</groupId>
-            <artifactId>jave-nativebin-linux-arm64</artifactId>
-            <version>${jave.version}</version>
-        </dependency>
-        <dependency>
             <groupId>nl.big-o</groupId>
             <artifactId>atlas</artifactId>
             <version>${atlas.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>org.junit.jupiter</groupId>
+            <artifactId>junit-jupiter-api</artifactId>
+            <scope>test</scope>
         </dependency>
     </dependencies>
 

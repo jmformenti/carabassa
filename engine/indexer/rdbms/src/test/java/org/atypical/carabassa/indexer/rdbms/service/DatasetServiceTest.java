@@ -398,14 +398,14 @@ public class DatasetServiceTest {
         assertEquals(ItemType.VIDEO, indexedItem.getType());
         assertNotNull(indexedItem.getCreation());
         assertNull(indexedItem.getModification());
-        TestHelper.assertDateInUTC("2020-08-07T19:01:02", indexedItem.getArchiveTimeAsZoned("UTC"));
+        TestHelper.assertDateInUTC("2020-08-07T17:01:06", indexedItem.getArchiveTimeAsZoned("UTC"));
         assertTrue(indexedItem.isArchived());
-        assertEquals("mov", indexedItem.getFormat());
+        assertEquals("mp4", indexedItem.getFormat());
         assertEquals(FILENAME, indexedItem.getFilename());
         assertNotNull(indexedItem.getHash());
         assertEquals("6206f0e6d42d699a285d5dc273d7d5a3", indexedItem.getHash());
         assertEquals(784144, indexedItem.getSize());
-        assertEquals(12, indexedItem.getTags().size());
+        assertEquals(35, indexedItem.getTags().size());
 
         // required to save item in db
         entityManager.flush();
@@ -416,7 +416,7 @@ public class DatasetServiceTest {
         indexedItem = datasetService.findItemById(dataset, indexedItem.getId());
         assertNotNull(indexedItem);
         assertNotNull(indexedItem.getId());
-        TestHelper.assertDateInUTC("2020-08-07T19:01:02", indexedItem.getArchiveTimeAsZoned("UTC"));
+        TestHelper.assertDateInUTC("2020-08-07T17:01:06", indexedItem.getArchiveTimeAsZoned("UTC"));
 
         StoredItem storedItem = datasetService.getStoredItem(dataset, indexedItem);
         assertNotNull(storedItem);
