@@ -1,8 +1,9 @@
 import { defineNuxtConfig } from 'nuxt/config'
-import eslintPlugin from 'vite-plugin-eslint'
+import eslintPlugin from 'vite-plugin-eslint2'
 
 // https://nuxt.com/docs/api/configuration/nuxt-config
 export default defineNuxtConfig({
+  compatibilityDate: '2026-01-30',
   ssr: false,
   runtimeConfig: {
     public: {
@@ -11,7 +12,7 @@ export default defineNuxtConfig({
     }
   },
   css: [
-    'vuetify/lib/styles/main.sass',
+    'vuetify/styles',
     '@mdi/font/css/materialdesignicons.min.css',
     'awesome-notifications/dist/style.css',
     '@fortawesome/fontawesome-free/css/all.min.css'

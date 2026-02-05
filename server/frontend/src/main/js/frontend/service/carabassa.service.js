@@ -1,14 +1,14 @@
-import { $fetch } from 'ohmyfetch'
+import { $fetch } from 'ofetch'
 import { useRuntimeConfig } from '#imports'
 
 export class CarabassaService {
-  constructor (datasetStore) {
+  constructor(datasetStore) {
     const runtimeConfig = useRuntimeConfig()
     this.apiBaseURL = runtimeConfig.public.apiBaseURL
     this.datasetStore = datasetStore
   }
 
-  getDatasetByName (datasetName) {
+  getDatasetByName(datasetName) {
     return $fetch(
       `${this.apiBaseURL}/api/dataset/name/${datasetName}`
     ).then((data) => {
@@ -16,7 +16,7 @@ export class CarabassaService {
     })
   }
 
-  getDatasets () {
+  getDatasets() {
     return $fetch(
       `${this.apiBaseURL}/api/dataset`
     ).then((data) => {
@@ -28,17 +28,17 @@ export class CarabassaService {
     })
   }
 
-  getItems (currentPage, pageSize, searchString) {
+  getItems(currentPage, pageSize, searchString) {
     return $fetch(
       `${this.apiBaseURL}/api/dataset/${this.datasetStore.dataset.id}/item?size=${pageSize}&page=${currentPage}&search=${searchString} type:I`
     )
   }
 
-  getItemThumbnailURL (itemId) {
+  getItemThumbnailURL(itemId) {
     return `${this.apiBaseURL}/api/dataset/${this.datasetStore.dataset.id}/item/${itemId}/thumbnail`
   }
 
-  getItemContentURL (itemId) {
+  getItemContentURL(itemId) {
     return `${this.apiBaseURL}/api/dataset/${this.datasetStore.dataset.id}/item/${itemId}/content`
   }
 }
