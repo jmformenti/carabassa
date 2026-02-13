@@ -371,24 +371,24 @@ include::{snippets}/delete-item-tag/curl-request.adoc[]
 ===== Example
 include::{snippets}/delete-item-tag/http-response.adoc[]
 
-[[resources-dataset-resetitem]]
-=== Reset item 
-Resets an item.
+[[resources-dataset-reindex]]
+=== Reindex item
+Reindexes an item.
 
-Recalculates basic info (archive date, hash, file type) and reset related tags.
+Recalculates basic info (archive date, hash, file type) and related tags.
 
 ==== Request
 
 ===== Path parameters
-include::{snippets}/reset-item/path-parameters.adoc[]
+include::{snippets}/reindex-item/path-parameters.adoc[]
 
 ===== Example
-include::{snippets}/reset-item/http-request.adoc[]
+include::{snippets}/reindex-item/http-request.adoc[]
 
 ===== CURL request
-include::{snippets}/reset-item/curl-request.adoc[]
+include::{snippets}/reindex-item/curl-request.adoc[]
 
 ==== Response
 
 ===== Example
-include::{snippets}/reset-item/http-response.adoc[]
+include::{snippets}/reindex-item/http-response.adoc[]

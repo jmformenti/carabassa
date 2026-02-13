@@ -436,14 +436,14 @@ public class DatasetControllerTest extends DatasetControllerHelper {
         }
 
         @Test
-        public void resetItem() throws Exception {
+        public void reindex() throws Exception {
                 when(datasetService.findById(DATASET_ID)).thenReturn(dataset);
                 when(datasetService.findItemById(dataset, ITEM_ID)).thenReturn(indexedItem);
-                doNothing().when(datasetService).resetItem(dataset, ITEM_ID);
+                doNothing().when(datasetService).reindex(dataset, ITEM_ID);
 
-                mvc.perform(put("/api/dataset/{datasetId}/item/{itemId}/reset", DATASET_ID, ITEM_ID)) //
+                mvc.perform(put("/api/dataset/{datasetId}/item/{itemId}/reindex", DATASET_ID, ITEM_ID)) //
                                 .andExpect(status().isNoContent()) //
-                                .andDo(document("reset-item",
+                                .andDo(document("reindex-item",
                                                 pathParameters(parameterWithName("datasetId")
                                                                 .description("Dataset identifier"),
                                                                 parameterWithName("itemId")

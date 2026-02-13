@@ -5,6 +5,8 @@ import org.atypical.carabassa.indexer.rdbms.configuration.IndexerRdbmsConfigurat
 import org.atypical.carabassa.restapi.configuration.RestApiConfiguration;
 import org.atypical.carabassa.restapi.rdbms.configuration.RestApiRdbmsMapperConfiguration;
 import org.atypical.carabassa.storage.fs.configuration.StorageFSConfiguration;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
@@ -21,12 +23,15 @@ import java.nio.file.Paths;
         IndexerRdbmsConfiguration.class, StorageFSConfiguration.class})
 public class Application extends SpringBootServletInitializer {
 
+    private static final Logger logger = LoggerFactory.getLogger(Application.class);
+
     @Value("${carabassa.tempdir:#{null}}")
     private String tempDirLocation;
 
     @SuppressWarnings("PMD.UnusedPrivateMethod")
     @PostConstruct
     private void postConstruct() throws IOException {
+        logger.info("Using repository dir: {}", System.getenv("CARABASSA_REPO_DIR"));
         resetTempDir();
     }
 

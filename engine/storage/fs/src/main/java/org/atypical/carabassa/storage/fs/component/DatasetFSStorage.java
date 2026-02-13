@@ -151,7 +151,7 @@ public class DatasetFSStorage implements DatasetStorage {
     }
 
     @Override
-    public void resetItem(IndexedItem updatedItem, IndexedItem previousItem) throws IOException, EntityExistsException {
+    public void reindex(IndexedItem updatedItem, IndexedItem previousItem) throws IOException, EntityExistsException {
         Path previousItemPath = getItemPath(previousItem);
         Path updatedItemPath = getItemPath(updatedItem);
 

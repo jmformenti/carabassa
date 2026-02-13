@@ -91,8 +91,8 @@ public interface DatasetController {
     void deleteItemTag(@PathVariable("datasetId") Long datasetId, @PathVariable("id") Long itemId,
                        @PathVariable("tagId") Long tagId);
 
-    @PutMapping(value = "/{datasetId}/item/{id}/reset")
+    @PutMapping(value = "/{datasetId}/item/{id}/reindex")
     @ResponseStatus(code = HttpStatus.NO_CONTENT)
-    void resetItem(@PathVariable("datasetId") Long datasetId, @PathVariable("id") Long itemId);
+    void reindex(@PathVariable("datasetId") Long datasetId, @PathVariable("id") Long itemId);
 
 }

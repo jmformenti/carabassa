@@ -1,5 +1,6 @@
 package org.atypical.carabassa.cli.service.impl;
 
+import org.atypical.carabassa.restapi.representation.model.DatasetEditableRepresentation;
 import tools.jackson.core.JacksonException;
 import tools.jackson.databind.DeserializationFeature;
 import tools.jackson.databind.JsonNode;
@@ -236,10 +237,10 @@ public class DatasetApiServiceImpl implements DatasetApiService {
     }
 
     @Override
-    public void resetItem(Long datasetId, Long itemId) throws ApiException {
+    public void reindex(Long datasetId, Long itemId) throws ApiException {
         try {
             webClient.put()
-                    .uri("dataset/{datasetId}/item/{itemId}/reset", datasetId, itemId)
+                    .uri("dataset/{datasetId}/item/{itemId}/reindex", datasetId, itemId)
                     .retrieve()
                     .toBodilessEntity()
                     .block();
@@ -249,10 +250,9 @@ public class DatasetApiServiceImpl implements DatasetApiService {
     }
 
     @Override
-    public void update(Long datasetId, String description) throws ApiException {
+    public void update(Long datasetId, String name, String description) throws ApiException {
         try {
-            DatasetEntityRepresentation dataset = new DatasetEntityRepresentation();
-            dataset.setDescription(description);
+            DatasetEditableRepresentation dataset = new DatasetEditableRepresentation(name, description);
             webClient.put()
                     .uri("dataset/{datasetId}", datasetId)
                     .bodyValue(dataset)

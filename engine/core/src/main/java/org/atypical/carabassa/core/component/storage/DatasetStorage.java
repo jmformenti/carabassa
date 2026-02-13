@@ -26,7 +26,7 @@ public interface DatasetStorage {
 
     void deleteItem(IndexedItem item) throws IOException;
 
-    void resetItem(IndexedItem updatedItem, IndexedItem previousItem) throws IOException, EntityExistsException;
+    void reindex(IndexedItem updatedItem, IndexedItem previousItem) throws IOException, EntityExistsException;
 
     void update(String originalDatasetName, Dataset updatedDataset) throws IOException;
 

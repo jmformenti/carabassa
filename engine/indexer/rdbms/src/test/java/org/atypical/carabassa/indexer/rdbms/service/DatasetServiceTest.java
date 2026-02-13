@@ -47,8 +47,8 @@ import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
-@ContextConfiguration(classes = {CoreConfiguration.class, IndexerRdbmsConfiguration.class,
-        StorageFSConfiguration.class, TestConfiguration.class})
+@ContextConfiguration(classes = { CoreConfiguration.class, IndexerRdbmsConfiguration.class,
+        StorageFSConfiguration.class, TestConfiguration.class })
 @DataJpaTest
 public class DatasetServiceTest {
 
@@ -157,7 +157,8 @@ public class DatasetServiceTest {
     }
 
     @Test
-    void addItemNoDateOriginalButWithDateInFilename() throws IOException, EntityExistsException, EntityNotFoundException {
+    void addItemNoDateOriginalButWithDateInFilename()
+            throws IOException, EntityExistsException, EntityNotFoundException {
         final String FILENAME = "IMG_20200807_190102.jpg";
 
         // GIVEN
@@ -721,17 +722,19 @@ public class DatasetServiceTest {
     }
 
     @Test
-    void resetItem() throws IOException, EntityExistsException, EntityNotFoundException {
+    void reindex() throws IOException, EntityExistsException, EntityNotFoundException {
         final String FILENAME = "IMG_VALID.jpg";
         final String TAG_NAME = "meta.newTag";
         final String TAG_VALUE = "test";
 
         // GIVEN
         Dataset dataset = datasetService.findByName(DATASET_TEST_NAME);
-        IndexedItem indexedItem = datasetService.addItem(dataset, ItemType.IMAGE, FILENAME, TestHelper.getImageResource(FILENAME));
+        IndexedItem indexedItem = datasetService.addItem(dataset, ItemType.IMAGE, FILENAME,
+                TestHelper.getImageResource(FILENAME));
 
         dataset = datasetService.findByName(DATASET_TEST_NAME);
-        assertNotNull(datasetService.addItemTag(dataset, indexedItem.getId(), new TagEntity(new TagImpl(TAG_NAME, TAG_VALUE))));
+        assertNotNull(datasetService.addItemTag(dataset, indexedItem.getId(),
+                new TagEntity(new TagImpl(TAG_NAME, TAG_VALUE))));
 
         assertEquals(1, dataset.getItems().size());
         indexedItem = dataset.getItems().iterator().next();
@@ -741,7 +744,7 @@ public class DatasetServiceTest {
         assertEquals(88, tags.size());
 
         // WHEN
-        datasetService.resetItem(dataset, indexedItem.getId());
+        datasetService.reindex(dataset, indexedItem.getId());
 
         // THEN
         tags = indexedItem.getTags();

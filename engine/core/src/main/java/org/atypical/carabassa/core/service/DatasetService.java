@@ -56,7 +56,7 @@ public interface DatasetService {
     StoredItemThumbnail getStoredItemThumbnail(Dataset dataset, IndexedItem item)
             throws IOException, EntityNotFoundException;
 
-    void resetItem(Dataset dataset, Long itemId) throws EntityExistsException, EntityNotFoundException, IOException;
+    void reindex(Dataset dataset, Long itemId) throws EntityExistsException, EntityNotFoundException, IOException;
 
     Dataset update(String originalDatasetName, Dataset dataset) throws IOException;
 

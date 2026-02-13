@@ -32,7 +32,7 @@ public class UpdateDatasetCommand implements Callable<Integer> {
             cmdLogger.info(String.format("Updating dataset %s ...", dataset));
 
             Long datasetId = datasetApiService.findByName(dataset);
-            datasetApiService.update(datasetId, description);
+            datasetApiService.update(datasetId, dataset, description);
 
             cmdLogger.info("updated.");
         } catch (ApiException e) {
