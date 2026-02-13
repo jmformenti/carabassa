@@ -8,6 +8,10 @@ public class DatasetEditableRepresentation {
     private String name;
     private String description;
 
+    public DatasetEditableRepresentation() {
+        super();
+    }
+
     public DatasetEditableRepresentation(String name, String description) {
         super();
         this.name = name;

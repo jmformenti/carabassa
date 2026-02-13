@@ -29,8 +29,8 @@ public interface DatasetApiService {
 
     List<ItemRepresentation> findItems(Long datasetId, String searchString) throws ApiException;
 
-    void resetItem(Long datasetId, Long id) throws ApiException;
+    void reindex(Long datasetId, Long id) throws ApiException;
 
-    void update(Long datasetId, String description) throws ApiException;
+    void update(Long datasetId, String name, String description) throws ApiException;
 
 }

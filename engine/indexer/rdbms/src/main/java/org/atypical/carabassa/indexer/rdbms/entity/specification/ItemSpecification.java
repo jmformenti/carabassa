@@ -21,6 +21,7 @@ import jakarta.persistence.criteria.Join;
 import jakarta.persistence.criteria.JoinType;
 import jakarta.persistence.criteria.Predicate;
 import jakarta.persistence.criteria.Root;
+
 import java.text.ParseException;
 import java.time.Instant;
 import java.time.LocalDateTime;
@@ -104,8 +105,10 @@ public class ItemSpecification implements Specification<IndexedItemEntity> {
                 }
                 default:
                     Join<IndexedItemEntity, TagEntity> tags = addTagsJoin(root, query);
-                    return builder.and(builder.equal(tags.get(TagEntity_.NAME), condition.getKey()),
-                            builder.equal(tags.get(TagEntity_.TEXT_VALUE), condition.getValue()));
+                    return builder.and(builder.equal(builder.lower(tags.get(TagEntity_.NAME)),
+                                    builder.lower(builder.literal(condition.getKey()))),
+                            builder.equal(builder.lower(tags.get(TagEntity_.TEXT_VALUE)),
+                                    builder.lower(builder.literal(condition.getValue().toString()))));
             }
         } else if (condition.getOperation() == SearchOperator.LESS_THAN && ATTR_ID.equals(condition.getKey())) {
             return builder.lessThan(root.get(IndexedItemEntity_.ID), condition.getValue().toString());

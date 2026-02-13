@@ -140,12 +140,12 @@ public class DatasetServiceImpl implements org.atypical.carabassa.core.service.D
     }
 
     @Override
-    public void resetItem(Dataset dataset, Long itemId)
+    public void reindex(Dataset dataset, Long itemId)
             throws EntityExistsException, EntityNotFoundException, IOException {
         IndexedItem item = new IndexedItemImpl(datasetIndexer.findItemById(dataset, itemId));
         StoredItem storedItem = datasetStorage.getItem(item);
-        IndexedItem updatedItem = datasetIndexer.resetItem(dataset, itemId, storedItem.getResource());
-        datasetStorage.resetItem(updatedItem, item);
+        IndexedItem updatedItem = datasetIndexer.reindex(dataset, itemId, storedItem.getResource());
+        datasetStorage.reindex(updatedItem, item);
     }
 
     @Override

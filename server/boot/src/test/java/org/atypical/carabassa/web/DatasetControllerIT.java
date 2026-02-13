@@ -466,13 +466,13 @@ public class DatasetControllerIT {
     }
 
     @Test
-    void resetItemOK() throws Exception {
+    void reindexOK() throws Exception {
         // Given
         Integer datasetId = createDataset();
         Integer itemId = addItem(datasetId, FILE_NAME);
 
         // When / Then
-        mvc.perform(put("/api/dataset/{datasetId}/item/{itemId}/reset", datasetId, itemId)) //
+        mvc.perform(put("/api/dataset/{datasetId}/item/{itemId}/reindex", datasetId, itemId)) //
                 .andExpect(status().isNoContent()) //
                 .andDo(log());
     }

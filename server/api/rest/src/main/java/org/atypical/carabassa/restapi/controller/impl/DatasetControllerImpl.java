@@ -280,10 +280,10 @@ public class DatasetControllerImpl implements DatasetController {
     }
 
     @Override
-    public void resetItem(Long datasetId, Long itemId) {
+    public void reindex(Long datasetId, Long itemId) {
         Dataset dataset = getDataset(datasetId);
         try {
-            datasetService.resetItem(dataset, itemId);
+            datasetService.reindex(dataset, itemId);
         } catch (EntityNotFoundException e) {
             logger.error(e.getMessage());
             throw new ResponseStatusException(HttpStatus.NOT_FOUND, e.getMessage());

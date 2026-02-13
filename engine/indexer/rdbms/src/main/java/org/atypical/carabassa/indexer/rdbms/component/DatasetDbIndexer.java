@@ -209,7 +209,7 @@ public class DatasetDbIndexer implements DatasetIndexer {
     }
 
     @Override
-    public IndexedItem resetItem(Dataset dataset, Long itemId, Resource inputItem) throws EntityNotFoundException, IOException {
+    public IndexedItem reindex(Dataset dataset, Long itemId, Resource inputItem) throws EntityNotFoundException, IOException {
         IndexedItem item = findItemById(dataset, itemId);
         item.getTags().clear();
         setMetaInfo(item, inputItem);

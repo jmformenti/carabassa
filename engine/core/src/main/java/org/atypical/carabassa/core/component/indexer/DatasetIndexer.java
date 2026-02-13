@@ -49,7 +49,7 @@ public interface DatasetIndexer {
 
     Tag findItemTagById(Dataset dataset, Long itemId, Long tagId) throws EntityNotFoundException;
 
-    IndexedItem resetItem(Dataset dataset, Long itemId, Resource inputItem) throws EntityNotFoundException, IOException;
+    IndexedItem reindex(Dataset dataset, Long itemId, Resource inputItem) throws EntityNotFoundException, IOException;
 
     Dataset update(Dataset dataset);
 

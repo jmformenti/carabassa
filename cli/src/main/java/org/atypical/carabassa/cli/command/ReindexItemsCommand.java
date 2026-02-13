@@ -14,23 +14,23 @@ import java.util.List;
 import java.util.concurrent.Callable;
 
 @Component
-@Command(name = "reset", description = "reset items.")
-public class ResetItemsCommand implements Callable<Integer> {
+@Command(name = "reindex", description = "reindex items.")
+public class ReindexItemsCommand implements Callable<Integer> {
 
     private static final CommandLogger cmdLogger = new CommandLogger();
 
     @Autowired
     private DatasetApiService datasetApiService;
 
-    @Option(names = {"-d", "--dataset"}, description = "dataset name.", required = true)
+    @Option(names = { "-d", "--dataset" }, description = "dataset name.", required = true)
     private String dataset;
 
-    @Option(names = {"-s", "--search"}, description = "search conditions.")
+    @Option(names = { "-s", "--search" }, description = "search conditions.")
     private String searchString;
 
     private int count;
     private int error;
-    private int reset;
+    private int reindex;
     private int total;
 
     @Override
@@ -47,9 +47,9 @@ public class ResetItemsCommand implements Callable<Integer> {
                 if (!items.isEmpty()) {
                     total = items.size();
                     for (ItemRepresentation itemRepresentation : items) {
-                        resetItem(datasetId, itemRepresentation);
+                        reindex(datasetId, itemRepresentation);
                     }
-                    cmdLogger.info(String.format("Reset %d of %d items (%d error)", reset, total, error));
+                    cmdLogger.info(String.format("Reindexed %d of %d items (%d error)", reindex, total, error));
                     cmdLogger.info("done.");
                 } else {
                     cmdLogger.info("No items found.");
@@ -64,13 +64,14 @@ public class ResetItemsCommand implements Callable<Integer> {
         return ExitCode.OK;
     }
 
-    private void resetItem(Long datasetId, ItemRepresentation itemRepresentation) {
+    private void reindex(Long datasetId, ItemRepresentation itemRepresentation) {
         try {
-            cmdLogger.info(String.format("Reset item %s ( %d / %d ) ...", itemRepresentation.getId(), ++count, total));
-            datasetApiService.resetItem(datasetId, itemRepresentation.getId());
-            reset++;
+            cmdLogger
+                    .info(String.format("Reindex item %s ( %d / %d ) ...", itemRepresentation.getId(), ++count, total));
+            datasetApiService.reindex(datasetId, itemRepresentation.getId());
+            reindex++;
         } catch (ApiException e) {
-            cmdLogger.error(String.format("Error reset item %s", itemRepresentation.getId()), e);
+            cmdLogger.error(String.format("Error reindex item %s", itemRepresentation.getId()), e);
             error++;
         }
     }
