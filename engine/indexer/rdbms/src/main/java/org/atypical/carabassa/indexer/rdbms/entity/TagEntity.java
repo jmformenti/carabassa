@@ -28,6 +28,8 @@ import java.time.ZonedDateTime;
 import java.util.Arrays;
 import java.util.Date;
 
+import jakarta.persistence.CascadeType;
+
 @Entity
 @Table(name = "TAG")
 @SequenceGenerator(name = "tag_id_gen", sequenceName = "tag_sequence")
@@ -57,7 +59,7 @@ public class TagEntity implements Tag {
     private Double doubleValue;
     private Boolean booleanValue;
 
-    @OneToOne(targetEntity = BoundingBoxEntity.class)
+    @OneToOne(targetEntity = BoundingBoxEntity.class, cascade = CascadeType.ALL)
     private BoundingBox boundingBox;
 
     public TagEntity() {
