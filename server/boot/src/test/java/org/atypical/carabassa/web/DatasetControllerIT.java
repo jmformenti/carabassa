@@ -416,6 +416,21 @@ public class DatasetControllerIT {
     }
 
     @Test
+    void addItemTagNullValueInvalid() throws Exception {
+        // Given
+        String json = objectMapper.writeValueAsString(new TagEntityRepresentation(TAG_ID, TAG_NAME, null));
+
+        Integer datasetId = createDataset();
+        Integer itemId = addItem(datasetId, FILE_NAME);
+
+        // When / Then
+        mvc.perform(post("/api/dataset/{datasetId}/item/{itemId}/tag", datasetId, itemId) //
+                .contentType(MediaType.APPLICATION_JSON).content(json)) //
+                .andExpect(status().isBadRequest()) //
+                .andDo(log());
+    }
+
+    @Test
     void deleteItemOK() throws Exception {
         // Given
         Integer datasetId = createDataset();

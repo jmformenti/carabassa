@@ -404,6 +404,17 @@ public class DatasetControllerTest extends DatasetControllerHelper {
         }
 
         @Test
+        public void addItemTagNullValueInvalid() throws Exception {
+                TagEditableRepresentation tagEditableRepresentation = new TagEditableRepresentation(TAG_NAME, null,
+                                new BoundingBoxRepresentation(10, 20, 30, 40));
+                String json = objectMapper.writeValueAsString(tagEditableRepresentation);
+
+                mvc.perform(post("/api/dataset/{datasetId}/item/{itemId}/tag", DATASET_ID, ITEM_ID) //
+                                .contentType(MediaType.APPLICATION_JSON).content(json)) //
+                                .andExpect(status().isBadRequest());
+        }
+
+        @Test
         public void deleteItem() throws Exception {
                 when(datasetService.findById(DATASET_ID)).thenReturn(dataset);
                 when(datasetService.findItemById(dataset, ITEM_ID)).thenReturn(indexedItem);

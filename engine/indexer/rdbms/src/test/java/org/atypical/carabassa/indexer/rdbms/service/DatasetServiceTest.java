@@ -301,6 +301,11 @@ public class DatasetServiceTest {
 
         assertThrows(IllegalArgumentException.class,
                 () -> datasetService.addItemTag(finalDataset, indexedItem.getId(), tag));
+
+        Tag tagWithNullValue = new TagImpl("meta.newTag", null);
+
+        assertThrows(IllegalArgumentException.class,
+                () -> datasetService.addItemTag(finalDataset, indexedItem.getId(), tagWithNullValue));
     }
 
     @Test
