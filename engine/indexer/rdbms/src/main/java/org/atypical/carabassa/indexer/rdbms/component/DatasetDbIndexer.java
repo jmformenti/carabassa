@@ -62,6 +62,7 @@ public class DatasetDbIndexer implements DatasetIndexer {
     private static final String TAG_ID_NOT_FOUND_MESSAGE_KEY = "db.indexer.dataset.tag.id_not_found";
     private static final String TAG_NULL_MESSAGE_KEY = "db.indexer.dataset.tag.null";
     private static final String TAG_NAME_NULL_MESSAGE_KEY = "db.indexer.dataset.tag.name_null";
+    private static final String TAG_VALUE_NULL_MESSAGE_KEY = "db.indexer.dataset.tag.value_null";
 
     @Autowired
     private DatasetRepository datasetRepository;
@@ -94,6 +95,7 @@ public class DatasetDbIndexer implements DatasetIndexer {
     public Long addItemTag(Dataset dataset, Long itemId, Tag tag) throws EntityNotFoundException {
         Assert.notNull(tag, localizedMessage.getText(TAG_NULL_MESSAGE_KEY));
         Assert.notNull(tag.getName(), localizedMessage.getText(TAG_NAME_NULL_MESSAGE_KEY));
+        Assert.notNull(tag.getValue(), localizedMessage.getText(TAG_VALUE_NULL_MESSAGE_KEY));
 
         IndexedItem item = findItemById(dataset, itemId);
 

@@ -1,5 +1,9 @@
 package org.atypical.carabassa.restapi.controller.impl;
 
+import java.io.File;
+import java.io.IOException;
+import java.nio.file.Paths;
+
 import org.atypical.carabassa.core.exception.EntityExistsException;
 import org.atypical.carabassa.core.exception.EntityNotFoundException;
 import org.atypical.carabassa.core.model.Dataset;
@@ -39,10 +43,6 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Component;
 import org.springframework.web.multipart.MultipartFile;
 import org.springframework.web.server.ResponseStatusException;
-
-import java.io.File;
-import java.io.IOException;
-import java.nio.file.Paths;
 
 @Component
 public class DatasetControllerImpl implements DatasetController {
@@ -194,7 +194,7 @@ public class DatasetControllerImpl implements DatasetController {
         }
 
         return ResponseEntity.ok() //
-                .contentType(MediaType.parseMediaType(ItemType.IMAGE.normalized() + "/" + indexedItem.getFormat()))
+                .contentType(MediaType.parseMediaType(indexedItem.getType().normalized() + "/" + indexedItem.getFormat()))
                 .header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=\"" + indexedItem.getFilename() + "\"")
                 .body(storedItem.getResource());
     }
