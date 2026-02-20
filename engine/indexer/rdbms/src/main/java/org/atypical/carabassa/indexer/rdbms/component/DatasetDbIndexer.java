@@ -79,7 +79,8 @@ public class DatasetDbIndexer implements DatasetIndexer {
     private EntityManager em;
 
     @Override
-    public IndexedItem addItem(Dataset dataset, ItemType type, String originalFilename, Resource inputItem) throws IOException, EntityExistsException {
+    public IndexedItem addItem(Dataset dataset, ItemType type, String originalFilename, Resource inputItem)
+            throws IOException, EntityExistsException {
         Assert.notNull(inputItem, localizedMessage.getText(ITEM_NOT_NULL_MESSAGE_KEY));
         IndexedItem indexedItem = build(type, originalFilename, inputItem);
         if (indexedItemRepository.findItemByHash(dataset, indexedItem.getHash()).isPresent()) {
@@ -95,6 +96,16 @@ public class DatasetDbIndexer implements DatasetIndexer {
         Assert.notNull(tag.getName(), localizedMessage.getText(TAG_NAME_NULL_MESSAGE_KEY));
 
         IndexedItem item = findItemById(dataset, itemId);
+
+        Optional<Tag> existingTag = item.getTags().stream()
+                .filter(t -> t.getName().equals(tag.getName()) &&
+                        (t.getValue() == null ? tag.getValue() == null : t.getValue().equals(tag.getValue())))
+                .findFirst();
+
+        if (existingTag.isPresent()) {
+            return existingTag.get().getId();
+        }
+
         item.getTags().add(tag);
         update(dataset);
 
@@ -105,7 +116,8 @@ public class DatasetDbIndexer implements DatasetIndexer {
     }
 
     protected IndexedItemEntity build(ItemType type, String originalFilename, Resource inputItem) throws IOException {
-        Assert.isTrue(StringUtils.isNotBlank(originalFilename), localizedMessage.getText(ITEM_BLANK_FILENAME_MESSAGE_KEY));
+        Assert.isTrue(StringUtils.isNotBlank(originalFilename),
+                localizedMessage.getText(ITEM_BLANK_FILENAME_MESSAGE_KEY));
         Assert.notNull(inputItem.getInputStream(), localizedMessage.getText(ITEM_CONTENT_NULL_MESSAGE_KEY));
         Assert.notNull(type, localizedMessage.getText(ITEM_TYPE_NULL_MESSAGE_KEY));
 
@@ -171,23 +183,27 @@ public class DatasetDbIndexer implements DatasetIndexer {
 
     @Override
     public Dataset findById(Long datasetId) throws EntityNotFoundException {
-        return datasetRepository.findById(datasetId).orElseThrow(() -> new EntityNotFoundException(localizedMessage.getText(DATASET_ID_NOT_FOUND_MESSAGE_KEY, datasetId)));
+        return datasetRepository.findById(datasetId).orElseThrow(() -> new EntityNotFoundException(
+                localizedMessage.getText(DATASET_ID_NOT_FOUND_MESSAGE_KEY, datasetId)));
 
     }
 
     @Override
     public Dataset findByName(String datasetName) throws EntityNotFoundException {
-        return datasetRepository.findByName(datasetName).orElseThrow(() -> new EntityNotFoundException(localizedMessage.getText(DATASET_NAME_NOT_FOUND_MESSAGE_KEY, datasetName)));
+        return datasetRepository.findByName(datasetName).orElseThrow(() -> new EntityNotFoundException(
+                localizedMessage.getText(DATASET_NAME_NOT_FOUND_MESSAGE_KEY, datasetName)));
     }
 
     @Override
     public IndexedItem findItemByHash(Dataset dataset, String hash) throws EntityNotFoundException {
-        return indexedItemRepository.findItemByHash(dataset, hash).orElseThrow(() -> new EntityNotFoundException(localizedMessage.getText(ITEM_HASH_NOT_FOUND_MESSAGE_KEY, hash)));
+        return indexedItemRepository.findItemByHash(dataset, hash).orElseThrow(
+                () -> new EntityNotFoundException(localizedMessage.getText(ITEM_HASH_NOT_FOUND_MESSAGE_KEY, hash)));
     }
 
     @Override
     public IndexedItem findItemById(Dataset dataset, Long itemId) throws EntityNotFoundException {
-        return indexedItemRepository.findItemById(dataset, itemId).orElseThrow(() -> new EntityNotFoundException(localizedMessage.getText(ITEM_ID_NOT_FOUND_MESSAGE_KEY, itemId)));
+        return indexedItemRepository.findItemById(dataset, itemId).orElseThrow(
+                () -> new EntityNotFoundException(localizedMessage.getText(ITEM_ID_NOT_FOUND_MESSAGE_KEY, itemId)));
     }
 
     @Override
@@ -198,18 +214,21 @@ public class DatasetDbIndexer implements DatasetIndexer {
     @Override
     public Page<IndexedItem> findItems(Dataset dataset, SearchCriteria searchCriteria, Pageable pageable) {
         Assert.notNull(searchCriteria, "Search criteria can not be null.");
-        return indexedItemRepository.findAll(new ItemSpecification(dataset, searchCriteria), pageable).map(item -> item);
+        return indexedItemRepository.findAll(new ItemSpecification(dataset, searchCriteria), pageable)
+                .map(item -> item);
     }
 
     @Override
     public Tag findItemTagById(Dataset dataset, Long itemId, Long tagId) throws EntityNotFoundException {
         return findItemById(dataset, itemId).getTags() //
                 .stream().filter(t -> tagId.equals(t.getId())) //
-                .findFirst().orElseThrow(() -> new EntityNotFoundException(localizedMessage.getText(TAG_ID_NOT_FOUND_MESSAGE_KEY, tagId)));
+                .findFirst().orElseThrow(() -> new EntityNotFoundException(
+                        localizedMessage.getText(TAG_ID_NOT_FOUND_MESSAGE_KEY, tagId)));
     }
 
     @Override
-    public IndexedItem reindex(Dataset dataset, Long itemId, Resource inputItem) throws EntityNotFoundException, IOException {
+    public IndexedItem reindex(Dataset dataset, Long itemId, Resource inputItem)
+            throws EntityNotFoundException, IOException {
         IndexedItem item = findItemById(dataset, itemId);
         item.getTags().clear();
         setMetaInfo(item, inputItem);
@@ -235,7 +254,8 @@ public class DatasetDbIndexer implements DatasetIndexer {
 
     private void setMetaInfo(IndexedItem indexedItem, Resource inputItem) throws IOException {
         Tagger metadataTagger = metadataTaggerByType.get(indexedItem.getType().normalized() + "MetadataTagger");
-        Assert.notNull(metadataTagger, localizedMessage.getText(METADATA_TAGGER_NOT_FOUND_MESSAGE_KEY, indexedItem.getType()));
+        Assert.notNull(metadataTagger,
+                localizedMessage.getText(METADATA_TAGGER_NOT_FOUND_MESSAGE_KEY, indexedItem.getType()));
 
         Set<Tag> tags = metadataTagger.getTags(inputItem).stream().map(TagEntity::new).collect(Collectors.toSet());
         if (indexedItem.getTags() == null) {

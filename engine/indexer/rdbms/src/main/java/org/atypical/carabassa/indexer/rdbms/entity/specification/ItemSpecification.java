@@ -15,12 +15,14 @@ import org.atypical.carabassa.indexer.rdbms.entity.TagEntity_;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.data.util.Pair;
 
+import jakarta.persistence.criteria.AbstractQuery;
 import jakarta.persistence.criteria.CriteriaBuilder;
 import jakarta.persistence.criteria.CriteriaQuery;
 import jakarta.persistence.criteria.Join;
 import jakarta.persistence.criteria.JoinType;
 import jakarta.persistence.criteria.Predicate;
 import jakarta.persistence.criteria.Root;
+import jakarta.persistence.criteria.Subquery;
 
 import java.text.ParseException;
 import java.time.Instant;
@@ -42,6 +44,7 @@ public class ItemSpecification implements Specification<IndexedItemEntity> {
     private static final String ATTR_FROM = "from";
     private static final String ATTR_TO = "to";
     private static final String ATTR_CITY = "city";
+    private static final String ATTR_MISSING_TAG = "missing_tag";
 
     private static final String FULL_DATE = "yyyy-MM-dd";
     private static final String MONTH_DATE = "yyyy-MM";
@@ -73,7 +76,7 @@ public class ItemSpecification implements Specification<IndexedItemEntity> {
     }
 
     private Predicate toPredicateFromCondition(SearchCondition condition, Root<IndexedItemEntity> root,
-                                               CriteriaQuery<?> query, CriteriaBuilder builder) {
+            CriteriaQuery<?> query, CriteriaBuilder builder) {
 
         if (condition.getOperation() == null) {
             Join<IndexedItemEntity, TagEntity> tags = addTagsJoin(root, query);
@@ -93,20 +96,25 @@ public class ItemSpecification implements Specification<IndexedItemEntity> {
                             periodDates.getSecond());
                 case ATTR_FROM:
                     periodDates = getPeriodDates(condition.getValue().toString());
-                    return builder.greaterThanOrEqualTo(root.get(IndexedItemEntity_.ARCHIVE_TIME), periodDates.getFirst());
+                    return builder.greaterThanOrEqualTo(root.get(IndexedItemEntity_.ARCHIVE_TIME),
+                            periodDates.getFirst());
                 case ATTR_TO:
                     periodDates = getPeriodDates(condition.getValue().toString());
-                    return builder.lessThanOrEqualTo(root.get(IndexedItemEntity_.ARCHIVE_TIME), periodDates.getSecond());
+                    return builder.lessThanOrEqualTo(root.get(IndexedItemEntity_.ARCHIVE_TIME),
+                            periodDates.getSecond());
                 case ATTR_CITY: {
                     Join<IndexedItemEntity, TagEntity> tags = addTagsJoin(root, query);
                     return builder.and(builder.equal(tags.get(TagEntity_.NAME), ImageMetadataTagger.TAG_CITY),
                             builder.like(builder.lower(tags.get(TagEntity_.TEXT_VALUE)),
                                     builder.lower(builder.literal("%" + condition.getValue() + "%"))));
                 }
+                case ATTR_MISSING_TAG:
+                    Subquery<Long> subquery = itemsWithMissingTag(query, condition.getValue().toString(), builder);
+                    return builder.not(root.get(IndexedItemEntity_.ID).in(subquery));
                 default:
                     Join<IndexedItemEntity, TagEntity> tags = addTagsJoin(root, query);
                     return builder.and(builder.equal(builder.lower(tags.get(TagEntity_.NAME)),
-                                    builder.lower(builder.literal(condition.getKey()))),
+                            builder.lower(builder.literal(condition.getKey()))),
                             builder.equal(builder.lower(tags.get(TagEntity_.TEXT_VALUE)),
                                     builder.lower(builder.literal(condition.getValue().toString()))));
             }
@@ -118,7 +126,17 @@ public class ItemSpecification implements Specification<IndexedItemEntity> {
         throw new IllegalArgumentException(String.format("Operation %s not implemented yet", condition.getOperation()));
     }
 
-    private Join<IndexedItemEntity, TagEntity> addTagsJoin(Root<IndexedItemEntity> root, CriteriaQuery<?> query) {
+    private Subquery<Long> itemsWithMissingTag(CriteriaQuery<?> query, String tag, CriteriaBuilder builder) {
+        Subquery<Long> subquery = query.subquery(Long.class);
+        Root<IndexedItemEntity> subRoot = subquery.from(IndexedItemEntity.class);
+        Join<IndexedItemEntity, TagEntity> subTags = addTagsJoin(subRoot, subquery);
+        subquery.where(builder.and(builder.equal(subRoot.get(IndexedItemEntity_.DATASET), this.dataset),
+                builder.equal(subTags.get(TagEntity_.NAME), tag)));
+        subquery.select(subRoot.get(IndexedItemEntity_.ID));
+        return subquery;
+    }
+
+    private Join<IndexedItemEntity, TagEntity> addTagsJoin(Root<IndexedItemEntity> root, AbstractQuery<?> query) {
         query.distinct(true);
         return root.join(IndexedItemEntity_.TAGS, JoinType.INNER);
     }

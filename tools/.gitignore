@@ -1,0 +1,6 @@
+__pycache__
+chroma_db
+.venv
+.python-version
+uv.lock
+known_faces

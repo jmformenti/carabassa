@@ -343,6 +343,47 @@ public class DatasetServiceTest {
     }
 
     @Test
+    void addItemTagDuplicate() throws EntityNotFoundException, IOException, EntityExistsException {
+        final String FILENAME = "IMG_VALID.jpg";
+        final String TAG_NAME = "meta.newTag";
+        final String TAG_VALUE = "test";
+
+        // GIVEN
+        Dataset dataset = datasetService.findByName(DATASET_TEST_NAME);
+
+        datasetService.addItem(dataset, ItemType.IMAGE, FILENAME, TestHelper.getImageResource(FILENAME));
+
+        // required to save item in db
+        entityManager.flush();
+
+        dataset = datasetService.findByName(DATASET_TEST_NAME);
+        assertEquals(1, dataset.getItems().size());
+        IndexedItem indexedItem = dataset.getItems().iterator().next();
+
+        Tag tag = new TagEntity(new TagImpl(TAG_NAME, TAG_VALUE));
+        Long firstTagId = datasetService.addItemTag(dataset, indexedItem.getId(), tag);
+        assertNotNull(firstTagId);
+
+        // required to save tag in db
+        entityManager.flush();
+
+        dataset = datasetService.findByName(DATASET_TEST_NAME);
+        indexedItem = dataset.getItems().iterator().next();
+        int tagsAfterFirst = indexedItem.getTags().size();
+
+        // WHEN – add the exact same tag again
+        Long secondTagId = datasetService.addItemTag(dataset, indexedItem.getId(), tag);
+
+        // THEN – must return the same ID and must not create a duplicate
+        assertEquals(firstTagId, secondTagId);
+
+        entityManager.flush();
+        dataset = datasetService.findByName(DATASET_TEST_NAME);
+        indexedItem = dataset.getItems().iterator().next();
+        assertEquals(tagsAfterFirst, indexedItem.getTags().size());
+    }
+
+    @Test
     void addItemValid() throws IOException, EntityExistsException, EntityNotFoundException {
         final String FILENAME = "IMG_VALID.jpg";
 
