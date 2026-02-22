@@ -134,7 +134,7 @@ public class DatasetServiceTest {
 
     @Test
     void addItemNoDateOriginalButWithDateModified() throws IOException, EntityExistsException, EntityNotFoundException {
-        final String FILENAME = "IMG_20230115_151633.jpg";
+        final String FILENAME = "IMG_NO_DATE_ORIGINAL.jpg";
 
         // GIVEN
         Dataset dataset = datasetService.findByName(DATASET_TEST_NAME);
@@ -147,13 +147,13 @@ public class DatasetServiceTest {
         assertNotNull(indexedItem);
         assertNotNull(indexedItem.getCreation());
         assertNull(indexedItem.getModification());
-        assertNotNull(indexedItem.getArchiveTime());
-        assertTrue(indexedItem.isArchived());
+        assertNull(indexedItem.getArchiveTime());
+        assertFalse(indexedItem.isArchived());
         assertEquals("jpg", indexedItem.getFormat());
         assertEquals(FILENAME, indexedItem.getFilename());
         assertNotNull(indexedItem.getHash());
         assertEquals("78364f4c8712125fe370f2f9f469122c", indexedItem.getHash());
-        assertEquals(46, indexedItem.getTags().size());
+        assertEquals(45, indexedItem.getTags().size());
     }
 
     @Test

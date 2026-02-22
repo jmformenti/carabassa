@@ -18,6 +18,7 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.util.TimeZone;
 
 @SpringBootApplication(scanBasePackageClasses = {CoreConfiguration.class, RestApiConfiguration.class, RestApiRdbmsMapperConfiguration.class,
         IndexerRdbmsConfiguration.class, StorageFSConfiguration.class})
@@ -36,6 +37,8 @@ public class Application extends SpringBootServletInitializer {
     }
 
     public static void main(String[] args) {
+        // Forced timezone to UTC to avoid issues reading timestamps from database
+        TimeZone.setDefault(TimeZone.getTimeZone("UTC"));
         SpringApplication.run(Application.class, args);
     }
 
