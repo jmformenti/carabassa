@@ -1,17 +1,5 @@
 package org.atypical.carabassa.core.component.tagger.impl;
 
-import org.atypical.carabassa.core.model.Tag;
-import org.atypical.carabassa.core.model.impl.TagImpl;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Value;
-import org.springframework.core.io.FileSystemResource;
-import org.springframework.core.io.Resource;
-import org.springframework.stereotype.Component;
-
-import com.drew.metadata.Metadata;
-import com.drew.metadata.mp4.Mp4Directory;
-
 import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
@@ -23,6 +11,18 @@ import java.util.Date;
 import java.util.HashSet;
 import java.util.Set;
 import java.util.TimeZone;
+
+import org.atypical.carabassa.core.model.Tag;
+import org.atypical.carabassa.core.model.impl.TagImpl;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.core.io.FileSystemResource;
+import org.springframework.core.io.Resource;
+import org.springframework.stereotype.Component;
+
+import com.drew.metadata.Metadata;
+import com.drew.metadata.mp4.Mp4Directory;
 
 @Component
 public class VideoMetadataTagger extends GenericMetadataTagger {
@@ -73,11 +73,6 @@ public class VideoMetadataTagger extends GenericMetadataTagger {
             Date dateOriginal = directory.getDate(Mp4Directory.TAG_CREATION_TIME, timeZone);
             if (dateOriginal != null) {
                 return dateOriginal.toInstant();
-            } else {
-                Date dateModified = directory.getDate(Mp4Directory.TAG_MODIFICATION_TIME, timeZone);
-                if (dateModified != null) {
-                    return dateModified.toInstant();
-                }
             }
         }
         return null;

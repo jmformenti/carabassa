@@ -4,6 +4,7 @@ import com.drew.metadata.Metadata;
 import com.drew.metadata.exif.ExifSubIFDDirectory;
 import dev.brachtendorf.jimagehash.hash.Hash;
 import dev.brachtendorf.jimagehash.hashAlgorithms.DifferenceHash;
+import jakarta.annotation.PostConstruct;
 import org.apache.commons.codec.binary.Hex;
 import org.atypical.carabassa.core.component.util.LocalizedMessage;
 import org.atypical.carabassa.core.model.Tag;
@@ -15,7 +16,6 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.core.io.Resource;
 import org.springframework.stereotype.Component;
 
-import jakarta.annotation.PostConstruct;
 import javax.imageio.ImageIO;
 import java.awt.image.BufferedImage;
 import java.io.IOException;
@@ -93,11 +93,6 @@ public class ImageMetadataTagger extends GenericMetadataTagger {
             Date dateOriginal = directory.getDateOriginal(timeZone);
             if (dateOriginal != null) {
                 return dateOriginal.toInstant();
-            } else {
-                Date dateModified = directory.getDateModified(timeZone);
-                if (dateModified != null) {
-                    return dateModified.toInstant();
-                }
             }
         }
         return null;
