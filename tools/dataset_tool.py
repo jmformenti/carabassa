@@ -1,4 +1,5 @@
 import argparse
+from concurrent.futures import Future, ThreadPoolExecutor
 import logging
 import os
 import sys
@@ -15,7 +16,8 @@ from dataset_api_service import DatasetApiService, Tag
 logging.basicConfig(
     level=logging.INFO,
     format='%(asctime)s - %(levelname)s - %(message)s',
-    datefmt='%Y-%m-%d %H:%M:%S'
+    datefmt='%Y-%m-%d %H:%M:%S',
+    stream=sys.stdout
 )
 logger = logging.getLogger(__name__)
 
@@ -47,7 +49,6 @@ class DatasetTool:
         """
         img = cv2.imread(str(path))
         if img is None:
-            logger.warning(f"⚠ No image found at: {path}")
             return None
         return cv2.cvtColor(img, cv2.COLOR_BGR2RGB)
 
@@ -96,39 +97,56 @@ class DatasetTool:
     def _process_dataset_items(self):
         logger.info(f"Fetching items info for dataset ID {self.dataset_id}...")
         
-        BATCH_SIZE = 50
+        BATCH_SIZE = 100
         search_query = self.get_search_query()
-        # Filter by type:I to avoid fetching videos
+
         first_result = self.service.find_items(self.dataset_id, search_string=search_query, page=0, size=BATCH_SIZE)
         
         total_items = first_result.page.totalElements
         total_pages = first_result.page.totalPages
         
         if total_items == 0:
-            logger.info("No pending images found.")
+            logger.info("No images found.")
             return
 
-        logger.info(f"Found {total_items} pending images. Starting processing...")
-        
-        with tqdm(total=total_items, desc="Processing items", unit="img") as pbar:
+        logger.info(f"Found {total_items} images. Starting processing...")
+
+        with tqdm(total=total_items, desc="Processing items", unit="img", file=sys.stderr) as pbar, ThreadPoolExecutor(max_workers=1) as executor:
             current_page = 0
+            items = first_result.content
+            next_page_future: Future | None = None
+
+            if total_pages > 1:
+                next_page_future = self._get_page(current_page + 1, executor, BATCH_SIZE)
+
             while True:
-                # Use cached first page or fetch next
-                if current_page == 0:
-                    items = first_result.content
-                else:
-                    paged_result = self.service.find_items(self.dataset_id, search_string=search_query, page=current_page, size=BATCH_SIZE)
-                    items = paged_result.content
-                
                 if not items and current_page > 0:
                     break
 
                 for item in items:
                     self._handle_single_item(item, pbar)
-                
+                    pbar.update(1)
+
                 if current_page >= total_pages - 1:
                     break
+
                 current_page += 1
+                paged_result = next_page_future.result(timeout=30)
+                items = paged_result.content
+
+                if current_page < total_pages - 1:
+                    next_page_future = self._get_page(current_page + 1, executor, BATCH_SIZE)
+                else:
+                    next_page_future = None
+
+    def _get_page(self, page, executor, batch_size):
+        return executor.submit(
+            self.service.find_items,
+            self.dataset_id,
+            self.get_search_query(),
+            page,
+            batch_size
+        )
 
     def _handle_single_item(self, item, pbar):
         try:
@@ -137,7 +155,7 @@ class DatasetTool:
             
             img = self.load_image(img_path)
             if img is None:
-                pbar.update(1)
+                tqdm.write(f"⚠ No image for item {item.id} found at: {img_path}", file=sys.stderr)
                 return
 
             tags = self.process_item(item, img)
@@ -147,9 +165,7 @@ class DatasetTool:
                     try:
                         self.service.add_item_tag(self.dataset_id, item.id, tag)
                     except Exception as e:
-                        tqdm.write(f"Failed to add tag to item {item.filename} ({item.id}): {e}")
+                        tqdm.write(f"Failed to add tag to item {item.filename} ({item.id}): {e}", file=sys.stderr)
         
         except Exception as e:
-            tqdm.write(f"Error processing item {item.id} ({item.filename}): {e}")
-        
-        pbar.update(1)
+            tqdm.write(f"Error processing item {item.id} ({item.filename}): {e}", file=sys.stderr)
