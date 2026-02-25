@@ -1,23 +1,5 @@
 package org.atypical.carabassa.core.component.tagger.impl;
 
-import com.drew.metadata.Metadata;
-import com.drew.metadata.exif.ExifSubIFDDirectory;
-import dev.brachtendorf.jimagehash.hash.Hash;
-import dev.brachtendorf.jimagehash.hashAlgorithms.DifferenceHash;
-import jakarta.annotation.PostConstruct;
-import org.apache.commons.codec.binary.Hex;
-import org.atypical.carabassa.core.component.util.LocalizedMessage;
-import org.atypical.carabassa.core.model.Tag;
-import org.atypical.carabassa.core.model.impl.TagImpl;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Value;
-import org.springframework.core.io.Resource;
-import org.springframework.stereotype.Component;
-
-import javax.imageio.ImageIO;
-import java.awt.image.BufferedImage;
 import java.io.IOException;
 import java.nio.file.Paths;
 import java.time.Instant;
@@ -27,25 +9,31 @@ import java.util.HashSet;
 import java.util.Set;
 import java.util.TimeZone;
 
+import javax.imageio.ImageIO;
+
+import org.atypical.carabassa.core.model.Tag;
+import org.atypical.carabassa.core.model.impl.TagImpl;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.core.io.Resource;
+import org.springframework.stereotype.Component;
+
+import com.drew.metadata.Metadata;
+import com.drew.metadata.exif.ExifSubIFDDirectory;
+
+import jakarta.annotation.PostConstruct;
+
 @Component
 public class ImageMetadataTagger extends GenericMetadataTagger {
 
     private static final Logger logger = LoggerFactory.getLogger(ImageMetadataTagger.class);
-
-    public static final String TAG_DHASH = TAG_PREFIX + "Dhash";
-
-    private static final String IMAGE_ERROR_PHASH_MESSAGE_KEY = "core.tagger.phash.error";
-
-    private static final DifferenceHash differenceHash = new DifferenceHash(64, DifferenceHash.Precision.Double);
 
     @Value("${carabassa.default-tz}")
     private String defaultTimeZone;
 
     @Value("${carabassa.tempdir:#{null}}")
     private String tempDirLocation;
-
-    @Autowired
-    private LocalizedMessage localizedMessage;
 
     @PostConstruct
     public void init() {
@@ -60,7 +48,7 @@ public class ImageMetadataTagger extends GenericMetadataTagger {
         Set<Tag> tags = super.getTags(inputItem, metadata);
 
         if (metadata != null) {
-            tags.addAll(getCustomImageTags(inputItem, metadata));
+            tags.addAll(getCustomImageTags(metadata));
         }
 
         if (logger.isTraceEnabled()) {
@@ -70,14 +58,9 @@ public class ImageMetadataTagger extends GenericMetadataTagger {
         return tags;
     }
 
-    private Set<Tag> getCustomImageTags(Resource inputItem, Metadata metadata) throws IOException {
+    private Set<Tag> getCustomImageTags(Metadata metadata) throws IOException {
         Set<Tag> tags = new HashSet<>();
 
-        try {
-            tags.add(new TagImpl(TAG_DHASH, getPerceptualHash(inputItem)));
-        } catch (IOException e) {
-            logger.error(e.getMessage(), e);
-        }
         Instant archiveTime = getArchiveTime(metadata);
         if (archiveTime != null) {
             tags.add(new TagImpl(TAG_ARCHIVE_TIME, archiveTime));
@@ -98,19 +81,4 @@ public class ImageMetadataTagger extends GenericMetadataTagger {
         return null;
     }
 
-    private String getPerceptualHash(Resource inputItem) throws IOException {
-        BufferedImage image;
-        try {
-            image = ImageIO.read(inputItem.getInputStream());
-        } catch (IOException e) {
-            throw new IOException(localizedMessage.getText(IMAGE_ERROR_PHASH_MESSAGE_KEY, e.getMessage()), e);
-        }
-        if (image == null) {
-            throw new IOException(localizedMessage.getText(IMAGE_ERROR_PHASH_MESSAGE_KEY, "null image"));
-        }
-
-        Hash hash = differenceHash.hash(image);
-
-        return Hex.encodeHexString(hash.toByteArray());
-    }
 }

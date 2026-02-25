@@ -8,6 +8,7 @@ import org.atypical.carabassa.core.exception.EntityExistsException;
 import org.atypical.carabassa.core.exception.EntityNotFoundException;
 import org.atypical.carabassa.core.model.Dataset;
 import org.atypical.carabassa.core.model.IndexedItem;
+import org.atypical.carabassa.core.model.ItemTagInfo;
 import org.atypical.carabassa.core.model.SearchCriteria;
 import org.atypical.carabassa.core.model.StoredItem;
 import org.atypical.carabassa.core.model.StoredItemThumbnail;
@@ -106,6 +107,11 @@ public class DatasetServiceImpl implements org.atypical.carabassa.core.service.D
     @Override
     public Page<IndexedItem> findItems(Dataset dataset, SearchCriteria searchCriteria, Pageable pageable) {
         return datasetIndexer.findItems(dataset, searchCriteria, pageable);
+    }
+
+    @Override
+    public Page<ItemTagInfo> findItemTagsByName(Dataset dataset, String tagName, Pageable pageable) {
+        return datasetIndexer.findItemTagsByName(dataset, tagName, pageable);
     }
 
     @Override

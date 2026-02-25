@@ -1,6 +1,7 @@
 package org.atypical.carabassa.restapi.rdbms.mapper;
 
 import org.atypical.carabassa.indexer.rdbms.entity.TagEntity;
+import org.atypical.carabassa.restapi.representation.model.TagEntityRepresentation;
 import org.atypical.carabassa.restapi.representation.model.TagEditableRepresentation;
 import org.mapstruct.Mapper;
 import org.mapstruct.ReportingPolicy;
@@ -10,5 +11,8 @@ public interface TagMapper extends org.atypical.carabassa.restapi.representation
 
     @Override
     TagEntity toEntity(TagEditableRepresentation tagEditableRepresentation);
+
+    @Override
+    TagEntityRepresentation toRepresentation(org.atypical.carabassa.core.model.Tag tag);
 
 }

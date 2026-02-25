@@ -6,11 +6,13 @@ datasets and their items.
 import hashlib
 import os
 import tempfile
+from contextlib import nullcontext
 from dataclasses import dataclass
 from pathlib import Path
 from typing import Generic, TypeVar
 
 import requests
+from tqdm import tqdm
 
 T = TypeVar("T")
 
@@ -69,6 +71,7 @@ class Item:
     filename: str | None = None
     type: str | None = None
     hash: str | None = None
+    tags: list[dict] | None = None
 
     @classmethod
     def from_dict(cls, data: dict) -> "ItemRepresentation":
@@ -77,6 +80,7 @@ class Item:
             filename=data.get("filename"),
             type=data.get("type"),
             hash=data.get("hash"),
+            tags=data.get("tags"),
         )
 
 
@@ -102,8 +106,9 @@ class BoundingBox:
 class Tag:
     """Represents a tag to be added to an item."""
 
-    name: str
-    value: object
+    name: str | None = None
+    value: object = None
+    id: int | None = None
     boundingBox: BoundingBox | None = None
 
     def to_dict(self) -> dict:
@@ -111,6 +116,34 @@ class Tag:
         if self.boundingBox:
             data["boundingBox"] = self.boundingBox.to_dict()
         return data
+
+    @classmethod
+    def from_dict(cls, data: dict) -> "Tag":
+        return cls(
+            id=data.get("id"),
+            name=data.get("name"),
+            value=data.get("value"),
+            boundingBox=None,
+        )
+
+
+@dataclass
+class ItemTagInfo:
+    """Represents a tag row returned by dataset-wide tag search."""
+
+    item_id: int | None = None
+    tag_id: int | None = None
+    tag_name: str | None = None
+    tag_value: object = None
+
+    @classmethod
+    def from_dict(cls, data: dict) -> "ItemTagInfo":
+        return cls(
+            item_id=data.get("itemId"),
+            tag_id=data.get("tagId"),
+            tag_name=data.get("tagName"),
+            tag_value=data.get("tagValue"),
+        )
 
 
 @dataclass
@@ -194,7 +227,6 @@ class DatasetApiService:
             data = self._get("dataset", params=params)
             return self._parse_paged_result(data, "datasetEntityRepresentationList", Dataset.from_dict)
         
-        # Fetch all pages
         return self._fetch_all_pages("dataset", params, "datasetEntityRepresentationList", Dataset.from_dict)
 
     def find_by_name(self, dataset_name: str) -> int:
@@ -254,6 +286,10 @@ class DatasetApiService:
         )
         return response["id"]
 
+    def delete_item_tag(self, dataset_id: int, item_id: int, tag_id: int) -> None:
+        """Delete a tag from an item."""
+        self._delete(f"dataset/{dataset_id}/item/{item_id}/tag/{tag_id}")
+
     def find_items(
         self,
         dataset_id: int,
@@ -281,7 +317,6 @@ class DatasetApiService:
             data = self._get(path, params=params)
             return self._parse_paged_result(data, "itemRepresentationList", Item.from_dict)
 
-        # Fetch all pages
         return self._fetch_all_pages(path, params, "itemRepresentationList", Item.from_dict)
 
     def find_item(self, dataset_id: int, item_id: int) -> Item:
@@ -289,7 +324,42 @@ class DatasetApiService:
         data = self._get(f"dataset/{dataset_id}/item/{item_id}")
         return Item.from_dict(data)
 
-    def get_item(
+    def find_dataset_item_tags_by_name(
+        self,
+        dataset_id: int,
+        tag_name: str,
+        page: int | None = None,
+        size: int | None = None,
+        show_progress: bool = True,
+    ) -> list[ItemTagInfo] | PagedResult[ItemTagInfo]:
+        """
+        Return tags with the given name for all items in a dataset.
+        If `page` is specified, returns a PagedResult.
+        If `page` is None, iterates all pages and returns a list.
+        """
+        params = {}
+        if size is not None:
+            params["size"] = size
+        elif page is None:
+            params["size"] = 100
+
+        path = f"dataset/{dataset_id}/item/tag/{tag_name}"
+
+        if page is not None:
+            params["page"] = page
+            data = self._get(path, params=params)
+            return self._parse_paged_result(data, "itemTagEntityRepresentationList", ItemTagInfo.from_dict)
+
+        return self._fetch_all_pages(
+            path,
+            params,
+            "itemTagEntityRepresentationList",
+            ItemTagInfo.from_dict,
+            size=size,
+            show_progress=show_progress
+        )
+
+    def get_item_content(
         self,
         dataset_id: int,
         item_id: int,
@@ -372,25 +442,43 @@ class DatasetApiService:
         )
         return PagedResult(content=content, page=metadata)
 
-    def _fetch_all_pages(self, path: str, params: dict, resource_key: str, mapper: callable) -> list[T]:
+    def _fetch_all_pages(
+        self,
+        path: str,
+        params: dict,
+        resource_key: str,
+        mapper: callable,
+        size: int | None = None,
+        show_progress: bool = True,
+    ) -> list[T]:
         """Iterate over all pages and return a single list."""
         all_items = []
         current_page = 0
-        
-        while True:
-            params["page"] = current_page
-            data = self._get(path, params=params)
-            
-            embedded = data.get("_embedded", {})
-            items_data = embedded.get(resource_key, [])
-            all_items.extend([mapper(i) for i in items_data])
-            
-            page_info = data.get("page", {})
-            total_pages = page_info.get("totalPages", 0)
-            
-            if current_page >= total_pages - 1:
-                break
-            current_page += 1
+        request_params = dict(params)
+        if size is not None:
+            request_params["size"] = size
+
+        progress_context = tqdm(desc="Fetching all items", unit="item") if show_progress else nullcontext(None)
+        with progress_context as pbar:
+            while True:
+                request_params["page"] = current_page
+                data = self._get(path, params=request_params)
+
+                embedded = data.get("_embedded", {})
+                items_data = embedded.get(resource_key, [])
+                all_items.extend([mapper(i) for i in items_data])
+
+                page_info = data.get("page", {})
+                total_pages = page_info.get("totalPages", 0)
+                if pbar is not None:
+                    total_elements = page_info.get("totalElements")
+                    if isinstance(total_elements, int) and pbar.total is None:
+                        pbar.total = total_elements
+                    pbar.update(len(items_data))
+
+                if current_page >= total_pages - 1:
+                    break
+                current_page += 1
             
         return all_items
 

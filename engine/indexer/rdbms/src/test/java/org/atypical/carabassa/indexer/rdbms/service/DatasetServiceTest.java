@@ -1,7 +1,10 @@
 package org.atypical.carabassa.indexer.rdbms.service;
 
+import java.io.IOException;
+import java.util.List;
+import java.util.Set;
+
 import org.atypical.carabassa.core.component.tagger.Tagger;
-import org.atypical.carabassa.core.component.tagger.impl.ImageMetadataTagger;
 import org.atypical.carabassa.core.configuration.CoreConfiguration;
 import org.atypical.carabassa.core.exception.EntityExistsException;
 import org.atypical.carabassa.core.exception.EntityNotFoundException;
@@ -23,6 +26,12 @@ import org.atypical.carabassa.indexer.rdbms.test.configuration.TestConfiguration
 import org.atypical.carabassa.indexer.rdbms.test.helper.TestHelper;
 import org.atypical.carabassa.storage.fs.configuration.StorageFSConfiguration;
 import org.junit.jupiter.api.AfterEach;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertNull;
+import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -34,18 +43,6 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Sort;
 import org.springframework.test.context.ContextConfiguration;
-
-import java.io.IOException;
-import java.util.List;
-import java.util.Set;
-
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertFalse;
-import static org.junit.jupiter.api.Assertions.assertNotEquals;
-import static org.junit.jupiter.api.Assertions.assertNotNull;
-import static org.junit.jupiter.api.Assertions.assertNull;
-import static org.junit.jupiter.api.Assertions.assertThrows;
-import static org.junit.jupiter.api.Assertions.assertTrue;
 
 @ContextConfiguration(classes = { CoreConfiguration.class, IndexerRdbmsConfiguration.class,
         StorageFSConfiguration.class, TestConfiguration.class })
@@ -153,7 +150,7 @@ public class DatasetServiceTest {
         assertEquals(FILENAME, indexedItem.getFilename());
         assertNotNull(indexedItem.getHash());
         assertEquals("78364f4c8712125fe370f2f9f469122c", indexedItem.getHash());
-        assertEquals(45, indexedItem.getTags().size());
+        assertEquals(44, indexedItem.getTags().size());
     }
 
     @Test
@@ -178,7 +175,7 @@ public class DatasetServiceTest {
         assertEquals(FILENAME, indexedItem.getFilename());
         assertNotNull(indexedItem.getHash());
         assertEquals("c90dc72d18cb6c62d8923fc2f276f94f", indexedItem.getHash());
-        assertEquals(22, indexedItem.getTags().size());
+        assertEquals(21, indexedItem.getTags().size());
 
         // required to save item in db
         entityManager.flush();
@@ -219,7 +216,7 @@ public class DatasetServiceTest {
         assertEquals(FILENAME, indexedItem.getFilename());
         assertNotNull(indexedItem.getHash());
         assertEquals("c90dc72d18cb6c62d8923fc2f276f94f", indexedItem.getHash());
-        assertEquals(22, indexedItem.getTags().size());
+        assertEquals(21, indexedItem.getTags().size());
 
         // required to save item in db
         entityManager.flush();
@@ -247,32 +244,6 @@ public class DatasetServiceTest {
         // WHEN & THEN
         assertThrows(IllegalArgumentException.class,
                 () -> datasetService.addItem(dataset, ItemType.IMAGE, "test", null));
-    }
-
-    @Test
-    void addItemSameDhash() throws IOException, EntityExistsException, EntityNotFoundException {
-        final String FILENAME1 = "IMG_DHASH_1.jpg";
-        final String FILENAME2 = "IMG_DHASH_2.jpg";
-
-        // GIVEN
-        Dataset dataset = datasetService.findByName(DATASET_TEST_NAME);
-
-        // WHEN
-        IndexedItem indexedItem1 = datasetService.addItem(dataset, ItemType.IMAGE, FILENAME1,
-                TestHelper.getImageResource(FILENAME1));
-        assertNotNull(indexedItem1);
-        Tag perceptualTag1 = indexedItem1.getFirstTag(ImageMetadataTagger.TAG_DHASH);
-        assertNotNull(perceptualTag1);
-
-        IndexedItem indexedItem2 = datasetService.addItem(dataset, ItemType.IMAGE, FILENAME2,
-                TestHelper.getImageResource(FILENAME2));
-        assertNotNull(indexedItem2);
-        Tag perceptualTag2 = indexedItem2.getFirstTag(ImageMetadataTagger.TAG_DHASH);
-        assertNotNull(perceptualTag2);
-
-        // THEN
-        assertNotEquals(indexedItem1.getHash(), indexedItem2.getHash());
-        assertEquals(perceptualTag1.getValue(String.class), perceptualTag2.getValue(String.class));
     }
 
     @Test
@@ -411,7 +382,7 @@ public class DatasetServiceTest {
         assertNotNull(indexedItem.getHash());
         assertEquals("f127c350588b861e813c45118b74aaec", indexedItem.getHash());
         assertEquals(1057657, indexedItem.getSize());
-        assertEquals(87, indexedItem.getTags().size());
+        assertEquals(86, indexedItem.getTags().size());
 
         // required to save item in db
         entityManager.flush();
@@ -787,7 +758,7 @@ public class DatasetServiceTest {
 
         Set<Tag> tags = indexedItem.getTags();
         assertNotNull(tags);
-        assertEquals(88, tags.size());
+        assertEquals(87, tags.size());
 
         // WHEN
         datasetService.reindex(dataset, indexedItem.getId());
@@ -795,7 +766,7 @@ public class DatasetServiceTest {
         // THEN
         tags = indexedItem.getTags();
         assertNotNull(tags);
-        assertEquals(87, tags.size());
+        assertEquals(86, tags.size());
     }
 
     @Test

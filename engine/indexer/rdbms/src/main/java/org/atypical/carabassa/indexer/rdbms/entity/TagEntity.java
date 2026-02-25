@@ -14,6 +14,7 @@ import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
+import jakarta.persistence.Index;
 import jakarta.persistence.OneToOne;
 import jakarta.persistence.PrePersist;
 import jakarta.persistence.SequenceGenerator;
@@ -31,7 +32,12 @@ import java.util.Date;
 import jakarta.persistence.CascadeType;
 
 @Entity
-@Table(name = "TAG")
+@Table(
+        name = "TAG",
+        indexes = {
+                @Index(name = "idx_tag_name_item_id", columnList = "NAME, ITEM_ID")
+        }
+)
 @SequenceGenerator(name = "tag_id_gen", sequenceName = "tag_sequence")
 public class TagEntity implements Tag {
 
@@ -58,6 +64,9 @@ public class TagEntity implements Tag {
     private Long longValue;
     private Double doubleValue;
     private Boolean booleanValue;
+
+    @Column(name = "ITEM_ID", insertable = false, updatable = false)
+    private Long itemId;
 
     @OneToOne(targetEntity = BoundingBoxEntity.class, cascade = CascadeType.ALL)
     private BoundingBox boundingBox;
@@ -126,6 +135,10 @@ public class TagEntity implements Tag {
 
     public Boolean getBooleanValue() {
         return booleanValue;
+    }
+
+    public Long getItemId() {
+        return itemId;
     }
 
     @Override
