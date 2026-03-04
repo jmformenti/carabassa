@@ -4,6 +4,7 @@ import org.atypical.carabassa.core.service.DatasetService;
 import org.atypical.carabassa.restapi.configuration.RestApiConfiguration;
 import org.atypical.carabassa.restapi.representation.mapper.DatasetMapper;
 import org.atypical.carabassa.restapi.representation.mapper.ItemMapper;
+import org.atypical.carabassa.restapi.representation.mapper.ItemTagMapper;
 import org.atypical.carabassa.restapi.representation.mapper.TagMapper;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -48,6 +49,9 @@ public class IndexControllerTest {
 
         @MockitoBean
         private TagMapper tagMapper;
+
+        @MockitoBean
+        private ItemTagMapper itemTagMapper;
 
         @BeforeEach
         public void setUp(WebApplicationContext webApplicationContext,

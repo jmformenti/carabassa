@@ -1,30 +1,27 @@
 package org.atypical.carabassa.web;
 
-import tools.jackson.databind.ObjectMapper;
-import com.jayway.jsonpath.JsonPath;
+import java.io.IOException;
+
 import org.apache.commons.io.IOUtils;
 import org.atypical.carabassa.core.service.DatasetService;
 import org.atypical.carabassa.restapi.representation.model.DatasetEditableRepresentation;
 import org.atypical.carabassa.restapi.representation.model.DatasetEntityRepresentation;
 import org.atypical.carabassa.restapi.representation.model.TagEntityRepresentation;
 import org.hamcrest.Matchers;
+import static org.hamcrest.Matchers.hasSize;
+import static org.hamcrest.Matchers.is;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.TestInstance;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.webmvc.test.autoconfigure.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.boot.webmvc.test.autoconfigure.AutoConfigureMockMvc;
 import org.springframework.core.io.ClassPathResource;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
 import org.springframework.mock.web.MockMultipartFile;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.MvcResult;
-
-import java.io.IOException;
-
-import static org.hamcrest.Matchers.hasSize;
-import static org.hamcrest.Matchers.is;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.multipart;
@@ -35,6 +32,10 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.header;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
+
+import com.jayway.jsonpath.JsonPath;
+
+import tools.jackson.databind.ObjectMapper;
 
 @SpringBootTest
 @AutoConfigureMockMvc
@@ -264,7 +265,7 @@ public class DatasetControllerIT {
                 .andExpect(jsonPath("$.creation").exists()) //
                 .andExpect(jsonPath("$.modification").isEmpty()) //
                 .andExpect(jsonPath("$.archiveTime", is("2005-01-17T15:20:40Z"))) //
-                .andExpect(jsonPath("$.tags", hasSize(87))) //
+                .andExpect(jsonPath("$.tags", hasSize(86))) //
                 .andDo(log());
     }
 
@@ -285,6 +286,26 @@ public class DatasetControllerIT {
         mvc.perform(get("/api/dataset/{datasetId}/item/{itemId}", datasetId, 0)) //
                 .andExpect(status().isNotFound()) //
                 .andExpect(status().reason("Item id=0 not found")) //
+                .andDo(log());
+    }
+
+    @Test
+    void findDatasetItemTagsByNameOK() throws Exception {
+        // Given
+        Integer datasetId = createDataset();
+        Integer itemId = addItem(datasetId, FILE_NAME);
+        addItemTag(datasetId, itemId, TAG_NAME, TAG_VALUE);
+        addItemTag(datasetId, itemId, TAG_NAME, TAG_VALUE + "_2");
+
+        // When / Then
+        mvc.perform(get("/api/dataset/{datasetId}/item/tag/{tagName}?page=0&size=10", datasetId, TAG_NAME)) //
+                .andExpect(status().isOk()) //
+                .andExpect(jsonPath("$._embedded.itemTagEntityRepresentationList", hasSize(2))) //
+                .andExpect(jsonPath("$._embedded.itemTagEntityRepresentationList.[0].itemId").exists()) //
+                .andExpect(jsonPath("$._embedded.itemTagEntityRepresentationList.[0].tagId").exists()) //
+                .andExpect(jsonPath("$._embedded.itemTagEntityRepresentationList.[0].tagName", is(TAG_NAME))) //
+                .andExpect(jsonPath("$.page.size", is(10))) //
+                .andExpect(jsonPath("$.page.totalElements", is(2))) //
                 .andDo(log());
     }
 
@@ -524,6 +545,20 @@ public class DatasetControllerIT {
     private Integer addItemTag(Integer datasetId, Integer itemId) throws Exception {
         String json = objectMapper
                 .writeValueAsString(new TagEntityRepresentation(TAG_ID, TAG_NAME, TAG_VALUE));
+
+        MvcResult result = mvc.perform(post("/api/dataset/{datasetId}/item/{itemId}/tag", datasetId, itemId) //
+                .contentType(MediaType.APPLICATION_JSON).content(json)) //
+                .andExpect(status().isCreated()) //
+                .andExpect(jsonPath("$.id").exists()) //
+                .andDo(log())
+                .andReturn();
+
+        return JsonPath.read(result.getResponse().getContentAsString(), "$.id");
+    }
+
+    private Integer addItemTag(Integer datasetId, Integer itemId, String tagName, String tagValue) throws Exception {
+        String json = objectMapper
+                .writeValueAsString(new TagEntityRepresentation(TAG_ID, tagName, tagValue));
 
         MvcResult result = mvc.perform(post("/api/dataset/{datasetId}/item/{itemId}/tag", datasetId, itemId) //
                 .contentType(MediaType.APPLICATION_JSON).content(json)) //

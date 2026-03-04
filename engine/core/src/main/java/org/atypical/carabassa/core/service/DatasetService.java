@@ -4,6 +4,7 @@ import org.atypical.carabassa.core.exception.EntityExistsException;
 import org.atypical.carabassa.core.exception.EntityNotFoundException;
 import org.atypical.carabassa.core.model.Dataset;
 import org.atypical.carabassa.core.model.IndexedItem;
+import org.atypical.carabassa.core.model.ItemTagInfo;
 import org.atypical.carabassa.core.model.SearchCriteria;
 import org.atypical.carabassa.core.model.StoredItem;
 import org.atypical.carabassa.core.model.StoredItemThumbnail;
@@ -42,6 +43,8 @@ public interface DatasetService {
     Page<IndexedItem> findItems(Dataset dataset, Pageable pageable);
 
     Page<IndexedItem> findItems(Dataset dataset, SearchCriteria searchCriteria, Pageable pageable);
+
+    Page<ItemTagInfo> findItemTagsByName(Dataset dataset, String tagName, Pageable pageable);
 
     Dataset findByName(String datasetName) throws EntityNotFoundException;
 

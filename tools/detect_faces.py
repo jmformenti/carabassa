@@ -157,42 +157,43 @@ class DetectFacesTool(DatasetTool):
 
     def process_item(self, item, img) -> List[Tag]:
         tags = []
-        try:
-            faces = self.detector.detect(img)
-            
-            for face in faces:
-                emb = self.recognizer.get_normalized_embedding(img, face.landmarks)
-                matches_found = self.db.search_similar_faces(emb, threshold=self.args.threshold)
+        if img is not None:
+            try:
+                faces = self.detector.detect(img)
+                
+                for face in faces:
+                    emb = self.recognizer.get_normalized_embedding(img, face.landmarks)
+                    matches_found = self.db.search_similar_faces(emb, threshold=self.args.threshold)
 
-                if matches_found:
-                    best_match = matches_found[0]
-                    person_name = best_match['person_name']
-                    similarity = best_match['similarity']
-                    
-                    # Log match
-                    tqdm.write(f"✓ Match found in {item.filename}: {person_name} ({similarity:.2f})")
-                    
-                    # Convert bbox [x1, y1, x2, y2] to [minX, minY, width, height]
-                    x1, y1, x2, y2 = face.bbox
-                    width = int(x2 - x1)
-                    height = int(y2 - y1)
-                    
-                    bbox = BoundingBox(
-                        minX=int(x1),
-                        minY=int(y1),
-                        width=width,
-                        height=height
-                    )
-                    
-                    tag = Tag(
-                        name=TAG_NAME,
-                        value=person_name,
-                        boundingBox=bbox
-                    )
-                    tags.append(tag)
-                    
-        except Exception as e:
-             tqdm.write(f"Error analyzing faces for item {item.id}: {e}")
+                    if matches_found:
+                        best_match = matches_found[0]
+                        person_name = best_match['person_name']
+                        similarity = best_match['similarity']
+                        
+                        # Log match
+                        tqdm.write(f"✓ Match found in {item.filename}: {person_name} ({similarity:.2f})")
+                        
+                        # Convert bbox [x1, y1, x2, y2] to [minX, minY, width, height]
+                        x1, y1, x2, y2 = face.bbox
+                        width = int(x2 - x1)
+                        height = int(y2 - y1)
+                        
+                        bbox = BoundingBox(
+                            minX=int(x1),
+                            minY=int(y1),
+                            width=width,
+                            height=height
+                        )
+                        
+                        tag = Tag(
+                            name=TAG_NAME,
+                            value=person_name,
+                            boundingBox=bbox
+                        )
+                        tags.append(tag)
+                        
+            except Exception as e:
+                tqdm.write(f"Error analyzing faces for item {item.id}: {e}")
              
         # Add tag to mark item as processed
         tags.append(Tag(name=TAGGER_TAG_NAME, value=True))
@@ -202,3 +203,4 @@ class DetectFacesTool(DatasetTool):
 if __name__ == "__main__":
     tool = DetectFacesTool()
     tool.run()
+    logger.info("done.")

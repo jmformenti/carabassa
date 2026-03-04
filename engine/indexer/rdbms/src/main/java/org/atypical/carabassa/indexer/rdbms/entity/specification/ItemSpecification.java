@@ -113,8 +113,7 @@ public class ItemSpecification implements Specification<IndexedItemEntity> {
                     return builder.not(root.get(IndexedItemEntity_.ID).in(subquery));
                 default:
                     Join<IndexedItemEntity, TagEntity> tags = addTagsJoin(root, query);
-                    return builder.and(builder.equal(builder.lower(tags.get(TagEntity_.NAME)),
-                            builder.lower(builder.literal(condition.getKey()))),
+                    return builder.and(builder.equal(tags.get(TagEntity_.NAME), builder.literal(condition.getKey())),
                             builder.equal(builder.lower(tags.get(TagEntity_.TEXT_VALUE)),
                                     builder.lower(builder.literal(condition.getValue().toString()))));
             }
@@ -128,11 +127,9 @@ public class ItemSpecification implements Specification<IndexedItemEntity> {
 
     private Subquery<Long> itemsWithMissingTag(CriteriaQuery<?> query, String tag, CriteriaBuilder builder) {
         Subquery<Long> subquery = query.subquery(Long.class);
-        Root<IndexedItemEntity> subRoot = subquery.from(IndexedItemEntity.class);
-        Join<IndexedItemEntity, TagEntity> subTags = addTagsJoin(subRoot, subquery);
-        subquery.where(builder.and(builder.equal(subRoot.get(IndexedItemEntity_.DATASET), this.dataset),
-                builder.equal(subTags.get(TagEntity_.NAME), tag)));
-        subquery.select(subRoot.get(IndexedItemEntity_.ID));
+        Root<TagEntity> subRoot = subquery.from(TagEntity.class);
+        subquery.where(builder.equal(subRoot.get(TagEntity_.NAME), tag));
+        subquery.select(subRoot.get("itemId"));
         return subquery;
     }
 

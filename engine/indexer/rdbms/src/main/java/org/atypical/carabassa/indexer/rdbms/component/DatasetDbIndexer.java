@@ -8,6 +8,7 @@ import org.atypical.carabassa.core.exception.EntityExistsException;
 import org.atypical.carabassa.core.exception.EntityNotFoundException;
 import org.atypical.carabassa.core.model.Dataset;
 import org.atypical.carabassa.core.model.IndexedItem;
+import org.atypical.carabassa.core.model.ItemTagInfo;
 import org.atypical.carabassa.core.model.SearchCriteria;
 import org.atypical.carabassa.core.model.Tag;
 import org.atypical.carabassa.core.model.enums.ItemType;
@@ -17,6 +18,7 @@ import org.atypical.carabassa.indexer.rdbms.entity.TagEntity;
 import org.atypical.carabassa.indexer.rdbms.entity.specification.ItemSpecification;
 import org.atypical.carabassa.indexer.rdbms.repository.DatasetRepository;
 import org.atypical.carabassa.indexer.rdbms.repository.IndexedItemRepository;
+import org.atypical.carabassa.core.model.impl.ItemTagInfoImpl;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.io.Resource;
 import org.springframework.data.domain.Page;
@@ -218,6 +220,12 @@ public class DatasetDbIndexer implements DatasetIndexer {
         Assert.notNull(searchCriteria, "Search criteria can not be null.");
         return indexedItemRepository.findAll(new ItemSpecification(dataset, searchCriteria), pageable)
                 .map(item -> item);
+    }
+
+    @Override
+    public Page<ItemTagInfo> findItemTagsByName(Dataset dataset, String tagName, Pageable pageable) {
+        return indexedItemRepository.findItemTagsByName(dataset, tagName, pageable)
+                .map(tuple -> new ItemTagInfoImpl((Long) tuple[0], (Tag) tuple[1]));
     }
 
     @Override

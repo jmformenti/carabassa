@@ -2,12 +2,14 @@ package org.atypical.carabassa.restapi.controller;
 
 import org.atypical.carabassa.core.model.Dataset;
 import org.atypical.carabassa.core.model.IndexedItem;
+import org.atypical.carabassa.core.model.ItemTagInfo;
 import org.atypical.carabassa.core.model.SearchCriteria;
 import org.atypical.carabassa.core.model.StoredItem;
 import org.atypical.carabassa.core.model.StoredItemThumbnail;
 import org.atypical.carabassa.core.model.Tag;
 import org.atypical.carabassa.core.model.enums.ItemType;
 import org.atypical.carabassa.core.model.impl.DatasetImpl;
+import org.atypical.carabassa.core.model.impl.ItemTagInfoImpl;
 import org.atypical.carabassa.core.model.impl.StoredItemImpl;
 import org.atypical.carabassa.core.model.impl.StoredItemThumbnailImpl;
 import org.atypical.carabassa.core.service.DatasetService;
@@ -16,9 +18,11 @@ import org.atypical.carabassa.restapi.representation.assembler.DatasetModelAssem
 import org.atypical.carabassa.restapi.representation.assembler.ItemModelAssembler;
 import org.atypical.carabassa.restapi.representation.mapper.DatasetMapper;
 import org.atypical.carabassa.restapi.representation.mapper.ItemMapper;
+import org.atypical.carabassa.restapi.representation.mapper.ItemTagMapper;
 import org.atypical.carabassa.restapi.representation.mapper.TagMapper;
 import org.atypical.carabassa.restapi.representation.model.BoundingBoxRepresentation;
 import org.atypical.carabassa.restapi.representation.model.DatasetEditableRepresentation;
+import org.atypical.carabassa.restapi.representation.model.ItemTagEntityRepresentation;
 import org.atypical.carabassa.restapi.representation.model.TagEditableRepresentation;
 import org.atypical.carabassa.restapi.test.helper.DatasetControllerHelper;
 import org.junit.jupiter.api.BeforeEach;
@@ -98,6 +102,9 @@ public class DatasetControllerTest extends DatasetControllerHelper {
 
         @MockitoBean
         private TagMapper tagMapper;
+
+        @MockitoBean
+        private ItemTagMapper itemTagMapper;
 
         private FieldDescriptor[] datasetDescriptor;
         private FieldDescriptor[] datasetEditableDescriptor;
@@ -305,6 +312,20 @@ public class DatasetControllerTest extends DatasetControllerHelper {
                                                                 parameterWithName("itemId")
                                                                                 .description("Item identifier")),
                                                 responseFields(itemDescriptor)));
+        }
+
+        @Test
+        public void findDatasetItemTagsByName() throws Exception {
+                when(datasetService.findById(DATASET_ID)).thenReturn(dataset);
+                Page<ItemTagInfo> page = new PageImpl<>(List.of(new ItemTagInfoImpl(ITEM_ID, tag)),
+                                PageRequest.of(0, 10), 1L);
+                when(datasetService.findItemTagsByName(isA(Dataset.class), isA(String.class), isA(Pageable.class)))
+                                .thenReturn(page);
+                when(itemTagMapper.toRepresentation(isA(ItemTagInfo.class))).thenReturn(new ItemTagEntityRepresentation());
+
+                mvc.perform(get("/api/dataset/{datasetId}/item/tag/{tagName}?page=0&size=10", DATASET_ID,
+                                TAG_NAME)) //
+                                .andExpect(status().isOk());
         }
 
         @Test

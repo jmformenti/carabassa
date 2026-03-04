@@ -1,5 +1,5 @@
 import argparse
-from concurrent.futures import Future, ThreadPoolExecutor
+from concurrent.futures import Future, ThreadPoolExecutor, TimeoutError as FuturesTimeoutError
 import logging
 import os
 import sys
@@ -28,7 +28,7 @@ class DatasetTool:
     def __init__(self, description: str):
         self.parser = argparse.ArgumentParser(description=description)
         self.parser.add_argument("--dataset", type=str, required=True, help="Name of the Carabassa dataset to process")
-        self.parser.add_argument("--api-url", type=str, default=os.environ.get("CARABASSA_BASE_URL", "http://localhost:8080/api/"), help="Carabassa API URL")
+        self.parser.add_argument("--api-url", type=str, default=os.environ.get("CARABASSA_API_URL", "http://localhost:8080/api/"), help="Carabassa API URL")
         
         # Allow subclasses to add more arguments
         self.add_custom_args(self.parser)
@@ -66,6 +66,12 @@ class DatasetTool:
         """
         raise NotImplementedError("Subclasses must implement process_item")
 
+    def post_process(self):
+        """
+        Optional hook called once after processing all items.
+        """
+        pass
+
     def run(self):
         """
         Main execution method.
@@ -82,10 +88,8 @@ class DatasetTool:
 
         if not self.setup():
             return
-
         self._process_dataset_items()
-        logger.info("Done.")
-
+        self.post_process()
 
     def get_search_query(self) -> str:
         """
@@ -99,71 +103,131 @@ class DatasetTool:
         
         BATCH_SIZE = 100
         search_query = self.get_search_query()
+        enable_prefetch = "missing_tag:" not in search_query.lower()
+        if enable_prefetch:
+            self._process_with_paged_prefetch(search_query, BATCH_SIZE)
+        else:
+            logger.info("Prefetch disabled for mutable query: %s", search_query)
+            self._process_with_mutable_first_page(search_query, BATCH_SIZE)
 
-        first_result = self.service.find_items(self.dataset_id, search_string=search_query, page=0, size=BATCH_SIZE)
-        
-        total_items = first_result.page.totalElements
-        total_pages = first_result.page.totalPages
-        
+    def _process_with_mutable_first_page(self, search_query, batch_size):
+        first_page = self._fetch_page_sync(search_query, 0, batch_size)
+        total_items = first_page.page.totalElements
         if total_items == 0:
             logger.info("No images found.")
             return
 
         logger.info(f"Found {total_items} images. Starting processing...")
-
-        with tqdm(total=total_items, desc="Processing items", unit="img", file=sys.stderr) as pbar, ThreadPoolExecutor(max_workers=1) as executor:
-            current_page = 0
-            items = first_result.content
-            next_page_future: Future | None = None
-
-            if total_pages > 1:
-                next_page_future = self._get_page(current_page + 1, executor, BATCH_SIZE)
-
+        previous_page_item_ids = None
+        stagnant_rounds = 0
+        with tqdm(total=total_items, desc="Processing items", unit="img", file=sys.stderr) as pbar:
             while True:
-                if not items and current_page > 0:
+                page_zero = self._fetch_page_sync(search_query, 0, batch_size)
+                items = page_zero.content
+                if not items:
                     break
+
+                # Protection if some items fails to update
+                current_page_item_ids = tuple(item.id for item in items)
+                if current_page_item_ids == previous_page_item_ids:
+                    stagnant_rounds += 1
+                    if stagnant_rounds >= 3:
+                        logger.warning(
+                            "Stopping mutable page-0 loop: first page did not change after %s rounds.",
+                            stagnant_rounds,
+                        )
+                        break
+                else:
+                    stagnant_rounds = 0
+                    previous_page_item_ids = current_page_item_ids
 
                 for item in items:
                     self._handle_single_item(item, pbar)
                     pbar.update(1)
 
+    def _process_with_paged_prefetch(self, search_query, batch_size):
+        first_result = self._fetch_page_sync(search_query, 0, batch_size)
+        total_items = first_result.page.totalElements
+        total_pages = first_result.page.totalPages
+        if total_items == 0:
+            logger.info("No images found.")
+            return
+
+        logger.info(f"Found {total_items} images. Starting processing...")
+        with tqdm(total=total_items, desc="Processing items", unit="img", file=sys.stderr) as pbar, ThreadPoolExecutor(max_workers=1) as executor:
+            current_page = 0
+            items = first_result.content
+            next_page_future: Future | None = None
+            if total_pages > 1:
+                next_page_future = self._prefetch_page_async(search_query, current_page + 1, executor, batch_size)
+
+            while True:
+                if not items and current_page > 0:
+                    break
+                for item in items:
+                    self._handle_single_item(item, pbar)
+                    pbar.update(1)
                 if current_page >= total_pages - 1:
                     break
 
                 current_page += 1
-                paged_result = next_page_future.result(timeout=30)
+                paged_result = self._next_page_with_fallback(next_page_future, search_query, current_page, batch_size)
                 items = paged_result.content
 
                 if current_page < total_pages - 1:
-                    next_page_future = self._get_page(current_page + 1, executor, BATCH_SIZE)
+                    next_page_future = self._prefetch_page_async(search_query, current_page + 1, executor, batch_size)
                 else:
                     next_page_future = None
 
-    def _get_page(self, page, executor, batch_size):
+    def _next_page_with_fallback(self, next_page_future, search_query, current_page, batch_size):
+        if next_page_future is None:
+            return self._fetch_page_sync(search_query, current_page, batch_size)
+        try:
+            return next_page_future.result(timeout=30)
+        except FuturesTimeoutError:
+            next_page_future.cancel()
+            logger.warning("Timeout prefetching page %s. Falling back to synchronous fetch.", current_page)
+            return self._fetch_page_sync(search_query, current_page, batch_size)
+        except Exception as e:
+            logger.warning("Error prefetching page %s (%s). Falling back to synchronous fetch.", current_page, e)
+            return self._fetch_page_sync(search_query, current_page, batch_size)
+
+    def _prefetch_page_async(self, search_query, page, executor, batch_size):
         return executor.submit(
-            self.service.find_items,
-            self.dataset_id,
-            self.get_search_query(),
+            self._fetch_page_sync,
+            search_query,
             page,
-            batch_size
+            batch_size,
         )
+
+    def _fetch_page_sync(self, search_query, page, batch_size):
+        result = self.service.find_items(
+            self.dataset_id,
+            search_string=search_query,
+            page=page,
+            size=batch_size,
+        )
+        return result
+
+    def add_item_tag(self, item_id, tag):
+        result = self.service.add_item_tag(self.dataset_id, item_id, tag)
+        return result
 
     def _handle_single_item(self, item, pbar):
         try:
             # Download item to cache
-            img_path = self.service.get_item(self.dataset_id, item.id)
+            img_path = self.service.get_item_content(self.dataset_id, item.id)
             
             img = self.load_image(img_path)
             if img is None:
                 tqdm.write(f"⚠ No image for item {item.id} found at: {img_path}", file=sys.stderr)
-                return
 
             tags = self.process_item(item, img)
 
             if tags:
                 for tag in tags:
                     try:
-                        self.service.add_item_tag(self.dataset_id, item.id, tag)
+                        self.add_item_tag(item.id, tag)
                     except Exception as e:
                         tqdm.write(f"Failed to add tag to item {item.filename} ({item.id}): {e}", file=sys.stderr)
         

@@ -8,6 +8,7 @@ import org.atypical.carabassa.core.exception.EntityExistsException;
 import org.atypical.carabassa.core.exception.EntityNotFoundException;
 import org.atypical.carabassa.core.model.Dataset;
 import org.atypical.carabassa.core.model.IndexedItem;
+import org.atypical.carabassa.core.model.ItemTagInfo;
 import org.atypical.carabassa.core.model.SearchCriteria;
 import org.atypical.carabassa.core.model.StoredItem;
 import org.atypical.carabassa.core.model.StoredItemThumbnail;
@@ -20,11 +21,13 @@ import org.atypical.carabassa.restapi.representation.assembler.DatasetModelAssem
 import org.atypical.carabassa.restapi.representation.assembler.ItemModelAssembler;
 import org.atypical.carabassa.restapi.representation.mapper.DatasetMapper;
 import org.atypical.carabassa.restapi.representation.mapper.ItemMapper;
+import org.atypical.carabassa.restapi.representation.mapper.ItemTagMapper;
 import org.atypical.carabassa.restapi.representation.mapper.TagMapper;
 import org.atypical.carabassa.restapi.representation.model.DatasetEditableRepresentation;
 import org.atypical.carabassa.restapi.representation.model.DatasetEntityRepresentation;
 import org.atypical.carabassa.restapi.representation.model.IdRepresentation;
 import org.atypical.carabassa.restapi.representation.model.ItemRepresentation;
+import org.atypical.carabassa.restapi.representation.model.ItemTagEntityRepresentation;
 import org.atypical.carabassa.restapi.representation.model.TagEditableRepresentation;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -44,6 +47,9 @@ import org.springframework.stereotype.Component;
 import org.springframework.web.multipart.MultipartFile;
 import org.springframework.web.server.ResponseStatusException;
 
+import java.util.List;
+import java.util.stream.Collectors;
+
 @Component
 public class DatasetControllerImpl implements DatasetController {
 
@@ -62,6 +68,9 @@ public class DatasetControllerImpl implements DatasetController {
 
     @Autowired
     private TagMapper tagMapper;
+
+    @Autowired
+    private ItemTagMapper itemTagMapper;
 
     @Autowired
     private DatasetModelAssembler datasetModelAssembler;
@@ -166,6 +175,18 @@ public class DatasetControllerImpl implements DatasetController {
     public ItemRepresentation findItem(Long datasetId, Long itemId) {
         IndexedItem indexedItem = getIndexedItem(getDataset(datasetId), itemId);
         return itemMapper.toRepresentation(indexedItem);
+    }
+
+    @Override
+    public PagedModel<ItemTagEntityRepresentation> findDatasetItemTagsByName(Long datasetId, String tagName,
+                                                                              Pageable pageable) {
+        Dataset dataset = getDataset(datasetId);
+        Page<ItemTagInfo> page = datasetService.findItemTagsByName(dataset, tagName, pageable);
+        List<ItemTagEntityRepresentation> pageContent = page.getContent().stream()
+                .map(itemTagMapper::toRepresentation)
+                .collect(Collectors.toList());
+        return PagedModel.of(pageContent,
+                new PagedModel.PageMetadata(page.getSize(), page.getNumber(), page.getTotalElements()));
     }
 
     @Override

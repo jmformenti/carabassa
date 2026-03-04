@@ -4,6 +4,7 @@ import org.atypical.carabassa.restapi.representation.model.DatasetEditableRepres
 import org.atypical.carabassa.restapi.representation.model.DatasetEntityRepresentation;
 import org.atypical.carabassa.restapi.representation.model.IdRepresentation;
 import org.atypical.carabassa.restapi.representation.model.ItemRepresentation;
+import org.atypical.carabassa.restapi.representation.model.ItemTagEntityRepresentation;
 import org.atypical.carabassa.restapi.representation.model.TagEditableRepresentation;
 import org.springframework.core.io.Resource;
 import org.springframework.data.domain.Pageable;
@@ -25,7 +26,6 @@ import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.multipart.MultipartFile;
 
 import jakarta.validation.Valid;
-
 @RestController
 @RequestMapping(value = {"/api/dataset"})
 @CrossOrigin
@@ -60,6 +60,11 @@ public interface DatasetController {
 
     @GetMapping(value = "/{datasetId}/item/{id}")
     ItemRepresentation findItem(@PathVariable("datasetId") Long datasetId, @PathVariable("id") Long itemId);
+
+    @GetMapping(value = "/{datasetId}/item/tag/{tagName}")
+    PagedModel<ItemTagEntityRepresentation> findDatasetItemTagsByName(@PathVariable("datasetId") Long datasetId,
+                                                                       @PathVariable("tagName") String tagName,
+                                                                       Pageable pageable);
 
     @GetMapping(value = "/{datasetId}/item/exists/{hash}")
     void existsItem(@PathVariable("datasetId") Long datasetId, @PathVariable("hash") String hash);
