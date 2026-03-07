@@ -103,17 +103,25 @@
       v-model="overlay"
       class="align-center justify-center"
     >
-      <v-card>
+      <v-card v-if="selectedItem">
         <v-card-item>
           <v-card-title>{{ selectedItem.filename }}</v-card-title>
           <v-card-subtitle>{{ new Date(selectedItem.archiveTime).toLocaleDateString(undefined, dateFormatOptions) }}</v-card-subtitle>
+          <template #append>
+            <v-btn
+              icon="mdi-close"
+              variant="text"
+              size="small"
+              @click="overlay = false"
+            />
+          </template>
         </v-card-item>
         <v-card-text>
           <v-img
             width="500"
             max-height="500"
-            :src="selectedItem? $carabassa.getItemContentURL(selectedItem.id) :''"
-            @click="selectedItem = null" 
+            :src="$carabassa.getItemContentURL(selectedItem.id)"
+            @click="overlay = false" 
           />
         </v-card-text>
         <v-card-actions>
@@ -121,9 +129,37 @@
             icon="mdi-download"
             :href="$carabassa.getItemContentURL(selectedItem.id)"
           />
+          <v-btn
+            icon="mdi-delete"
+            color="red"
+            @click="confirmDelete"
+          />
         </v-card-actions>
       </v-card>
     </v-overlay>
+    <v-dialog
+      v-model="deleteDialog"
+      max-width="400"
+    >
+      <v-card>
+        <v-card-title>Delete image</v-card-title>
+        <v-card-text>Are you sure you want to delete this image?</v-card-text>
+        <v-card-actions>
+          <v-spacer />
+          <v-btn
+            @click="deleteDialog = false"
+          >
+            Cancel
+          </v-btn>
+          <v-btn
+            color="red"
+            @click="deleteItem"
+          >
+            Delete
+          </v-btn>
+        </v-card-actions>
+      </v-card>
+    </v-dialog>
     <div
       v-if="waitingResults"
       class="text-center"
@@ -157,6 +193,7 @@ export default {
       searched: false,
       overlay: false,
       selectedItem: null,
+      deleteDialog: false,
       dateFormatOptions: {
         weekday: 'long',
         year: 'numeric',
@@ -245,6 +282,25 @@ export default {
     expandImage (item) {
       this.overlay = true
       this.selectedItem = item
+    },
+
+    confirmDelete () {
+      this.deleteDialog = true
+    },
+
+    async deleteItem () {
+      try {
+        const itemId = this.selectedItem.id
+        await this.$carabassa.deleteItem(itemId)
+        this.deleteDialog = false
+        this.overlay = false
+        this.selectedItem = null
+        this.items = this.items.filter(i => i.id !== itemId)
+        this.totalItems--
+      } catch (err) {
+        this.deleteDialog = false
+        this.$notification.alert(err)
+      }
     },
 
     waitFor (variable, callback) {

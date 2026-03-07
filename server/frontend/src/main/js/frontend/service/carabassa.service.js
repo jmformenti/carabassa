@@ -41,4 +41,15 @@ export class CarabassaService {
   getItemContentURL(itemId) {
     return `${this.apiBaseURL}/api/dataset/${this.datasetStore.dataset.id}/item/${itemId}/content`
   }
+
+  deleteItem(itemId) {
+    return fetch(
+      `${this.apiBaseURL}/api/dataset/${this.datasetStore.dataset.id}/item/${itemId}`,
+      { method: 'DELETE' }
+    ).then((response) => {
+      if (!response.ok) {
+        throw new Error(`Delete failed: ${response.status}`)
+      }
+    })
+  }
 }
