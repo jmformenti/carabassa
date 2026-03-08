@@ -31,7 +31,7 @@ export class CarabassaService {
   getItems(currentPage, pageSize, searchString, sort) {
     const sortParam = sort ? `&sort=${sort}` : ''
     return $fetch(
-      `${this.apiBaseURL}/api/dataset/${this.datasetStore.dataset.id}/item?size=${pageSize}&page=${currentPage}&search=${searchString} type:I${sortParam}`
+      `${this.apiBaseURL}/api/dataset/${this.datasetStore.dataset.id}/item?size=${pageSize}&page=${currentPage}&search=${searchString}${sortParam}`
     )
   }
 
