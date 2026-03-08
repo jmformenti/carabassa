@@ -84,13 +84,14 @@
           cols="2"
         >
           <v-img
+            v-if="!isVideo(item)"
             :src="$carabassa.getItemThumbnailURL(item.id)"
             :lazy-src="$carabassa.getItemThumbnailURL(item.id)"
             :aspect-ratio="1"
             cover
             class="with-pointer grey lighten-2"
             :title="`${item.id} - ${item.archiveTime}`"
-            @click="expandImage(item)"
+            @click="expandItem(item)"
           >
             <template #placeholder>
               <div class="d-flex align-center justify-center fill-height">
@@ -101,6 +102,28 @@
               </div>
             </template>
           </v-img>
+          <div
+            v-else
+            class="media-preview with-pointer"
+            :title="`${item.id} - ${item.archiveTime}`"
+            @click="expandItem(item)"
+          >
+            <video
+              class="video-preview"
+              :src="$carabassa.getItemContentURL(item.id)"
+              preload="metadata"
+              muted
+              playsinline
+            />
+            <div class="video-preview-overlay">
+              <v-icon
+                size="36"
+                color="white"
+              >
+                mdi-play-circle-outline
+              </v-icon>
+            </div>
+          </div>
         </v-col>
       </v-row>
       <v-row>
@@ -109,7 +132,7 @@
             v-if="leftItems > 0"
             class="text-body-2 text-center"
           >
-            {{ leftItems }} images left
+            {{ leftItems }} items left
           </div>
         </v-col>
       </v-row>
@@ -151,7 +174,15 @@
           </template>
         </v-card-item>
         <v-card-text>
+          <video
+            v-if="isVideo(selectedItem)"
+            class="overlay-video"
+            :src="$carabassa.getItemContentURL(selectedItem.id)"
+            controls
+            autoplay
+          />
           <v-img
+            v-else
             width="500"
             max-height="500"
             :src="$carabassa.getItemContentURL(selectedItem.id)"
@@ -176,8 +207,8 @@
       max-width="400"
     >
       <v-card>
-        <v-card-title>Delete image</v-card-title>
-        <v-card-text>Are you sure you want to delete this image?</v-card-text>
+        <v-card-title>Delete item</v-card-title>
+        <v-card-text>Are you sure you want to delete this item?</v-card-text>
         <v-card-actions>
           <v-spacer />
           <v-btn
@@ -349,7 +380,11 @@ export default {
       }
     },
 
-    expandImage (item) {
+    isVideo (item) {
+      return item && item.type && item.type.toLowerCase() === 'video'
+    },
+
+    expandItem (item) {
       this.overlay = true
       this.selectedItem = item
       window.addEventListener('keydown', this.handleKeyDown)
@@ -418,6 +453,33 @@ export default {
 }
 .no-opacity {
   opacity: 1;
+}
+.media-preview {
+  position: relative;
+  width: 100%;
+  aspect-ratio: 1 / 1;
+  overflow: hidden;
+  border-radius: 4px;
+  background: #111;
+}
+.video-preview {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+.video-preview-overlay {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(0, 0, 0, 0.2);
+}
+.overlay-video {
+  width: 100%;
+  max-width: 900px;
+  max-height: 70vh;
+  display: block;
 }
 .navigation-card {
   overflow: visible !important;
