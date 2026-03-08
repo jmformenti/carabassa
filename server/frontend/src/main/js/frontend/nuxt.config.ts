@@ -5,6 +5,14 @@ import eslintPlugin from 'vite-plugin-eslint2'
 export default defineNuxtConfig({
   compatibilityDate: '2026-01-30',
   ssr: false,
+  app: {
+    head: {
+      title: 'Carabassa',
+      link: [
+        { rel: 'icon', type: 'image/svg+xml', href: '/favicon.svg' }
+      ]
+    }
+  },
   runtimeConfig: {
     public: {
       // to override, export NUXT_PUBLIC_API_BASE_URL=http://192.168.1.2:8080
