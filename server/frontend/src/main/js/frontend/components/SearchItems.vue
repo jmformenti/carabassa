@@ -357,13 +357,18 @@ export default {
     },
 
     search () {
-      this.$router.push({
-        query: {
-          ...this.$route.query,
-          search: this.searchString,
-          sort: this.selectedSort
-        }
-      })
+      const query = { ...this.$route.query }
+      if (this.searchString) {
+        query.search = this.searchString
+      } else {
+        delete query.search
+      }
+      if (this.selectedSort) {
+        query.sort = this.selectedSort
+      } else {
+        delete query.sort
+      }
+      this.$router.push({ query })
       this.reset()
       this.getItems()
     },
