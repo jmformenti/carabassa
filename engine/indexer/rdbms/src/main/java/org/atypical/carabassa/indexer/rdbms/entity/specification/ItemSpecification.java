@@ -12,14 +12,15 @@ import org.atypical.carabassa.indexer.rdbms.entity.IndexedItemEntity;
 import org.atypical.carabassa.indexer.rdbms.entity.IndexedItemEntity_;
 import org.atypical.carabassa.indexer.rdbms.entity.TagEntity;
 import org.atypical.carabassa.indexer.rdbms.entity.TagEntity_;
+import org.springframework.data.domain.Sort;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.data.util.Pair;
 
-import jakarta.persistence.criteria.AbstractQuery;
 import jakarta.persistence.criteria.CriteriaBuilder;
 import jakarta.persistence.criteria.CriteriaQuery;
 import jakarta.persistence.criteria.Join;
 import jakarta.persistence.criteria.JoinType;
+import jakarta.persistence.criteria.Order;
 import jakarta.persistence.criteria.Predicate;
 import jakarta.persistence.criteria.Root;
 import jakarta.persistence.criteria.Subquery;
@@ -52,10 +53,12 @@ public class ItemSpecification implements Specification<IndexedItemEntity> {
 
     private final Dataset dataset;
     private final SearchCriteria searchCriteria;
+    private final Sort sort;
 
-    public ItemSpecification(Dataset dataset, SearchCriteria searchCriteria) {
+    public ItemSpecification(Dataset dataset, SearchCriteria searchCriteria, Sort sort) {
         this.dataset = dataset;
         this.searchCriteria = searchCriteria;
+        this.sort = sort;
     }
 
     @Override
@@ -69,19 +72,44 @@ public class ItemSpecification implements Specification<IndexedItemEntity> {
             predicates.add(toPredicateFromCondition(condition, root, query, builder));
         }
 
-        query.orderBy(builder.asc(root.get(IndexedItemEntity_.ARCHIVE_TIME)),
-                builder.asc(root.get(IndexedItemEntity_.ID)));
+        if (sort != null && sort.isSorted() && query.getResultType() != Long.class
+                && query.getResultType() != long.class) {
+            List<Order> orders = new ArrayList<>();
+            sort.forEach(order -> {
+                List<String> entityProperties = java.util.Arrays.asList(
+                        "id", "type", "filename", "format", "hash", "size", "creation", "modification", "archiveTime", "dataset");
+                if (entityProperties.contains(order.getProperty())) {
+                    if (order.isAscending()) {
+                        orders.add(builder.asc(root.get(order.getProperty())));
+                    } else {
+                        orders.add(builder.desc(root.get(order.getProperty())));
+                    }
+                } else {
+                    // Assume it's a tag name, like "duplicated.group"
+                    Join<IndexedItemEntity, TagEntity> tagJoin = root.join(IndexedItemEntity_.TAGS, JoinType.LEFT);
+                    tagJoin.on(builder.equal(tagJoin.get(TagEntity_.NAME), order.getProperty()));
+                    if (order.isAscending()) {
+                        orders.add(builder.asc(tagJoin.get(TagEntity_.TEXT_VALUE)));
+                    } else {
+                        orders.add(builder.desc(tagJoin.get(TagEntity_.TEXT_VALUE)));
+                    }
+                }
+            });
+            orders.add(builder.asc(root.get(IndexedItemEntity_.ID)));
+            query.orderBy(orders);
+        } else {
+            query.orderBy(builder.asc(root.get(IndexedItemEntity_.ARCHIVE_TIME)),
+                    builder.asc(root.get(IndexedItemEntity_.ID)));
+        }
 
         return builder.and(predicates.toArray(new Predicate[0]));
     }
 
     private Predicate toPredicateFromCondition(SearchCondition condition, Root<IndexedItemEntity> root,
-            CriteriaQuery<?> query, CriteriaBuilder builder) {
+                                               CriteriaQuery<?> query, CriteriaBuilder builder) {
 
         if (condition.getOperation() == null) {
-            Join<IndexedItemEntity, TagEntity> tags = addTagsJoin(root, query);
-            return builder.like(builder.lower(tags.get(TagEntity_.TEXT_VALUE)),
-                    builder.lower(builder.literal("%" + condition.getValue() + "%")));
+            return existsTagCondition(query, null, condition.getValue().toString(), builder, root);
         } else if (condition.getOperation() == SearchOperator.EQUAL) {
             Pair<Instant, Instant> periodDates;
             switch (condition.getKey()) {
@@ -103,19 +131,14 @@ public class ItemSpecification implements Specification<IndexedItemEntity> {
                     return builder.lessThanOrEqualTo(root.get(IndexedItemEntity_.ARCHIVE_TIME),
                             periodDates.getSecond());
                 case ATTR_CITY: {
-                    Join<IndexedItemEntity, TagEntity> tags = addTagsJoin(root, query);
-                    return builder.and(builder.equal(tags.get(TagEntity_.NAME), ImageMetadataTagger.TAG_CITY),
-                            builder.like(builder.lower(tags.get(TagEntity_.TEXT_VALUE)),
-                                    builder.lower(builder.literal("%" + condition.getValue() + "%"))));
+                    return existsTagCondition(query, ImageMetadataTagger.TAG_CITY,
+                            "%" + condition.getValue().toString() + "%", builder, root);
                 }
                 case ATTR_MISSING_TAG:
                     Subquery<Long> subquery = itemsWithMissingTag(query, condition.getValue().toString(), builder);
                     return builder.not(root.get(IndexedItemEntity_.ID).in(subquery));
                 default:
-                    Join<IndexedItemEntity, TagEntity> tags = addTagsJoin(root, query);
-                    return builder.and(builder.equal(tags.get(TagEntity_.NAME), builder.literal(condition.getKey())),
-                            builder.equal(builder.lower(tags.get(TagEntity_.TEXT_VALUE)),
-                                    builder.lower(builder.literal(condition.getValue().toString()))));
+                    return existsTagCondition(query, condition.getKey(), condition.getValue().toString(), builder, root);
             }
         } else if (condition.getOperation() == SearchOperator.LESS_THAN && ATTR_ID.equals(condition.getKey())) {
             return builder.lessThan(root.get(IndexedItemEntity_.ID), condition.getValue().toString());
@@ -133,9 +156,26 @@ public class ItemSpecification implements Specification<IndexedItemEntity> {
         return subquery;
     }
 
-    private Join<IndexedItemEntity, TagEntity> addTagsJoin(Root<IndexedItemEntity> root, AbstractQuery<?> query) {
-        query.distinct(true);
-        return root.join(IndexedItemEntity_.TAGS, JoinType.INNER);
+    private Predicate existsTagCondition(CriteriaQuery<?> query, String tagName, String tagValue,
+                                         CriteriaBuilder builder, Root<IndexedItemEntity> root) {
+        Subquery<Long> subquery = query.subquery(Long.class);
+        Root<TagEntity> subRoot = subquery.from(TagEntity.class);
+        subquery.select(subRoot.get(TagEntity_.ITEM_ID));
+
+        List<Predicate> subPredicates = new ArrayList<>();
+        subPredicates.add(builder.equal(subRoot.get(TagEntity_.ITEM_ID), root.get(IndexedItemEntity_.ID)));
+
+        if (tagName != null) {
+            subPredicates.add(builder.equal(subRoot.get(TagEntity_.NAME), tagName));
+        }
+
+        if (tagValue != null) {
+            subPredicates.add(builder.equal(builder.lower(subRoot.get(TagEntity_.TEXT_VALUE)),
+                    builder.lower(builder.literal(tagValue))));
+        }
+
+        subquery.where(subPredicates.toArray(new Predicate[0]));
+        return builder.exists(subquery);
     }
 
     private Pair<Instant, Instant> getPeriodDates(String value) {

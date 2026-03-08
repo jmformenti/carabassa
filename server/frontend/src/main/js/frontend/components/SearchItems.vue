@@ -50,6 +50,21 @@
             </template>
           </v-text-field>
         </v-col>
+        <v-col
+          cols="12"
+          sm="4"
+          md="3"
+        >
+          <v-select
+            v-model="selectedSort"
+            :items="sortOptions"
+            item-title="text"
+            item-value="value"
+            label="Order by"
+            variant="underlined"
+            @update:modelValue="search"
+          />
+        </v-col>
       </v-row>
       <v-row>
         <v-col>
@@ -200,7 +215,13 @@ export default {
         month: 'long',
         day: 'numeric'
       },
-      waitingResults: false
+      waitingResults: false,
+      selectedSort: 'archiveTime,desc',
+      sortOptions: [
+        { text: 'By date', value: 'archiveTime,desc' },
+        { text: 'By size', value: 'size,desc' },
+        { text: 'By tag: duplicated', value: 'duplicated.group,asc' }
+      ]
     }
   },
 
@@ -228,8 +249,14 @@ export default {
   mounted () {
     this.enableInfiniteScroll()
     const searchStringByQuery = this.$route.query.search
-    if (searchStringByQuery) {
-      this.searchString = searchStringByQuery
+    const sortByQuery = this.$route.query.sort
+    if (searchStringByQuery || sortByQuery) {
+      if (searchStringByQuery) {
+        this.searchString = searchStringByQuery
+      }
+      if (sortByQuery) {
+        this.selectedSort = sortByQuery
+      }
       this.waitFor(this.datasetStore.dataset, () => this.getItems())
     }
   },
@@ -237,7 +264,7 @@ export default {
   methods: {
     async getItems () {
       this.waitingResults = true
-      await this.$carabassa.getItems(this.currentPage, this.pageSize, this.searchString)
+      await this.$carabassa.getItems(this.currentPage, this.pageSize, this.searchString, this.selectedSort)
       .then((data) => {
         let items = []
         if (data._embedded) {
@@ -263,6 +290,13 @@ export default {
     },
 
     search () {
+      this.$router.push({
+        query: {
+          ...this.$route.query,
+          search: this.searchString,
+          sort: this.selectedSort
+        }
+      })
       this.reset()
       this.getItems()
     },
