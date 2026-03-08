@@ -678,7 +678,7 @@ public class DatasetServiceTest {
         assertEquals("c90dc72d18cb6c62d8923fc2f276f94f", indexedItems.getContent().get(0).getHash());
         assertEquals(2, indexedItems.getTotalElements());
 
-        indexedItems = datasetService.findItems(dataset, PageRequest.of(1, 1));
+        indexedItems = datasetService.findItems(dataset, PageRequest.of(1, 1, Sort.by("id").ascending()));
         assertNotNull(indexedItems);
         assertEquals(1, indexedItems.getNumberOfElements());
         assertEquals("c90dc72d18cb6c62d8923fc2f276f94f", indexedItems.getContent().get(0).getHash());
@@ -706,6 +706,34 @@ public class DatasetServiceTest {
         // THEN
         assertNotNull(indexedItems);
         assertEquals(1, indexedItems.getNumberOfElements());
+        assertEquals(1, indexedItems.getTotalElements());
+    }
+
+    @Test
+    void findItemsSearchWithSort() throws EntityNotFoundException, IOException, EntityExistsException {
+        final String FILENAME1 = "IMG_VALID.jpg";
+        final String FILENAME2 = "IMG_NO_DATE.jpg";
+
+        // GIVEN
+        Dataset dataset = datasetService.findByName(DATASET_TEST_NAME);
+        IndexedItem item1 = datasetService.addItem(dataset, ItemType.IMAGE, FILENAME1, TestHelper.getImageResource(FILENAME1));
+        IndexedItem item2 = datasetService.addItem(dataset, ItemType.IMAGE, FILENAME2, TestHelper.getImageResource(FILENAME2));
+
+        datasetService.addItemTag(dataset, item1.getId(), new TagEntity(new TagImpl("duplicated", "true")));
+        datasetService.addItemTag(dataset, item1.getId(), new TagEntity(new TagImpl("duplicated.group", "group1")));
+        datasetService.addItemTag(dataset, item2.getId(), new TagEntity(new TagImpl("duplicated", "false")));
+
+        // required to save item in db
+        entityManager.flush();
+
+        // WHEN
+        SearchCriteria searchCriteria = new SearchCriteriaImpl(
+                new SearchConditionImpl("duplicated", SearchOperator.EQUAL, "true"));
+        Page<IndexedItem> indexedItems = datasetService.findItems(dataset, searchCriteria,
+                PageRequest.of(0, 10, Sort.by("duplicated.group").ascending()));
+
+        // THEN
+        assertNotNull(indexedItems);
         assertEquals(1, indexedItems.getTotalElements());
     }
 

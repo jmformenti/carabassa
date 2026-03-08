@@ -151,6 +151,7 @@ public class DatasetControllerTest extends DatasetControllerHelper {
                                 fieldWithPath("creation").description("Item date creation in repository"),
                                 fieldWithPath("modification").description("Item date last modification in repository"),
                                 fieldWithPath("archiveTime").description("Item archived date (by default, shot date)"),
+                                fieldWithPath("size").description("Item file size"),
                                 subsectionWithPath("tags[]").description("Array of tags") };
         }
 

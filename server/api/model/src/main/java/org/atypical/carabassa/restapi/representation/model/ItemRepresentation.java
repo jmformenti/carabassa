@@ -19,6 +19,7 @@ public class ItemRepresentation extends RepresentationModel<ItemRepresentation> 
     private Instant creation;
     private Instant modification;
     private Instant archiveTime;
+    private long size;
     private SortedSet<TagEntityRepresentation> tags;
 
     public Long getId() {
@@ -95,6 +96,14 @@ public class ItemRepresentation extends RepresentationModel<ItemRepresentation> 
 
     public void setArchiveTime(Instant archiveTime) {
         this.archiveTime = archiveTime;
+    }
+
+    public long getSize() {
+        return size;
+    }
+
+    public void setSize(long size) {
+        this.size = size;
     }
 
     public SortedSet<TagEntityRepresentation> getTags() {

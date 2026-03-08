@@ -50,6 +50,21 @@
             </template>
           </v-text-field>
         </v-col>
+        <v-col
+          cols="12"
+          sm="4"
+          md="3"
+        >
+          <v-select
+            v-model="selectedSort"
+            :items="sortOptions"
+            item-title="text"
+            item-value="value"
+            label="Order by"
+            variant="underlined"
+            @update:modelValue="search"
+          />
+        </v-col>
       </v-row>
       <v-row>
         <v-col>
@@ -103,17 +118,44 @@
       v-model="overlay"
       class="align-center justify-center"
     >
-      <v-card>
+      <v-card
+        v-if="selectedItem"
+        class="navigation-card"
+      >
+        <v-btn
+          v-if="hasPrevious"
+          icon="mdi-chevron-left"
+          variant="elevated"
+          class="nav-btn prev-btn"
+          size="large"
+          @click.stop="previousImage"
+        />
+        <v-btn
+          v-if="hasNext || currentPage + 1 < totalPages"
+          icon="mdi-chevron-right"
+          variant="elevated"
+          class="nav-btn next-btn"
+          size="large"
+          @click.stop="nextImage"
+        />
         <v-card-item>
           <v-card-title>{{ selectedItem.filename }}</v-card-title>
           <v-card-subtitle>{{ new Date(selectedItem.archiveTime).toLocaleDateString(undefined, dateFormatOptions) }}</v-card-subtitle>
+          <template #append>
+            <v-btn
+              icon="mdi-close"
+              variant="text"
+              size="small"
+              @click="overlay = false"
+            />
+          </template>
         </v-card-item>
         <v-card-text>
           <v-img
             width="500"
             max-height="500"
-            :src="selectedItem? $carabassa.getItemContentURL(selectedItem.id) :''"
-            @click="selectedItem = null" 
+            :src="$carabassa.getItemContentURL(selectedItem.id)"
+            @click="overlay = false" 
           />
         </v-card-text>
         <v-card-actions>
@@ -121,9 +163,37 @@
             icon="mdi-download"
             :href="$carabassa.getItemContentURL(selectedItem.id)"
           />
+          <v-btn
+            icon="mdi-delete"
+            color="red"
+            @click="confirmDelete"
+          />
         </v-card-actions>
       </v-card>
     </v-overlay>
+    <v-dialog
+      v-model="deleteDialog"
+      max-width="400"
+    >
+      <v-card>
+        <v-card-title>Delete image</v-card-title>
+        <v-card-text>Are you sure you want to delete this image?</v-card-text>
+        <v-card-actions>
+          <v-spacer />
+          <v-btn
+            @click="deleteDialog = false"
+          >
+            Cancel
+          </v-btn>
+          <v-btn
+            color="red"
+            @click="deleteItem"
+          >
+            Delete
+          </v-btn>
+        </v-card-actions>
+      </v-card>
+    </v-dialog>
     <div
       v-if="waitingResults"
       class="text-center"
@@ -157,13 +227,20 @@ export default {
       searched: false,
       overlay: false,
       selectedItem: null,
+      deleteDialog: false,
       dateFormatOptions: {
         weekday: 'long',
         year: 'numeric',
         month: 'long',
         day: 'numeric'
       },
-      waitingResults: false
+      waitingResults: false,
+      selectedSort: 'archiveTime,desc',
+      sortOptions: [
+        { text: 'By date', value: 'archiveTime,desc' },
+        { text: 'By size', value: 'size,desc' },
+        { text: 'By tag: duplicated', value: 'duplicated.group,asc' }
+      ]
     }
   },
 
@@ -179,20 +256,43 @@ export default {
 
     selectedDataset () {
       return this.datasetStore.dataset
+    },
+
+    selectedIndex () {
+      return this.items.indexOf(this.selectedItem)
+    },
+
+    hasPrevious () {
+      return this.selectedIndex > 0
+    },
+
+    hasNext () {
+      return this.selectedIndex < this.items.length - 1
     }
   },
 
   watch: {
     selectedDataset () {
       this.reset()
+    },
+    overlay (val) {
+      if (!val) {
+        window.removeEventListener('keydown', this.handleKeyDown)
+      }
     }
   },
 
   mounted () {
     this.enableInfiniteScroll()
     const searchStringByQuery = this.$route.query.search
-    if (searchStringByQuery) {
-      this.searchString = searchStringByQuery
+    const sortByQuery = this.$route.query.sort
+    if (searchStringByQuery || sortByQuery) {
+      if (searchStringByQuery) {
+        this.searchString = searchStringByQuery
+      }
+      if (sortByQuery) {
+        this.selectedSort = sortByQuery
+      }
       this.waitFor(this.datasetStore.dataset, () => this.getItems())
     }
   },
@@ -200,7 +300,7 @@ export default {
   methods: {
     async getItems () {
       this.waitingResults = true
-      await this.$carabassa.getItems(this.currentPage, this.pageSize, this.searchString)
+      await this.$carabassa.getItems(this.currentPage, this.pageSize, this.searchString, this.selectedSort)
       .then((data) => {
         let items = []
         if (data._embedded) {
@@ -226,6 +326,13 @@ export default {
     },
 
     search () {
+      this.$router.push({
+        query: {
+          ...this.$route.query,
+          search: this.searchString,
+          sort: this.selectedSort
+        }
+      })
       this.reset()
       this.getItems()
     },
@@ -245,6 +352,52 @@ export default {
     expandImage (item) {
       this.overlay = true
       this.selectedItem = item
+      window.addEventListener('keydown', this.handleKeyDown)
+    },
+
+    previousImage () {
+      if (this.hasPrevious) {
+        this.selectedItem = this.items[this.selectedIndex - 1]
+      }
+    },
+
+    nextImage () {
+      if (this.hasNext) {
+        this.selectedItem = this.items[this.selectedIndex + 1]
+      } else if (this.currentPage + 1 < this.totalPages) {
+        this.currentPage++
+        this.getItems().then(() => {
+          if (this.items.length > this.selectedIndex + 1) {
+            this.selectedItem = this.items[this.selectedIndex + 1]
+          }
+        })
+      }
+    },
+
+    handleKeyDown (e) {
+      if (!this.overlay) return
+      if (e.key === 'ArrowLeft') this.previousImage()
+      if (e.key === 'ArrowRight') this.nextImage()
+      if (e.key === 'Escape') this.overlay = false
+    },
+
+    confirmDelete () {
+      this.deleteDialog = true
+    },
+
+    async deleteItem () {
+      try {
+        const itemId = this.selectedItem.id
+        await this.$carabassa.deleteItem(itemId)
+        this.deleteDialog = false
+        this.overlay = false
+        this.selectedItem = null
+        this.items = this.items.filter(i => i.id !== itemId)
+        this.totalItems--
+      } catch (err) {
+        this.deleteDialog = false
+        this.$notification.alert(err)
+      }
     },
 
     waitFor (variable, callback) {
@@ -265,5 +418,39 @@ export default {
 }
 .no-opacity {
   opacity: 1;
+}
+.navigation-card {
+  overflow: visible !important;
+}
+.nav-btn {
+  position: absolute;
+  top: 50%;
+  transform: translateY(-50%);
+  z-index: 10;
+  background-color: rgba(var(--v-theme-surface), 0.5) !important;
+  border-radius: 50%;
+  backdrop-filter: blur(4px);
+  transition: all 0.3s ease;
+}
+.nav-btn:hover {
+  background-color: rgba(var(--v-theme-surface), 0.8) !important;
+  transform: translateY(-50%) scale(1.1);
+}
+.prev-btn {
+  left: -80px;
+}
+.next-btn {
+  right: -80px;
+}
+@media (max-width: 800px) {
+  .prev-btn {
+    left: 8px;
+  }
+  .next-btn {
+    right: 8px;
+  }
+  .nav-btn {
+    background-color: rgba(var(--v-theme-surface), 0.8) !important;
+  }
 }
 </style>

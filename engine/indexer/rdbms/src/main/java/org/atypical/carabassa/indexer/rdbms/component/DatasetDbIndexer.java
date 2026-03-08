@@ -10,6 +10,7 @@ import org.atypical.carabassa.core.model.Dataset;
 import org.atypical.carabassa.core.model.IndexedItem;
 import org.atypical.carabassa.core.model.ItemTagInfo;
 import org.atypical.carabassa.core.model.SearchCriteria;
+import org.atypical.carabassa.core.model.impl.SearchCriteriaImpl;
 import org.atypical.carabassa.core.model.Tag;
 import org.atypical.carabassa.core.model.enums.ItemType;
 import org.atypical.carabassa.indexer.rdbms.entity.DatasetEntity;
@@ -23,6 +24,8 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.io.Resource;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Component;
 import org.springframework.util.Assert;
 
@@ -212,13 +215,19 @@ public class DatasetDbIndexer implements DatasetIndexer {
 
     @Override
     public Page<IndexedItem> findItems(Dataset dataset, Pageable pageable) {
-        return indexedItemRepository.findItems(dataset, pageable).map(item -> item);
+        SearchCriteria emptyCriteria = new SearchCriteriaImpl();
+        Sort sort = pageable.getSort();
+        Pageable unsortedPageable = PageRequest.of(pageable.getPageNumber(), pageable.getPageSize());
+        return indexedItemRepository.findAll(new ItemSpecification(dataset, emptyCriteria, sort), unsortedPageable)
+                .map(item -> item);
     }
 
     @Override
     public Page<IndexedItem> findItems(Dataset dataset, SearchCriteria searchCriteria, Pageable pageable) {
         Assert.notNull(searchCriteria, "Search criteria can not be null.");
-        return indexedItemRepository.findAll(new ItemSpecification(dataset, searchCriteria), pageable)
+        Sort sort = pageable.getSort();
+        Pageable unsortedPageable = PageRequest.of(pageable.getPageNumber(), pageable.getPageSize());
+        return indexedItemRepository.findAll(new ItemSpecification(dataset, searchCriteria, sort), unsortedPageable)
                 .map(item -> item);
     }
 
