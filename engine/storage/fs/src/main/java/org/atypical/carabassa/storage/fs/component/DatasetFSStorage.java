@@ -145,9 +145,24 @@ public class DatasetFSStorage implements DatasetStorage {
 
     @Override
     public void deleteItem(IndexedItem item) throws IOException {
-        Files.deleteIfExists(getItemPath(item));
-        deleteJson(item);
-        deleteThumbnail(item);
+        Path trashPath = getTrashPath(item.getDataset());
+        if (!Files.exists(trashPath)) {
+            Files.createDirectories(trashPath);
+        }
+
+        moveIfExists(getItemPath(item), trashPath.resolve(getArchiveFilename(item)));
+        moveIfExists(getJsonPath(item), trashPath.resolve(getJsonFilename(item)));
+        moveIfExists(getThumbnailPath(item), trashPath.resolve(getThumbnailFilename(item)));
+    }
+
+    private void moveIfExists(Path source, Path target) throws IOException {
+        if (Files.exists(source)) {
+            Files.move(source, target, StandardCopyOption.REPLACE_EXISTING);
+        }
+    }
+
+    private Path getTrashPath(Dataset dataset) {
+        return Paths.get(repoDir, "trash", dataset.getName());
     }
 
     @Override
@@ -193,14 +208,6 @@ public class DatasetFSStorage implements DatasetStorage {
 
     private void writeJson(IndexedItem item) throws IOException {
         mapper.writeValue(getJsonPath(item).toFile(), new StoredItemInfoImpl(item.getFilename()));
-    }
-
-    private void deleteJson(IndexedItem item) throws IOException {
-        Files.deleteIfExists(getJsonPath(item));
-    }
-
-    private void deleteThumbnail(IndexedItem item) throws IOException {
-        Files.deleteIfExists(getThumbnailPath(item));
     }
 
     private Path getItemPath(IndexedItem item) {

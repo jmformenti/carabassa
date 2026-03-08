@@ -1,6 +1,9 @@
 package org.atypical.carabassa.indexer.rdbms.service;
 
 import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.List;
 import java.util.Set;
 
@@ -26,15 +29,10 @@ import org.atypical.carabassa.indexer.rdbms.test.configuration.TestConfiguration
 import org.atypical.carabassa.indexer.rdbms.test.helper.TestHelper;
 import org.atypical.carabassa.storage.fs.configuration.StorageFSConfiguration;
 import org.junit.jupiter.api.AfterEach;
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertFalse;
-import static org.junit.jupiter.api.Assertions.assertNotNull;
-import static org.junit.jupiter.api.Assertions.assertNull;
-import static org.junit.jupiter.api.Assertions.assertThrows;
-import static org.junit.jupiter.api.Assertions.assertTrue;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.data.jpa.test.autoconfigure.DataJpaTest;
 import org.springframework.boot.jpa.test.autoconfigure.TestEntityManager;
 import org.springframework.core.io.ByteArrayResource;
@@ -43,9 +41,18 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Sort;
 import org.springframework.test.context.ContextConfiguration;
+import org.springframework.test.context.TestPropertySource;
+
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertNull;
+import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 @ContextConfiguration(classes = { CoreConfiguration.class, IndexerRdbmsConfiguration.class,
         StorageFSConfiguration.class, TestConfiguration.class })
+@TestPropertySource("classpath:application.properties")
 @DataJpaTest
 public class DatasetServiceTest {
 
@@ -56,6 +63,9 @@ public class DatasetServiceTest {
 
     @Autowired
     private TestEntityManager entityManager;
+
+    @Value("${carabassa.repodir}")
+    private String repoDir;
 
     @BeforeEach
     void setUp() throws EntityExistsException, IOException {
@@ -494,6 +504,11 @@ public class DatasetServiceTest {
 
         assertThrows(EntityNotFoundException.class, () -> datasetService.findItemById(finalDataset, itemId));
         assertThrows(EntityNotFoundException.class, () -> datasetService.getStoredItem(finalDataset, indexedItem));
+
+        // verify trash
+        assertTrue(Files.exists(Paths.get(repoDir, "trash", DATASET_TEST_NAME, indexedItem.getHash() + ".jpg")), "Main file should be in trash");
+        assertTrue(Files.exists(Paths.get(repoDir, "trash", DATASET_TEST_NAME, indexedItem.getHash() + ".json")), "JSON file should be in trash");
+        assertTrue(Files.exists(Paths.get(repoDir, "trash", DATASET_TEST_NAME, "." + indexedItem.getHash() + "_thumb.jpg")), "Thumbnail file should be in trash");
     }
 
     @Test
@@ -528,6 +543,11 @@ public class DatasetServiceTest {
 
         assertThrows(EntityNotFoundException.class, () -> datasetService.findItemById(finalDataset, itemId));
         assertThrows(EntityNotFoundException.class, () -> datasetService.getStoredItem(finalDataset, finalIndexedItem));
+
+        // verify trash
+        assertTrue(Files.exists(Paths.get(repoDir, "trash", DATASET_TEST_NAME, finalIndexedItem.getHash() + ".jpg")), "Main file should be in trash");
+        assertTrue(Files.exists(Paths.get(repoDir, "trash", DATASET_TEST_NAME, finalIndexedItem.getHash() + ".json")), "JSON file should be in trash");
+        assertTrue(Files.exists(Paths.get(repoDir, "trash", DATASET_TEST_NAME, "." + finalIndexedItem.getHash() + "_thumb.jpg")), "Thumbnail file should be in trash");
     }
 
     @Test
