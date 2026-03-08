@@ -118,7 +118,26 @@
       v-model="overlay"
       class="align-center justify-center"
     >
-      <v-card v-if="selectedItem">
+      <v-card
+        v-if="selectedItem"
+        class="navigation-card"
+      >
+        <v-btn
+          v-if="hasPrevious"
+          icon="mdi-chevron-left"
+          variant="elevated"
+          class="nav-btn prev-btn"
+          size="large"
+          @click.stop="previousImage"
+        />
+        <v-btn
+          v-if="hasNext || currentPage + 1 < totalPages"
+          icon="mdi-chevron-right"
+          variant="elevated"
+          class="nav-btn next-btn"
+          size="large"
+          @click.stop="nextImage"
+        />
         <v-card-item>
           <v-card-title>{{ selectedItem.filename }}</v-card-title>
           <v-card-subtitle>{{ new Date(selectedItem.archiveTime).toLocaleDateString(undefined, dateFormatOptions) }}</v-card-subtitle>
@@ -237,12 +256,29 @@ export default {
 
     selectedDataset () {
       return this.datasetStore.dataset
+    },
+
+    selectedIndex () {
+      return this.items.indexOf(this.selectedItem)
+    },
+
+    hasPrevious () {
+      return this.selectedIndex > 0
+    },
+
+    hasNext () {
+      return this.selectedIndex < this.items.length - 1
     }
   },
 
   watch: {
     selectedDataset () {
       this.reset()
+    },
+    overlay (val) {
+      if (!val) {
+        window.removeEventListener('keydown', this.handleKeyDown)
+      }
     }
   },
 
@@ -316,6 +352,33 @@ export default {
     expandImage (item) {
       this.overlay = true
       this.selectedItem = item
+      window.addEventListener('keydown', this.handleKeyDown)
+    },
+
+    previousImage () {
+      if (this.hasPrevious) {
+        this.selectedItem = this.items[this.selectedIndex - 1]
+      }
+    },
+
+    nextImage () {
+      if (this.hasNext) {
+        this.selectedItem = this.items[this.selectedIndex + 1]
+      } else if (this.currentPage + 1 < this.totalPages) {
+        this.currentPage++
+        this.getItems().then(() => {
+          if (this.items.length > this.selectedIndex + 1) {
+            this.selectedItem = this.items[this.selectedIndex + 1]
+          }
+        })
+      }
+    },
+
+    handleKeyDown (e) {
+      if (!this.overlay) return
+      if (e.key === 'ArrowLeft') this.previousImage()
+      if (e.key === 'ArrowRight') this.nextImage()
+      if (e.key === 'Escape') this.overlay = false
     },
 
     confirmDelete () {
@@ -355,5 +418,39 @@ export default {
 }
 .no-opacity {
   opacity: 1;
+}
+.navigation-card {
+  overflow: visible !important;
+}
+.nav-btn {
+  position: absolute;
+  top: 50%;
+  transform: translateY(-50%);
+  z-index: 10;
+  background-color: rgba(var(--v-theme-surface), 0.5) !important;
+  border-radius: 50%;
+  backdrop-filter: blur(4px);
+  transition: all 0.3s ease;
+}
+.nav-btn:hover {
+  background-color: rgba(var(--v-theme-surface), 0.8) !important;
+  transform: translateY(-50%) scale(1.1);
+}
+.prev-btn {
+  left: -80px;
+}
+.next-btn {
+  right: -80px;
+}
+@media (max-width: 800px) {
+  .prev-btn {
+    left: 8px;
+  }
+  .next-btn {
+    right: 8px;
+  }
+  .nav-btn {
+    background-color: rgba(var(--v-theme-surface), 0.8) !important;
+  }
 }
 </style>
