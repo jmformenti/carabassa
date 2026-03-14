@@ -7,7 +7,7 @@
             type="info"
             variant="tonal"
           >
-            Dataset not found or not created.
+            Dataset not found.
           </v-alert>
         </v-col>
       </v-row>
@@ -103,7 +103,7 @@
 <script setup>
 import { ref, computed, watch, onMounted, onUnmounted } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
-import { useDatasetStore } from '../../stores/dataset'
+import { useDatasetStore } from '../../../stores/dataset'
 
 const route = useRoute()
 const router = useRouter()
@@ -140,14 +140,26 @@ const hasNext = computed(() => selectedIndex.value < items.value.length - 1 || c
 const combinedSort = computed(() => `${selectedSortField.value},${selectedSortDirection.value}`)
 
 const getItems = async () => {
-  if (!hasDataset.value) return
+  if (!hasDataset.value || waitingResults.value) return
+  const requestedPage = currentPage.value
   waitingResults.value = true
   try {
-    const data = await $carabassa.getItems(currentPage.value, pageSize.value, searchString.value, combinedSort.value)
+    const data = await $carabassa.getItems(requestedPage, pageSize.value, searchString.value, combinedSort.value)
     if (data._embedded) {
       totalItems.value = data.page.totalElements
       totalPages.value = data.page.totalPages
-      items.value.push(...data._embedded.itemRepresentationList)
+      const incoming = data._embedded.itemRepresentationList
+      if (requestedPage === 0) {
+        items.value = incoming
+      } else {
+        items.value.push(...incoming)
+      }
+      const seenIds = new Set()
+      items.value = items.value.filter((item) => {
+        if (seenIds.has(item.id)) return false
+        seenIds.add(item.id)
+        return true
+      })
     }
     searched.value = true
   } catch (err) {
@@ -238,10 +250,20 @@ const enableInfiniteScroll = () => {
   }
 }
 
+const applySortFromRoute = () => {
+  if (route.query.sort) {
+    const [field, direction] = route.query.sort.split(',')
+    selectedSortField.value = field
+    selectedSortDirection.value = direction || 'desc'
+  } else {
+    selectedSortField.value = 'archiveTime'
+    selectedSortDirection.value = 'desc'
+  }
+}
+
 onMounted(async () => {
   enableInfiniteScroll()
   
-  // Wait for datasets to be loaded if they aren't yet
   const unwatch = watch(() => datasetStore.datasetsLoaded, (loaded) => {
     if (loaded) {
       selectDatasetFromRoute()
@@ -249,12 +271,11 @@ onMounted(async () => {
     }
   }, { immediate: true })
 
-  // Initial search from query params
   if (route.query.search) searchString.value = route.query.search
-  if (route.query.sort) {
-    const [field, direction] = route.query.sort.split(',')
-    selectedSortField.value = field
-    selectedSortDirection.value = direction || 'desc'
+  applySortFromRoute()
+
+  if (datasetStore.datasetsLoaded && datasetStore.dataset && datasetStore.dataset.name === route.params.name) {
+    getItems()
   }
 })
 
@@ -265,7 +286,6 @@ onUnmounted(() => {
 
 const selectDatasetFromRoute = async () => {
   const datasetName = route.params.name
-  // Only update if the dataset from route is different from the current state
   if (datasetName && (!datasetStore.dataset || datasetStore.dataset.name !== datasetName)) {
     try {
       const data = await $carabassa.getDatasetByName(datasetName)
@@ -279,6 +299,10 @@ const selectDatasetFromRoute = async () => {
 watch(() => route.params.name, (newName) => {
   if (newName) selectDatasetFromRoute()
 })
+
+watch(() => route.query.sort, () => {
+  applySortFromRoute()
+}, { immediate: true })
 
 watch(overlay, (val) => {
   if (!val) window.removeEventListener('keydown', handleKeyDown)
