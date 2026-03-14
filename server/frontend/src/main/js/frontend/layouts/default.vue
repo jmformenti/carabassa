@@ -96,12 +96,11 @@ export default {
 
   mounted () {
     this.$carabassa.getDatasets()
-      .then(data => {
+      .then(async data => {
         this.datasets = data
+        await this.initDataset()
         this.datasetStore.datasetsLoaded = true
-        this.initDataset()
-      }
-    )
+      })
   },
 
   methods: {
@@ -111,7 +110,7 @@ export default {
       }
     },
 
-    initDataset () {
+    async initDataset () {
       if (this.datasets.length === 0) {
         this.datasetStore.dataset = null
         return
@@ -122,16 +121,16 @@ export default {
       const targetDatasetName = datasetNameFromRoute || datasetNameFromQuery
 
       if (targetDatasetName) {
-        this.$carabassa.getDatasetByName(targetDatasetName)
-          .then(data => {
-            this.datasetStore.dataset = data
-          })
-          .catch(() => {
-            this.changeDataset(this.datasets[0])
-          })
+        try {
+          this.datasetStore.dataset = await this.$carabassa.getDatasetByName(targetDatasetName)
+        } catch {
+          // Dataset not found for the route name — leave it null so the page shows "not found"
+          this.datasetStore.dataset = null
+        }
       } else if (this.$route.path === '/') {
         // On root, pick the first dataset and redirect
         // index.vue also has a redirect watch, but this handles initial load
+        this.datasetStore.dataset = this.datasets[0]
         this.changeDataset(this.datasets[0])
       }
     }

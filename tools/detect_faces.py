@@ -54,7 +54,7 @@ class FaceDatabase:
         # Check if already exists
         existing = self.faces_collection.get(ids=[doc_id])
         if existing['ids']:
-            logger.info(f"✓ {file_path.name} ({person_name}) already exists in DB.")
+            tqdm.write(f"✓ {file_path.name} ({person_name}) already exists in DB.")
         else:
             # Add new embedding
             self.faces_collection.add(
@@ -68,7 +68,7 @@ class FaceDatabase:
                 }],
                 ids=[doc_id]
             )
-            logger.info(f"→ Added to DB: {person_name} ({file_path.name})")
+            tqdm.write(f"→ Added to DB: {person_name} ({file_path.name})")
     
     def get_faces(self) -> List[np.ndarray]:
         """Retrieve all faces"""
@@ -193,7 +193,7 @@ class DetectFacesTool(DatasetTool):
                         emb = self.recognizer.get_normalized_embedding(img, best_face.landmarks)
                         self.db.add_face(img_path, emb, person_name)
                     else:
-                        logger.warning(f"Could not match tag '{person_name}' to any detected face in item {item_id} (max IoU: {max_iou:.2f})")
+                        tqdm.write(f"Could not match tag '{person_name}' to any detected face ({len(detected_faces)}) in item {item_id} (max IoU: {max_iou:.2f}): tag box ({tag_box} vs face box ({face.bbox}))")
             
             except Exception as e:
                 logger.error(f"Error processing facial encoding for item {item_id}: {e}")

@@ -63,33 +63,28 @@
             />
           </template>
         </v-tooltip>
-        <v-tooltip text="Download" location="top">
-          <template #activator="{ props }">
-            <v-btn
-              v-bind="props"
-              icon="mdi-download"
-              color="orange-darken-2"
-              :href="$carabassa.getItemContentURL(item.id)"
-            />
-          </template>
-        </v-tooltip>
-        <v-tooltip text="Delete" location="top">
-          <template #activator="{ props }">
-            <v-btn
-              v-bind="props"
-              icon="mdi-delete"
-              color="orange-darken-2"
-              @click="$emit('delete', item)"
-            />
-          </template>
-        </v-tooltip>
+        <ItemActions
+          :item="item"
+          @delete="$emit('delete', item)"
+          @copy-link="copyLink"
+        />
       </v-card-actions>
     </v-card>
+
+    <v-snackbar
+      v-model="snackbar"
+      :timeout="2000"
+      color="primary"
+      location="top"
+    >
+      Link copied to clipboard
+    </v-snackbar>
   </v-overlay>
 </template>
 
 <script setup>
 import { isVideo, formatDate } from '~/utils/itemUtils'
+import ItemActions from '~/components/ItemActions.vue'
 
 const props = defineProps({
   modelValue: {
@@ -113,10 +108,30 @@ const props = defineProps({
 const emit = defineEmits(['update:modelValue', 'previous', 'next', 'delete'])
 
 const router = useRouter()
+const route = useRoute()
+const { $notification } = useNuxtApp()
+const snackbar = ref(false)
+const { copyItemLink } = useItemActions()
 
 const navigateDetail = () => {
   emit('update:modelValue', false)
-  router.push(`/item/${props.item.id}`)
+  const datasetName = route.params.name
+  if (datasetName) {
+    router.push(`/dataset/${datasetName}/item/${props.item.id}`)
+    return
+  }
+  $notification.alert('No dataset in context. Open the item from a dataset page.')
+}
+
+const copyLink = async () => {
+  const ok = await copyItemLink({
+    datasetName: route.params.name,
+    itemId: props.item?.id,
+    fallbackUrl: window.location.href
+  })
+  if (ok) {
+    snackbar.value = true
+  }
 }
 </script>
 

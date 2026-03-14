@@ -78,7 +78,7 @@
 </template>
 
 <script setup>
-import { ref, watch } from 'vue'
+import { ref, watch, nextTick } from 'vue'
 
 const props = defineProps({
   modelValue: {
@@ -99,7 +99,7 @@ const emit = defineEmits(['update:modelValue', 'update:sortField', 'update:sortD
 
 const searchString = ref(props.modelValue)
 const localSortField = ref(props.sortField)
-const localSortDirection = ref(props.sortDirection)
+const localSortDirection = ref(props.sortDirection || 'desc')
 
 const sortOptions = [
   { text: 'date', value: 'archiveTime' },
@@ -119,8 +119,10 @@ const onSearch = () => {
   emit('search')
 }
 
-const toggleSortDirection = () => {
+const toggleSortDirection = async () => {
   localSortDirection.value = localSortDirection.value === 'asc' ? 'desc' : 'asc'
+  emit('update:sortDirection', localSortDirection.value)
+  await nextTick()
   onSearch()
 }
 </script>
