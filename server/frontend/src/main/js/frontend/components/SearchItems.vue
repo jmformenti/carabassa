@@ -295,9 +295,9 @@ export default {
       selectedSortField: 'archiveTime',
       selectedSortDirection: 'desc',
       sortOptions: [
-        { text: 'By date', value: 'archiveTime' },
-        { text: 'By size', value: 'size' },
-        { text: 'By tag: duplicated', value: 'duplicated.group' }
+        { text: 'date', value: 'archiveTime' },
+        { text: 'size', value: 'size' },
+        { text: 'duplicated', value: 'duplicated.group' }
       ]
     }
   },
