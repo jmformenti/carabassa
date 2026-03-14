@@ -42,8 +42,8 @@ import java.util.List;
 @Service
 public class DatasetApiServiceImpl implements DatasetApiService {
 
-    @Value("${carabassa.base-url}")
-    private String baseUrl;
+    @Value("${carabassa.api-url}")
+    private String apiUrl;
 
     @Autowired
     private WebClient.Builder webClientBuilder;
@@ -54,7 +54,7 @@ public class DatasetApiServiceImpl implements DatasetApiService {
 
     @PostConstruct
     private void postConstruct() {
-        String baseApiUrl = baseUrl.endsWith("/") ? baseUrl : baseUrl + "/";
+        String baseApiUrl = apiUrl.endsWith("/") ? apiUrl : apiUrl + "/";
         webClient = webClientBuilder.baseUrl(baseApiUrl).build();
 
         objectMapper = JsonMapper.builder()

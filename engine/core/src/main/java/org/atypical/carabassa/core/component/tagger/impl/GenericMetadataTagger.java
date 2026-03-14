@@ -17,9 +17,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.core.io.Resource;
 
-import atlas.Atlas;
-import atlas.City;
-
 import com.drew.imaging.ImageMetadataReader;
 import com.drew.imaging.ImageProcessingException;
 import com.drew.lang.GeoLocation;
@@ -34,7 +31,6 @@ public abstract class GenericMetadataTagger implements Tagger {
 
     public static final String TAG_GEO_LATITUDE = TAG_PREFIX + "GeoLatitude";
     public static final String TAG_GEO_LONGITUDE = TAG_PREFIX + "GeoLongitude";
-    public static final String TAG_CITY = TAG_PREFIX + "City";
 
     private static final String IMAGE_ERROR_META_MESSAGE_KEY = "core.tagger.meta.image.error";
 
@@ -47,7 +43,6 @@ public abstract class GenericMetadataTagger implements Tagger {
     @Autowired
     private LocalizedMessage localizedMessage;
 
-    private final Atlas atlas = new Atlas();
 
     protected Metadata getMetaData(Resource inputItem) throws IOException {
         Metadata metadata;
@@ -118,10 +113,6 @@ public abstract class GenericMetadataTagger implements Tagger {
         if (geoLocation != null && !geoLocation.isZero()) {
             metaTags.add(new TagImpl(TAG_GEO_LATITUDE, geoLocation.getLatitude()));
             metaTags.add(new TagImpl(TAG_GEO_LONGITUDE, geoLocation.getLongitude()));
-            City city = atlas.find(geoLocation.getLatitude(), geoLocation.getLongitude());
-            if (city != null) {
-                metaTags.add(new TagImpl(TAG_CITY, city.name));
-            }
         }
     }
 

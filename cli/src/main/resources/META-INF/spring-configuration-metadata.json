@@ -6,9 +6,9 @@
       "description": "Project version"
     },
     {
-      "name": "carabassa.base-url",
+      "name": "carabassa.api-url",
       "type": "java.lang.String",
-      "description": "REST API base url"
+      "description": "REST API URL"
     },
     {
       "name": "carabassa.upload.threads",

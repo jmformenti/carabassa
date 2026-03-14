@@ -160,7 +160,7 @@ public class DatasetServiceTest {
         assertEquals(FILENAME, indexedItem.getFilename());
         assertNotNull(indexedItem.getHash());
         assertEquals("78364f4c8712125fe370f2f9f469122c", indexedItem.getHash());
-        assertEquals(44, indexedItem.getTags().size());
+        assertEquals(43, indexedItem.getTags().size());
     }
 
     @Test

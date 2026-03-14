@@ -1,7 +1,6 @@
 package org.atypical.carabassa.indexer.rdbms.entity.specification;
 
 import org.apache.commons.lang3.time.DateUtils;
-import org.atypical.carabassa.core.component.tagger.impl.ImageMetadataTagger;
 import org.atypical.carabassa.core.model.Dataset;
 import org.atypical.carabassa.core.model.SearchCondition;
 import org.atypical.carabassa.core.model.SearchCriteria;
@@ -44,7 +43,6 @@ public class ItemSpecification implements Specification<IndexedItemEntity> {
     private static final String ATTR_ON = "on";
     private static final String ATTR_FROM = "from";
     private static final String ATTR_TO = "to";
-    private static final String ATTR_CITY = "city";
     private static final String ATTR_MISSING_TAG = "missing_tag";
 
     private static final String FULL_DATE = "yyyy-MM-dd";
@@ -130,10 +128,6 @@ public class ItemSpecification implements Specification<IndexedItemEntity> {
                     periodDates = getPeriodDates(condition.getValue().toString());
                     return builder.lessThanOrEqualTo(root.get(IndexedItemEntity_.ARCHIVE_TIME),
                             periodDates.getSecond());
-                case ATTR_CITY: {
-                    return existsTagCondition(query, ImageMetadataTagger.TAG_CITY,
-                            "%" + condition.getValue().toString() + "%", builder, root);
-                }
                 case ATTR_MISSING_TAG:
                     Subquery<Long> subquery = itemsWithMissingTag(query, condition.getValue().toString(), builder);
                     return builder.not(root.get(IndexedItemEntity_.ID).in(subquery));
