@@ -1,7 +1,18 @@
 <template>
   <div>
     <v-container>
+      <v-row v-if="showNoDatasetMessage">
+        <v-col>
+          <v-alert
+            type="info"
+            variant="tonal"
+          >
+            No dataset created.
+          </v-alert>
+        </v-col>
+      </v-row>
       <v-row
+        v-if="hasDataset"
         justify="center" 
         align="center"
       >
@@ -43,7 +54,7 @@
               <v-icon
                 class="no-opacity"
                 color="orange-darken-2"
-                @click="search"
+                @click="search()"
               >
                 mdi-send
               </v-icon>
@@ -265,6 +276,7 @@ export default {
         month: 'long',
         day: 'numeric'
       },
+      autoSearchOnLoad: false,
       waitingResults: false,
       selectedSort: 'archiveTime,desc',
       sortOptions: [
@@ -289,6 +301,14 @@ export default {
       return this.datasetStore.dataset
     },
 
+    hasDataset () {
+      return Boolean(this.datasetStore.dataset && this.datasetStore.dataset.id)
+    },
+
+    showNoDatasetMessage () {
+      return this.datasetStore.datasetsLoaded && !this.hasDataset
+    },
+
     selectedIndex () {
       return this.items.indexOf(this.selectedItem)
     },
@@ -305,6 +325,10 @@ export default {
   watch: {
     selectedDataset () {
       this.reset()
+      if (this.autoSearchOnLoad && this.hasDataset) {
+        this.autoSearchOnLoad = false
+        this.getItems()
+      }
     },
     overlay (val) {
       if (!val) {
@@ -324,12 +348,20 @@ export default {
       if (sortByQuery) {
         this.selectedSort = sortByQuery
       }
-      this.waitFor(this.datasetStore.dataset, () => this.getItems())
+      this.autoSearchOnLoad = true
+      if (this.hasDataset) {
+        this.autoSearchOnLoad = false
+        this.getItems()
+      }
     }
   },
 
   methods: {
     async getItems () {
+      if (!this.hasDataset) {
+        this.waitingResults = false
+        return
+      }
       this.waitingResults = true
       await this.$carabassa.getItems(this.currentPage, this.pageSize, this.searchString, this.selectedSort)
       .then((data) => {
@@ -357,6 +389,9 @@ export default {
     },
 
     search () {
+      if (!this.hasDataset) {
+        return
+      }
       const query = { ...this.$route.query }
       if (this.searchString) {
         query.search = this.searchString
@@ -438,15 +473,6 @@ export default {
         this.deleteDialog = false
         this.$notification.alert(err)
       }
-    },
-
-    waitFor (variable, callback) {
-      const interval = setInterval(function() {
-        if (variable) {
-          clearInterval(interval);
-          callback();
-        }
-      }, 500);
     }
   }
 }
