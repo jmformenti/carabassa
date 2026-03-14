@@ -23,7 +23,7 @@ public class GlobalExceptionHandler {
             String fieldName = error.getField();
             String errorMessage = error.getDefaultMessage();
             errors.put(fieldName, errorMessage);
-            logger.error("Validation failed for field '{}': {}", fieldName, errorMessage);
+            logger.warn("Validation failed for field '{}': {}", fieldName, errorMessage);
         });
         return new ResponseEntity<>(errors, HttpStatus.BAD_REQUEST);
     }
