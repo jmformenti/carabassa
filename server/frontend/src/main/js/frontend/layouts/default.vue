@@ -127,7 +127,8 @@ export default {
             this.datasetStore.dataset = data
           })
           .catch(() => {
-            this.changeDataset(this.datasets[0])
+            // Dataset not found for the route name — leave it null so the page shows "not found"
+            this.datasetStore.dataset = null
           })
       } else if (this.$route.path === '/') {
         // On root, pick the first dataset and redirect

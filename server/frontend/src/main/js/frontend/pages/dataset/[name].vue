@@ -7,7 +7,7 @@
             type="info"
             variant="tonal"
           >
-            Dataset not found or not created.
+            Dataset not found.
           </v-alert>
         </v-col>
       </v-row>
@@ -255,6 +255,14 @@ onMounted(async () => {
     const [field, direction] = route.query.sort.split(',')
     selectedSortField.value = field
     selectedSortDirection.value = direction || 'desc'
+  } else {
+    // Ensure the UI reflects the default sort direction when no query is provided
+    selectedSortDirection.value = 'desc'
+  }
+
+  // If dataset is already set and matches the route, trigger search immediately
+  if (datasetStore.datasetsLoaded && datasetStore.dataset && datasetStore.dataset.name === route.params.name) {
+    getItems()
   }
 })
 
