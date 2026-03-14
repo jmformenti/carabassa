@@ -350,8 +350,8 @@
       </v-card-text>
       <v-card-actions>
         <v-spacer />
-        <v-btn color="primary" variant="text" @click="deleteTagDialog = false">Cancel</v-btn>
-        <v-btn color="primary" variant="text" :loading="deletingTag" @click="deleteTag">Delete</v-btn>
+        <v-btn color="orange-darken-2" variant="text" @click="deleteTagDialog = false">Cancel</v-btn>
+        <v-btn color="orange-darken-2" variant="text" :loading="deletingTag" @click="deleteTag">Delete</v-btn>
       </v-card-actions>
     </v-card>
   </v-dialog>
@@ -375,6 +375,7 @@
       <v-card-actions>
         <v-spacer />
         <v-btn
+          color="orange-darken-2"
           @click="deleteItemDialog = false"
         >
           Cancel
@@ -392,6 +393,8 @@
 </template>
 
 <script>
+import { isVideo, formatSize, formatDate, parseTagValue } from '~/utils/itemUtils'
+
 export default {
   setup() {
     const datasetStore = useDatasetStore()
@@ -434,24 +437,18 @@ export default {
   },
   computed: {
     isVideo() {
-      return this.item && this.item.type && this.item.type.toLowerCase() === 'video'
+      return isVideo(this.item)
     },
     formattedArchiveDate() {
       if (!this.item || !this.item.archiveTime) return ''
-      return this.formatDisplayValue(this.item.archiveTime)
+      return parseTagValue(this.item.archiveTime)
     },
     formattedCreationDate() {
       if (!this.item || !this.item.creation) return ''
-      return this.formatDisplayValue(this.item.creation)
+      return parseTagValue(this.item.creation)
     },
     formattedSize() {
-      if (!this.item || this.item.size == null) return ''
-      const bytes = this.item.size
-      if (bytes === 0) return '0 Bytes'
-      const k = 1024
-      const sizes = ['Bytes', 'KB', 'MB', 'GB', 'TB']
-      const i = Math.floor(Math.log(bytes) / Math.log(k))
-      return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i]
+      return this.item ? formatSize(this.item.size) : ''
     },
     filteredTags() {
       if (!this.item || !this.item.tags) return []
@@ -668,35 +665,7 @@ export default {
       this.dateMenu = false;
     },
     formatDisplayValue(val) {
-      if (val === null || val === undefined || val === '') return ''
-      
-      // If it's a boolean or a "small" number, return as is
-      if (typeof val === 'boolean') return val.toString()
-      if (typeof val === 'number') {
-        // Only treat as date if it's a very large number (likely epoch ms > year 2000)
-        if (val > 946684800000) { 
-          const d = new Date(val)
-          const iso = d.toISOString()
-          return iso.endsWith('T00:00:00.000Z') || iso.endsWith('T00:00:00Z') ? iso.split('T')[0] : d.toLocaleString()
-        }
-        return val.toString()
-      }
-
-      const strVal = String(val)
-      // Check for YYYY-MM-DD or ISO pattern
-      const isDateString = /^\d{4}-\d{2}-\d{2}/.test(strVal)
-      
-      if (isDateString) {
-        const d = new Date(strVal)
-        if (!isNaN(d.getTime())) {
-          const iso = d.toISOString()
-          if (iso.endsWith('T00:00:00.000Z') || iso.endsWith('T00:00:00Z') || strVal.includes('T00:00:00')) {
-            return iso.split('T')[0]
-          }
-          return d.toLocaleString()
-        }
-      }
-      return strVal
+      return parseTagValue(val)
     },
     async copyLink() {
       try {

@@ -106,7 +106,9 @@ export default {
 
   methods: {
     changeDataset (dataset) {
-      this.datasetStore.dataset = dataset
+      if (dataset) {
+        this.$router.push(`/dataset/${dataset.name}`)
+      }
     },
 
     initDataset () {
@@ -114,16 +116,22 @@ export default {
         this.datasetStore.dataset = null
         return
       }
-      const datasetName = this.$route.query.dataset
-      if (datasetName) {
-        this.$carabassa.getDatasetByName(datasetName)
+      
+      const datasetNameFromRoute = this.$route.params.name
+      const datasetNameFromQuery = this.$route.query.dataset
+      const targetDatasetName = datasetNameFromRoute || datasetNameFromQuery
+
+      if (targetDatasetName) {
+        this.$carabassa.getDatasetByName(targetDatasetName)
           .then(data => {
-            this.changeDataset(data)
+            this.datasetStore.dataset = data
           })
           .catch(() => {
             this.changeDataset(this.datasets[0])
           })
-      } else {
+      } else if (this.$route.path === '/') {
+        // On root, pick the first dataset and redirect
+        // index.vue also has a redirect watch, but this handles initial load
         this.changeDataset(this.datasets[0])
       }
     }
