@@ -14,12 +14,23 @@ public class TagEditableRepresentation {
     private Object value;
     @JsonInclude(Include.NON_NULL)
     private BoundingBoxRepresentation boundingBox;
+    @JsonInclude(Include.NON_NULL)
+    private String type;
+
+    public TagEditableRepresentation() {
+        super();
+    }
 
     public TagEditableRepresentation(String name, Object value, BoundingBoxRepresentation boundingBox) {
+        this(name, value, boundingBox, null);
+    }
+
+    public TagEditableRepresentation(String name, Object value, BoundingBoxRepresentation boundingBox, String type) {
         super();
         this.name = name;
         this.value = value;
         this.boundingBox = boundingBox;
+        this.type = type;
     }
 
     public String getName() {
@@ -44,6 +55,14 @@ public class TagEditableRepresentation {
 
     public void setBoundingBox(BoundingBoxRepresentation boundingBox) {
         this.boundingBox = boundingBox;
+    }
+
+    public String getType() {
+        return type;
+    }
+
+    public void setType(String type) {
+        this.type = type;
     }
 
 }

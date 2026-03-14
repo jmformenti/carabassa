@@ -46,6 +46,9 @@ public class TagEntity implements Tag {
     private static final DecimalFormat df = new DecimalFormat("#,###.##");
     private static final DateFormat formatter = new SimpleDateFormat("yyyy-MM-dd");
 
+    private static final String DATE_PATTERN = "^\\d{4}-\\d{2}-\\d{2}$";
+    private static final String TIMESTAMP_PATTERN = "^\\d{4}-\\d{2}-\\d{2}T\\d{2}:\\d{2}:\\d{2}.*$";
+
     @Id
     @GeneratedValue(strategy = GenerationType.AUTO, generator = "tag_id_gen")
     private Long id;
@@ -117,6 +120,10 @@ public class TagEntity implements Tag {
         return valueType;
     }
 
+    public void setValueType(ValueType valueType) {
+        this.valueType = valueType;
+    }
+
     public String getTextValue() {
         return textValue;
     }
@@ -178,8 +185,17 @@ public class TagEntity implements Tag {
     @Override
     public void setValue(Object value) {
         if (value instanceof String) {
+            String stringValue = (String) value;
+            Instant parsedDate = parseDate(stringValue);
+            if (parsedDate != null) {
+                this.valueType = ValueType.DATE;
+                this.dateValue = parsedDate;
+                this.textValue = stringValue.matches(DATE_PATTERN) ? stringValue
+                        : formatter.format(Date.from(this.dateValue));
+                return;
+            }
             this.valueType = ValueType.STRING;
-            this.textValue = StringUtils.left((String) value, MAX_TEXT_LENGTH);
+            this.textValue = StringUtils.left(stringValue, MAX_TEXT_LENGTH);
         } else if (value instanceof byte[]) {
             this.valueType = ValueType.STRING;
             this.textValue = StringUtils.left(Arrays.toString((byte[]) value), MAX_TEXT_LENGTH);
@@ -224,6 +240,77 @@ public class TagEntity implements Tag {
             this.valueType = ValueType.STRING;
             this.textValue = StringUtils.left(value.toString(), MAX_TEXT_LENGTH);
         }
+    }
+
+    public void setValue(Object value, ValueType type) {
+        if (type == null) {
+            throw new IllegalArgumentException("Type cannot be null for explicit type assignment.");
+        }
+
+        this.valueType = type;
+        String stringValue = value != null ? String.valueOf(value) : null;
+        switch (type) {
+            case STRING:
+                this.textValue = StringUtils.left(stringValue, MAX_TEXT_LENGTH);
+                break;
+            case LONG:
+                if (value instanceof Number) {
+                    this.longValue = ((Number) value).longValue();
+                } else {
+                    this.longValue = Long.valueOf(stringValue);
+                }
+                this.textValue = String.valueOf(this.longValue);
+                break;
+            case DOUBLE:
+                if (value instanceof Number) {
+                    this.doubleValue = ((Number) value).doubleValue();
+                } else {
+                    this.doubleValue = Double.valueOf(stringValue);
+                }
+                this.textValue = df.format(this.doubleValue);
+                break;
+            case BOOLEAN:
+                if (value instanceof Boolean) {
+                    this.booleanValue = (Boolean) value;
+                } else {
+                    this.booleanValue = BooleanUtils.toBoolean(stringValue);
+                }
+                this.textValue = BooleanUtils.toStringTrueFalse(this.booleanValue);
+                break;
+            case DATE:
+                if (value instanceof Instant) {
+                    this.dateValue = (Instant) value;
+                } else if (value instanceof ZonedDateTime) {
+                    this.dateValue = ((ZonedDateTime) value).toInstant();
+                } else if (value instanceof LocalDate) {
+                    this.dateValue = ((LocalDate) value).atStartOfDay(ZoneId.of("UTC")).toInstant();
+                } else {
+                    this.dateValue = parseDate(stringValue);
+                }
+                this.textValue = formatter.format(Date.from(this.dateValue));
+                break;
+            default:
+                this.valueType = ValueType.STRING;
+                this.textValue = StringUtils.left(stringValue, MAX_TEXT_LENGTH);
+        }
+    }
+
+    private Instant parseDate(String stringValue) {
+        if (stringValue == null) {
+            return null;
+        }
+        if (stringValue.matches(DATE_PATTERN)) {
+            try {
+                return LocalDate.parse(stringValue).atStartOfDay(ZoneId.of("UTC")).toInstant();
+            } catch (Exception ignored) {
+            }
+        } else if (stringValue.matches(TIMESTAMP_PATTERN)) {
+            try {
+                return Instant.parse(stringValue);
+            } catch (Exception ignored) {
+            }
+        }
+        return null;
     }
 
     @Override

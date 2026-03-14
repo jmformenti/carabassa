@@ -42,6 +42,16 @@ export class CarabassaService {
     )
   }
 
+  addItemTag(itemId, tagRepresentation) {
+    return $fetch(
+      `${this.apiBaseURL}/api/dataset/${this.datasetStore.dataset.id}/item/${itemId}/tag`,
+      {
+        method: 'POST',
+        body: tagRepresentation
+      }
+    )
+  }
+
   getItemThumbnailURL(itemId) {
     return `${this.apiBaseURL}/api/dataset/${this.datasetStore.dataset.id}/item/${itemId}/thumbnail`
   }
@@ -57,6 +67,17 @@ export class CarabassaService {
     ).then((response) => {
       if (!response.ok) {
         throw new Error(`Delete failed: ${response.status}`)
+      }
+    })
+  }
+
+  deleteItemTag(itemId, tagId) {
+    return fetch(
+      `${this.apiBaseURL}/api/dataset/${this.datasetStore.dataset.id}/item/${itemId}/tag/${tagId}`,
+      { method: 'DELETE' }
+    ).then((response) => {
+      if (!response.ok) {
+        throw new Error(`Delete tag failed: ${response.status}`)
       }
     })
   }

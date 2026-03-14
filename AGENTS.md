@@ -16,7 +16,7 @@ mvn clean install
 cd server/boot
 export CARABASSA_REPO_DIR=/tmp/carabassa && mvn spring-boot:run
 ```
-Starts at http://localhost:8080
+Starts at http://localhost:8080 and supports hot reloading
 
 ### Run the frontend
 ```bash
@@ -24,7 +24,7 @@ cd server/frontend/src/main/js/frontend
 yarn install
 yarn dev
 ```
-Starts at http://localhost:3000
+Starts at http://localhost:3000 and supports hot reloading
 
 ### Run the cli
 ```bash
