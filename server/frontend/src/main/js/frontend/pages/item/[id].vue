@@ -4,7 +4,18 @@
       <v-col>
         <div class="d-flex align-center mb-4">
           <v-btn icon="mdi-arrow-left" variant="text" class="mr-4" @click="$router.back()" />
-          <h2 class="text-h4">{{ item.filename }}</h2>
+          <h2 class="text-h4 mr-2">{{ item.filename }}</h2>
+          <v-tooltip text="Copy internal link" location="top">
+            <template #activator="{ props }">
+              <v-btn
+                v-bind="props"
+                icon="mdi-link"
+                variant="text"
+                color="primary"
+                @click="copyLink"
+              />
+            </template>
+          </v-tooltip>
         </div>
       </v-col>
     </v-row>
@@ -229,6 +240,15 @@
       </v-card-actions>
     </v-card>
   </v-dialog>
+
+  <v-snackbar
+    v-model="snackbar"
+    :timeout="2000"
+    color="primary"
+    location="top"
+  >
+    Link copied to clipboard
+  </v-snackbar>
 </template>
 
 <script>
@@ -260,6 +280,7 @@ export default {
       deleteTagDialog: false,
       tagToDelete: null,
       deletingTag: false,
+      snackbar: false,
       rules: {
         required: value => !!value || 'Required.',
         numeric: value => !isNaN(parseFloat(value)) && isFinite(value) || 'Must be a number.'
@@ -421,6 +442,14 @@ export default {
         }
       }
       return strVal
+    },
+    async copyLink() {
+      try {
+        await navigator.clipboard.writeText(window.location.href)
+        this.snackbar = true
+      } catch (err) {
+        console.error('Failed to copy text: ', err)
+      }
     }
   }
 }
