@@ -36,6 +36,12 @@ export class CarabassaService {
     )
   }
 
+  getItem(itemId) {
+    return $fetch(
+      `${this.apiBaseURL}/api/dataset/${this.datasetStore.dataset.id}/item/${itemId}`
+    )
+  }
+
   getItemThumbnailURL(itemId) {
     return `${this.apiBaseURL}/api/dataset/${this.datasetStore.dataset.id}/item/${itemId}/thumbnail`
   }
