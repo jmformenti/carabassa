@@ -67,14 +67,24 @@
           md="3"
         >
           <v-select
-            v-model="selectedSort"
+            v-model="selectedSortField"
             :items="sortOptions"
             item-title="text"
             item-value="value"
             label="Order by"
             variant="underlined"
             @update:modelValue="search"
-          />
+          >
+            <template #append>
+              <v-btn
+                :icon="selectedSortDirection === 'asc' ? 'mdi-sort-ascending' : 'mdi-sort-descending'"
+                variant="text"
+                density="compact"
+                class="mt-1"
+                @click="toggleSortDirection"
+              />
+            </template>
+          </v-select>
         </v-col>
       </v-row>
       <v-row>
@@ -278,11 +288,12 @@ export default {
       },
       autoSearchOnLoad: false,
       waitingResults: false,
-      selectedSort: 'archiveTime,desc',
+      selectedSortField: 'archiveTime',
+      selectedSortDirection: 'desc',
       sortOptions: [
-        { text: 'By date', value: 'archiveTime,desc' },
-        { text: 'By size', value: 'size,desc' },
-        { text: 'By tag: duplicated', value: 'duplicated.group,asc' }
+        { text: 'By date', value: 'archiveTime' },
+        { text: 'By size', value: 'size' },
+        { text: 'By tag: duplicated', value: 'duplicated.group' }
       ]
     }
   },
@@ -319,6 +330,10 @@ export default {
 
     hasNext () {
       return this.selectedIndex < this.items.length - 1
+    },
+    
+    combinedSort () {
+      return `${this.selectedSortField},${this.selectedSortDirection}`
     }
   },
 
@@ -346,7 +361,9 @@ export default {
         this.searchString = searchStringByQuery
       }
       if (sortByQuery) {
-        this.selectedSort = sortByQuery
+        const [field, direction] = sortByQuery.split(',')
+        this.selectedSortField = field
+        this.selectedSortDirection = direction || 'desc'
       }
       this.autoSearchOnLoad = true
       if (this.hasDataset) {
@@ -363,7 +380,7 @@ export default {
         return
       }
       this.waitingResults = true
-      await this.$carabassa.getItems(this.currentPage, this.pageSize, this.searchString, this.selectedSort)
+      await this.$carabassa.getItems(this.currentPage, this.pageSize, this.searchString, this.combinedSort)
       .then((data) => {
         let items = []
         if (data._embedded) {
@@ -398,14 +415,19 @@ export default {
       } else {
         delete query.search
       }
-      if (this.selectedSort) {
-        query.sort = this.selectedSort
+      if (this.combinedSort) {
+        query.sort = this.combinedSort
       } else {
         delete query.sort
       }
       this.$router.push({ query })
       this.reset()
       this.getItems()
+    },
+
+    toggleSortDirection () {
+      this.selectedSortDirection = this.selectedSortDirection === 'asc' ? 'desc' : 'asc'
+      this.search()
     },
 
     enableInfiniteScroll () {
