@@ -24,7 +24,7 @@
       <v-app-bar-title>{{ title }}</v-app-bar-title>
       <v-spacer />
       <v-menu
-        v-if="datasets"
+        v-if="datasets.length > 0 && datasetStore.dataset"
       >
         <template #activator="{ props }">
           <v-btn
@@ -98,6 +98,7 @@ export default {
     this.$carabassa.getDatasets()
       .then(data => {
         this.datasets = data
+        this.datasetStore.datasetsLoaded = true
         this.initDataset()
       }
     )
@@ -109,6 +110,10 @@ export default {
     },
 
     initDataset () {
+      if (this.datasets.length === 0) {
+        this.datasetStore.dataset = null
+        return
+      }
       const datasetName = this.$route.query.dataset
       if (datasetName) {
         this.$carabassa.getDatasetByName(datasetName)
