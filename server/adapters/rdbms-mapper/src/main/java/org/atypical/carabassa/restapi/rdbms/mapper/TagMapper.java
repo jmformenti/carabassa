@@ -18,7 +18,11 @@ public interface TagMapper extends org.atypical.carabassa.restapi.representation
 
     @AfterMapping
     default void mapValue(TagEditableRepresentation source, @org.mapstruct.MappingTarget TagEntity target) {
-        target.setValue(source.getValue(), target.getValueType());
+        if (target.getValueType() != null) {
+            target.setValue(source.getValue(), target.getValueType());
+        } else {
+            target.setValue(source.getValue());
+        }
     }
 
     @Override
