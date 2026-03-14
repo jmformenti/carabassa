@@ -212,6 +212,10 @@
         </v-card-text>
         <v-card-actions>
           <v-btn
+            icon="mdi-magnify"
+            :to="`/item/${selectedItem.id}`"
+          />
+          <v-btn
             icon="mdi-download"
             :href="$carabassa.getItemContentURL(selectedItem.id)"
           />
