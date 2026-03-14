@@ -6,7 +6,15 @@
   "runArgs": [
     "--network=host"
   ],
+  "mounts": [
+    "source=${localEnv:HOME}/.gitconfig,target=/home/vscode/.gitconfig,type=bind,readonly"
+  ],
   "features": {
+    "ghcr.io/devcontainers/features/java:1": {
+      "version": "21",
+      "installMaven": "true",
+      "mavenVersion": "3.9.6"
+    },
     "ghcr.io/devcontainers/features/node:1": {
       "version": "24"
     }
@@ -28,6 +36,6 @@
     8080,
     3000
   ],
-  "postCreateCommand": "corepack enable && mvn install -DskipTests -Ddependency-check.skip=true",
+  "postCreateCommand": "corepack enable && corepack prepare yarn@4.5.3 --activate",
   "remoteUser": "vscode"
 }
