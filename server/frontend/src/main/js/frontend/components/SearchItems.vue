@@ -80,6 +80,7 @@
                 :icon="selectedSortDirection === 'asc' ? 'mdi-sort-ascending' : 'mdi-sort-descending'"
                 variant="text"
                 density="compact"
+                color="orange-darken-2"
                 class="mt-1"
                 @click="toggleSortDirection"
               />
@@ -211,19 +212,36 @@
           />
         </v-card-text>
         <v-card-actions>
-          <v-btn
-            icon="mdi-magnify"
-            :to="`/item/${selectedItem.id}`"
-          />
-          <v-btn
-            icon="mdi-download"
-            :href="$carabassa.getItemContentURL(selectedItem.id)"
-          />
-          <v-btn
-            icon="mdi-delete"
-            color="red"
-            @click="confirmDelete"
-          />
+          <v-tooltip text="Enter detail" location="top">
+            <template #activator="{ props }">
+              <v-btn
+                v-bind="props"
+                icon="mdi-magnify"
+                color="orange-darken-2"
+                :to="`/item/${selectedItem.id}`"
+              />
+            </template>
+          </v-tooltip>
+          <v-tooltip text="Download" location="top">
+            <template #activator="{ props }">
+              <v-btn
+                v-bind="props"
+                icon="mdi-download"
+                color="orange-darken-2"
+                :href="$carabassa.getItemContentURL(selectedItem.id)"
+              />
+            </template>
+          </v-tooltip>
+          <v-tooltip text="Delete" location="top">
+            <template #activator="{ props }">
+              <v-btn
+                v-bind="props"
+                icon="mdi-delete"
+                color="orange-darken-2"
+                @click="confirmDelete"
+              />
+            </template>
+          </v-tooltip>
         </v-card-actions>
       </v-card>
     </v-overlay>
@@ -242,7 +260,7 @@
             Cancel
           </v-btn>
           <v-btn
-            color="red"
+            color="orange-darken-2"
             @click="deleteItem"
           >
             Delete
