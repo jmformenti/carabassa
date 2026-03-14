@@ -26,18 +26,6 @@ SOURCE_TAG_NAME = "face.name"
 TAG_NAME = "person"
 TAGGER_TAG_NAME = "tagger.detect_faces"
 
-def calculate_iou(boxA, boxB):
-    """Calculate Intersection over Union (IoU) between two bounding boxes"""
-    # box = [x1, y1, x2, y2]
-    xA = max(boxA[0], boxB[0])
-    yA = max(boxA[1], boxB[1])
-    xB = min(boxA[2], boxB[2])
-    yB = min(boxA[3], boxB[3])
-    interArea = max(0, xB - xA + 1) * max(0, yB - yA + 1)
-    boxAArea = (boxA[2] - boxA[0] + 1) * (boxA[3] - boxA[1] + 1)
-    boxBArea = (boxB[2] - boxB[0] + 1) * (boxB[3] - boxB[1] + 1)
-    return interArea / float(boxAArea + boxBArea - interArea)
-
 class FaceDatabase:
     """Face database using ChromaDB"""
     
@@ -122,6 +110,18 @@ class DetectFacesTool(DatasetTool):
         self.recognizer = None
         self.db = None
 
+    def _calculate_iou(self, boxA, boxB):
+        """Calculate Intersection over Union (IoU) between two bounding boxes"""
+        # box = [x1, y1, x2, y2]
+        xA = max(boxA[0], boxB[0])
+        yA = max(boxA[1], boxB[1])
+        xB = min(boxA[2], boxB[2])
+        yB = min(boxA[3], boxB[3])
+        interArea = max(0, xB - xA + 1) * max(0, yB - yA + 1)
+        boxAArea = (boxA[2] - boxA[0] + 1) * (boxA[3] - boxA[1] + 1)
+        boxBArea = (boxB[2] - boxB[0] + 1) * (boxB[3] - boxB[1] + 1)
+        return interArea / float(boxAArea + boxBArea - interArea)
+
     def add_custom_args(self, parser):
         parser.add_argument("--threshold", type=float, default=0.45, help="Similarity threshold (default: 0.45)")
         parser.add_argument("--force", action="store_true", help="Force reprocessing of all items")
@@ -141,7 +141,6 @@ class DetectFacesTool(DatasetTool):
     def _process_dataset_faces(self):
         logger.info(f"Processing faces from dataset '{self.dataset_id}' tagged with '{SOURCE_TAG_NAME}'...")
         
-        # 1. Find all items tagged with SOURCE_TAG_NAME
         tag_infos = self.service.find_dataset_item_tags_by_name(self.dataset_id, SOURCE_TAG_NAME)
         
         if not tag_infos:
@@ -185,7 +184,7 @@ class DetectFacesTool(DatasetTool):
                     best_face = None
                     max_iou = 0
                     for face in detected_faces:
-                        iou = calculate_iou(tag_box, face.bbox)
+                        iou = self._calculate_iou(tag_box, face.bbox)
                         if iou > max_iou:
                             max_iou = iou
                             best_face = face
