@@ -5,46 +5,16 @@
         <div class="d-flex align-center mb-4">
           <v-btn icon="mdi-arrow-left" variant="text" class="mr-4" @click="$router.back()" />
           <h2 class="text-h4 mr-2">{{ item.filename }}</h2>
-          <v-tooltip text="Download" location="top">
-            <template #activator="{ props }">
-              <v-btn
-                v-bind="props"
-                icon="mdi-download"
-                variant="text"
-                color="orange-darken-2"
-                :href="$carabassa.getItemContentURL(item.id)"
-                target="_blank"
-              />
-            </template>
-          </v-tooltip>
-          <v-tooltip text="Delete" location="top">
-            <template #activator="{ props }">
-              <v-btn
-                v-bind="props"
-                icon="mdi-delete"
-                variant="text"
-                color="orange-darken-2"
-                @click="confirmDeleteItem"
-              />
-            </template>
-          </v-tooltip>
-          <v-tooltip text="Copy internal link" location="top">
-            <template #activator="{ props }">
-              <v-btn
-                v-bind="props"
-                icon="mdi-link"
-                variant="text"
-                color="orange-darken-2"
-                @click="copyLink"
-              />
-            </template>
-          </v-tooltip>
+          <ItemActions
+            :item="item"
+            @delete="confirmDeleteItem"
+            @copy-link="copyLink"
+          />
         </div>
       </v-col>
     </v-row>
 
     <v-row>
-      <!-- Left Column: Media Preview -->
       <v-col cols="12" md="8">
         <v-card class="media-container pa-4" flat color="transparent">
           <video
@@ -66,16 +36,15 @@
               ref="mediaImage"
               class="media-content"
               :src="$carabassa.getItemContentURL(item.id)"
+              @load="onImageLoad"
               draggable="false"
             />
-            <!-- Bounding Box Drawing Layer -->
             <svg
               class="drawing-layer"
               viewBox="0 0 100 100"
               preserveAspectRatio="none"
               style="position: absolute; top: 0; left: 0; width: 100%; height: 100%; pointer-events: none;"
             >
-              <!-- Current drawing box -->
               <rect
                 v-if="drawingBox"
                 :x="Math.min(drawingBox.start.x, drawingBox.current.x)"
@@ -86,7 +55,6 @@
                 stroke="rgba(255, 152, 0, 1)"
                 stroke-width="0.5"
               />
-              <!-- Persistent box for current tag (if being added) -->
               <rect
                 v-if="tagForm.boundingBox"
                 :x="tagForm.boundingBox.minX"
@@ -98,7 +66,6 @@
                 stroke-width="0.5"
                 stroke-dasharray="2"
               />
-              <!-- Existing bounding boxes from tags -->
               <rect
                 v-for="tag in tagsWithBoundingBox"
                 :key="'existing-' + tag.id"
@@ -120,16 +87,14 @@
                 font-size="2"
                 style="pointer-events: none; text-shadow: 0 0 2px white;"
               >
-                {{ tag.name }}
+                {{ tag.value ? formatDisplayValue(tag.value) : tag.name }}
               </text>
             </svg>
           </div>
         </v-card>
       </v-col>
 
-      <!-- Right Column: Metadata and Tags -->
       <v-col cols="12" md="4">
-        <!-- Basic Data -->
         <v-card class="mb-4" flat color="grey-lighten-4">
           <v-card-title>Information</v-card-title>
           <v-list lines="one" bg-color="transparent" density="compact" class="info-list pt-0 pb-2">
@@ -186,7 +151,6 @@
           </v-list>
         </v-card>
 
-        <!-- Tags -->
         <v-card flat color="grey-lighten-4">
           <v-card-title class="d-flex align-center">
             Tags
@@ -233,11 +197,16 @@
     </v-row>
   </v-container>
 
+  <div v-else-if="error" class="d-flex justify-center align-center fill-height" style="min-height: 50vh;">
+    <v-alert type="error" variant="tonal">
+      {{ error }}
+    </v-alert>
+  </div>
+
   <div v-else class="d-flex justify-center align-center fill-height" style="min-height: 50vh;">
     <v-progress-circular indeterminate color="primary" size="64" />
   </div>
 
-  <!-- Add Tag Dialog -->
   <v-dialog v-model="addTagDialog" max-width="500px">
     <v-card>
       <v-card-title>
@@ -260,7 +229,6 @@
             required
           />
 
-          <!-- Value Input based on Type -->
           <div v-if="tagForm.type === 'BOOLEAN'">
             <v-switch
               v-model="tagForm.value"
@@ -307,7 +275,6 @@
             />
           </div>
 
-          <!-- Bounding Box Info -->
           <div v-if="!isVideo" class="mt-4">
             <div class="text-caption text-medium-emphasis d-flex align-center">
               Bounding Box
@@ -322,9 +289,9 @@
               />
             </div>
             <div v-if="tagForm.boundingBox" class="text-body-2 border pa-2 rounded bg-grey-lighten-4">
-              X: {{ Math.round(tagForm.boundingBox.minX) }}%, 
-              Y: {{ Math.round(tagForm.boundingBox.minY) }}%, 
-              W: {{ Math.round(tagForm.boundingBox.width) }}%, 
+              X: {{ Math.round(tagForm.boundingBox.minX) }}%,
+              Y: {{ Math.round(tagForm.boundingBox.minY) }}%,
+              W: {{ Math.round(tagForm.boundingBox.width) }}%,
               H: {{ Math.round(tagForm.boundingBox.height) }}%
             </div>
             <div v-else class="text-caption italic font-italic">
@@ -341,7 +308,6 @@
     </v-card>
   </v-dialog>
 
-  <!-- Delete Tag Confirmation Dialog -->
   <v-dialog v-model="deleteTagDialog" max-width="400px">
     <v-card>
       <v-card-title class="text-h5">Delete Tag</v-card-title>
@@ -393,17 +359,23 @@
 </template>
 
 <script>
+import ItemActions from '~/components/ItemActions.vue'
 import { isVideo, formatSize, formatDate, parseTagValue } from '~/utils/itemUtils'
 
 export default {
+  components: {
+    ItemActions
+  },
   setup() {
     const datasetStore = useDatasetStore()
-    return { datasetStore }
+    const { copyItemLink } = useItemActions()
+    return { datasetStore, copyItemLink }
   },
   data() {
     return {
       item: null,
       error: null,
+      loadingItem: false,
       addTagDialog: false,
       valid: false,
       savingTag: false,
@@ -413,6 +385,8 @@ export default {
         type: 'STRING',
         boundingBox: null
       },
+      imageNaturalWidth: null,
+      imageNaturalHeight: null,
       drawing: false,
       drawingBox: null,
       tagTypes: [
@@ -455,7 +429,29 @@ export default {
       return this.item.tags.filter(tag => !tag.name.startsWith('meta.'))
     },
     tagsWithBoundingBox() {
-      return this.filteredTags.filter(tag => tag.boundingBox)
+      if (!this.filteredTags.length) return []
+
+      const imageWidth = this.imageNaturalWidth
+      const imageHeight = this.imageNaturalHeight
+
+      return this.filteredTags
+        .filter(tag => tag.boundingBox)
+        .map(tag => {
+          const bbox = tag.boundingBox
+          if (imageWidth && imageHeight) {
+            return {
+              ...tag,
+              boundingBox: {
+                minX: (bbox.minX / imageWidth) * 100,
+                minY: (bbox.minY / imageHeight) * 100,
+                width: (bbox.width / imageWidth) * 100,
+                height: (bbox.height / imageHeight) * 100
+              }
+            }
+          }
+
+          return tag
+        })
     }
   },
   watch: {
@@ -469,7 +465,6 @@ export default {
     },
     'tagForm.type': {
       handler(newType) {
-        // Reset value to default for the new type
         if (newType === 'BOOLEAN') {
           this.tagForm.value = false
         } else if (newType === 'DATE') {
@@ -481,61 +476,49 @@ export default {
       }
     }
   },
+  mounted() {
+    if (!this.item) {
+      this.fetchItem()
+    }
+  },
   methods: {
     async fetchItem() {
+      if (this.loadingItem) return
+      this.loadingItem = true
+      this.error = null
       try {
         const itemId = this.$route.params.id
-        this.item = await this.$carabassa.getItem(itemId)
+        const routeDatasetName = this.$route.params.name
+
+        if (routeDatasetName) {
+          const dataset = await this.$carabassa.getDatasetByName(routeDatasetName)
+          this.datasetStore.dataset = dataset
+          this.item = await this.$carabassa.getItem(itemId)
+          return
+        }
+
+        if (this.datasetStore.dataset) {
+          this.item = await this.$carabassa.getItem(itemId)
+          return
+        }
+
+        this.error = 'Dataset not specified.'
       } catch (err) {
         console.error('Error fetching item details:', err)
+        this.error = 'Failed to load item details.'
         this.$notification.alert('Failed to load item details: ' + (err.message || 'Unknown error'))
-      }
-    },
-    async submitTag() {
-      if (!this.valid) return
-
-      this.savingTag = true
-      try {
-        let value = this.tagForm.value
-        let type = this.tagForm.type
-
-        if (type === 'NUMBER') {
-          type = Number.isInteger(Number(value)) && !value.includes('.') ? 'LONG' : 'DOUBLE'
-        }
-
-        const tagData = {
-          name: this.tagForm.name,
-          value: value,
-          type: type
-        }
-
-        if (this.tagForm.boundingBox) {
-          tagData.boundingBox = {
-            minX: Math.round(this.tagForm.boundingBox.minX),
-            minY: Math.round(this.tagForm.boundingBox.minY),
-            width: Math.round(this.tagForm.boundingBox.width),
-            height: Math.round(this.tagForm.boundingBox.height)
-          }
-        }
-
-        await this.$carabassa.addItemTag(this.item.id, tagData)
-        await this.fetchItem()
-        this.closeAddTagDialog()
-      } catch (err) {
-        console.error('Error adding tag:', err)
-        this.$notification.alert('Failed to add tag: ' + (err.message || 'Unknown error'))
       } finally {
-        this.savingTag = false
+        this.loadingItem = false
       }
     },
     startDrawing(e) {
       if (this.isVideo) return
-      
+
       this.drawing = true
       const rect = e.currentTarget.getBoundingClientRect()
       const x = ((e.clientX - rect.left) / rect.width) * 100
       const y = ((e.clientY - rect.top) / rect.height) * 100
-      
+
       this.drawingBox = {
         start: { x, y },
         current: { x, y }
@@ -543,27 +526,26 @@ export default {
     },
     draw(e) {
       if (!this.drawing || !this.drawingBox) return
-      
+
       const rect = e.currentTarget.getBoundingClientRect()
       const x = Math.max(0, Math.min(100, ((e.clientX - rect.left) / rect.width) * 100))
       const y = Math.max(0, Math.min(100, ((e.clientY - rect.top) / rect.height) * 100))
-      
+
       this.drawingBox.current = { x, y }
     },
     endDrawing() {
       if (!this.drawing) return
       this.drawing = false
-      
+
       if (this.drawingBox) {
         const x1 = this.drawingBox.start.x
         const y1 = this.drawingBox.start.y
         const x2 = this.drawingBox.current.x
         const y2 = this.drawingBox.current.y
-        
+
         const width = Math.abs(x1 - x2)
         const height = Math.abs(y1 - y2)
-        
-        // Only keep if significant size
+
         if (width > 0.5 && height > 0.5) {
           this.tagForm.boundingBox = {
             minX: Math.min(x1, x2),
@@ -588,50 +570,41 @@ export default {
         boundingBox: null
       }
     },
-    submitTag() {
-      this.$refs.form.validate().then(({ valid }) => {
-        if (!valid) return
+    async submitTag() {
+      const result = await this.$refs.form.validate()
+      if (!result?.valid) return
 
-        this.savingTag = true
-        try {
-          let value = this.tagForm.value
-          let type = this.tagForm.type
+      this.savingTag = true
+      try {
+        let value = this.tagForm.value
+        let type = this.tagForm.type
 
-          if (type === 'NUMBER') {
-            const numValue = Number(value)
-            value = numValue
-            type = Number.isInteger(numValue) && !String(this.tagForm.value).includes('.') ? 'LONG' : 'DOUBLE'
-          }
-
-          const tagData = {
-            name: this.tagForm.name,
-            value: value,
-            type: type
-          }
-
-          if (this.tagForm.boundingBox) {
-            tagData.boundingBox = {
-              minX: Math.round(this.tagForm.boundingBox.minX),
-              minY: Math.round(this.tagForm.boundingBox.minY),
-              width: Math.round(this.tagForm.boundingBox.width),
-              height: Math.round(this.tagForm.boundingBox.height)
-            }
-          }
-
-          this.$carabassa.addItemTag(this.item.id, tagData).then(() => {
-            this.fetchItem()
-            this.closeAddTagDialog()
-          }).catch(err => {
-            console.error('Error adding tag:', err)
-            this.$notification.alert('Failed to add tag: ' + (err.message || 'Unknown error'))
-          }).finally(() => {
-            this.savingTag = false
-          })
-        } catch (err) {
-          console.error('Error processing tag data:', err)
-          this.savingTag = false
+        if (type === 'NUMBER') {
+          const numValue = Number(value)
+          value = numValue
+          type = Number.isInteger(numValue) && !String(this.tagForm.value).includes('.') ? 'LONG' : 'DOUBLE'
         }
-      })
+
+        const tagData = {
+          name: this.tagForm.name,
+          value: value,
+          type: type
+        }
+
+        const boundingBox = this.buildBoundingBoxPayload()
+        if (boundingBox) {
+          tagData.boundingBox = boundingBox
+        }
+
+        await this.$carabassa.addItemTag(this.item.id, tagData)
+        await this.fetchItem()
+        this.closeAddTagDialog()
+      } catch (err) {
+        console.error('Error adding tag:', err)
+        this.$notification.alert('Failed to add tag: ' + (err.message || 'Unknown error'))
+      } finally {
+        this.savingTag = false
+      }
     },
     confirmDeleteTag(tag) {
       this.tagToDelete = tag
@@ -655,7 +628,6 @@ export default {
     },
     onDateSelected(val) {
       if (val) {
-        // v-date-picker returns a Date object. Normalize to YYYY-MM-DD
         const d = new Date(val);
         const year = d.getFullYear();
         const month = String(d.getMonth() + 1).padStart(2, '0');
@@ -667,10 +639,45 @@ export default {
     formatDisplayValue(val) {
       return parseTagValue(val)
     },
+    buildBoundingBoxPayload() {
+      if (!this.tagForm.boundingBox) return null
+
+      const bbox = this.tagForm.boundingBox
+      const imageWidth = this.imageNaturalWidth
+      const imageHeight = this.imageNaturalHeight
+
+      if (imageWidth && imageHeight) {
+        return {
+          minX: Math.round((bbox.minX / 100) * imageWidth),
+          minY: Math.round((bbox.minY / 100) * imageHeight),
+          width: Math.round((bbox.width / 100) * imageWidth),
+          height: Math.round((bbox.height / 100) * imageHeight)
+        }
+      }
+
+      return {
+        minX: Math.round(bbox.minX),
+        minY: Math.round(bbox.minY),
+        width: Math.round(bbox.width),
+        height: Math.round(bbox.height)
+      }
+    },
+    onImageLoad() {
+      const imageEl = this.$refs.mediaImage
+      if (!imageEl) return
+      this.imageNaturalWidth = imageEl.naturalWidth || null
+      this.imageNaturalHeight = imageEl.naturalHeight || null
+    },
     async copyLink() {
       try {
-        await navigator.clipboard.writeText(window.location.href)
-        this.snackbar = true
+        const ok = await this.copyItemLink({
+          datasetName: this.$route?.params?.name,
+          itemId: this.item?.id,
+          fallbackUrl: window.location.href
+        })
+        if (ok) {
+          this.snackbar = true
+        }
       } catch (err) {
         console.error('Failed to copy text: ', err)
       }
@@ -705,7 +712,7 @@ export default {
 .media-wrapper {
   position: relative;
   display: inline-block;
-  line-height: 0; /* remove bottom gap for inline elements */
+  line-height: 0;
 }
 .media-content {
   max-width: 100%;
