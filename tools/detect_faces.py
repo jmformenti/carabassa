@@ -22,6 +22,7 @@ logger = logging.getLogger(__name__)
 
 onnxruntime.preload_dlls(cuda=True, cudnn=True)
 
+SOURCE_TAG_NAME = "face.name"
 TAG_NAME = "person"
 TAGGER_TAG_NAME = "tagger.detect_faces"
 
@@ -53,7 +54,7 @@ class FaceDatabase:
         # Check if already exists
         existing = self.faces_collection.get(ids=[doc_id])
         if existing['ids']:
-            logger.info(f"✓ {file_path.name} ({person_name}) already exists in DB.")
+            tqdm.write(f"✓ {file_path.name} ({person_name}) already exists in DB.")
         else:
             # Add new embedding
             self.faces_collection.add(
@@ -67,7 +68,7 @@ class FaceDatabase:
                 }],
                 ids=[doc_id]
             )
-            logger.info(f"→ Added to DB: {person_name} ({file_path.name})")
+            tqdm.write(f"→ Added to DB: {person_name} ({file_path.name})")
     
     def get_faces(self) -> List[np.ndarray]:
         """Retrieve all faces"""
@@ -109,8 +110,19 @@ class DetectFacesTool(DatasetTool):
         self.recognizer = None
         self.db = None
 
+    def _calculate_iou(self, boxA, boxB):
+        """Calculate Intersection over Union (IoU) between two bounding boxes"""
+        # box = [x1, y1, x2, y2]
+        xA = max(boxA[0], boxB[0])
+        yA = max(boxA[1], boxB[1])
+        xB = min(boxA[2], boxB[2])
+        yB = min(boxA[3], boxB[3])
+        interArea = max(0, xB - xA + 1) * max(0, yB - yA + 1)
+        boxAArea = (boxA[2] - boxA[0] + 1) * (boxA[3] - boxA[1] + 1)
+        boxBArea = (boxB[2] - boxB[0] + 1) * (boxB[3] - boxB[1] + 1)
+        return interArea / float(boxAArea + boxBArea - interArea)
+
     def add_custom_args(self, parser):
-        parser.add_argument("--known-dir", type=str, default="known_faces", help="Directory containing known faces")
         parser.add_argument("--threshold", type=float, default=0.45, help="Similarity threshold (default: 0.45)")
         parser.add_argument("--force", action="store_true", help="Force reprocessing of all items")
 
@@ -124,34 +136,67 @@ class DetectFacesTool(DatasetTool):
         self.recognizer = ArcFace()
         self.db = FaceDatabase()
         
-        if not self._process_known_images(self.args.known_dir):
-            logger.warning(f"Known faces directory {self.args.known_dir} does not exist. Skipping.")
-            return False
-        return True
+        return self._process_dataset_faces()
 
-    def _process_known_images(self, known_dir):
-        logger.info(f"Processing known images ({known_dir}) ...")
-        known_dir = Path(known_dir)
-        if not known_dir.exists():
-            return False
+    def _process_dataset_faces(self):
+        logger.info(f"Processing faces from dataset '{self.dataset_id}' tagged with '{SOURCE_TAG_NAME}'...")
+        
+        tag_infos = self.service.find_dataset_item_tags_by_name(self.dataset_id, SOURCE_TAG_NAME)
+        
+        if not tag_infos:
+            logger.info("No source faces found in dataset.")
+            return True
 
-        for person_dir in known_dir.glob("*/"):
-            if person_dir.is_dir():
-                person_name = person_dir.name
+        # Group by item_id
+        item_tags = {}
+        for info in tag_infos:
+            if info.item_id not in item_tags:
+                item_tags[info.item_id] = []
+            item_tags[info.item_id].append(info)
+
+        for item_id, infos in tqdm(item_tags.items(), desc="Extracting facial encodings"):
+            try:
+                # Get full item to have the tags with bounding boxes
+                item = self.service.find_item(self.dataset_id, item_id)
+                img_path = self.service.get_item_content(self.dataset_id, item_id)
+                img = self.load_image(img_path)
                 
-                for img_path in person_dir.glob("*"):
-                     if img_path.is_file() and img_path.suffix.lower() in ['.jpg', '.jpeg', '.png', '.webp']:
-                        img = self.load_image(img_path)
-                        if img is None: continue
+                if img is None: continue
 
-                        faces = self.detector.detect(img)
-                        
-                        if not faces:
-                            logger.warning(f"⚠ No faces detected in: {img_path.name}")
-                            continue
-                        
-                        emb = self.recognizer.get_normalized_embedding(img, faces[0].landmarks)
+                # Detect all faces once for this image to get landmarks
+                detected_faces = self.detector.detect(img)
+
+                for tag_info in infos:
+                    person_name = str(tag_info.tag_value)
+                    
+                    # Find the actual tag representation in the item to get boundingBox
+                    source_tag = next((t for t in item.tags if t['name'] == SOURCE_TAG_NAME and str(t['value']) == person_name), None)
+                    if not source_tag or 'boundingBox' not in source_tag:
+                        logger.warning(f"No boundingBox for tag '{person_name}' in item {item_id}")
+                        continue
+                    
+                    bb = source_tag['boundingBox']
+                    # boundingBox is [minX, minY, width, height]
+                    # Convert to [x1, y1, x2, y2]
+                    tag_box = [bb['minX'], bb['minY'], bb['minX'] + bb['width'], bb['minY'] + bb['height']]
+
+                    # Find best match from detected faces
+                    best_face = None
+                    max_iou = 0
+                    for face in detected_faces:
+                        iou = self._calculate_iou(tag_box, face.bbox)
+                        if iou > max_iou:
+                            max_iou = iou
+                            best_face = face
+                    
+                    if best_face and max_iou > 0.5:
+                        emb = self.recognizer.get_normalized_embedding(img, best_face.landmarks)
                         self.db.add_face(img_path, emb, person_name)
+                    else:
+                        tqdm.write(f"Could not match tag '{person_name}' to any detected face ({len(detected_faces)}) in item {item_id} (max IoU: {max_iou:.2f}): tag box ({tag_box} vs face box ({face.bbox}))")
+            
+            except Exception as e:
+                logger.error(f"Error processing facial encoding for item {item_id}: {e}")
 
         return True
 
