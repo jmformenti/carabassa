@@ -25,6 +25,10 @@ PHASH_TAG_NAME = "phash"
 DUPLICATED_TAG_NAME = "duplicated"
 DUPLICATED_GROUP_TAG_NAME = "duplicated.group"
 
+DEFAULT_THRESHOLD = 12
+DEFAULT_WORKERS = 1
+DEFAULT_NEIGHBOR_CHUNK_SIZE = 500
+
 
 _WORKER_TREE = None
 _WORKER_ITEMS_BY_ID = {}
@@ -36,6 +40,7 @@ class HashedItem:
     item_id: int
     phash: imagehash.ImageHash
     has_duplicated_tag: bool = False
+    duplicated_tag_ids: list[int] = field(default_factory=list)
     duplicated_group_tags: list["DuplicatedTag"] = field(default_factory=list)
 
 
@@ -114,8 +119,8 @@ class DetectDuplicatesTool(DatasetTool):
         parser.add_argument(
             "--threshold",
             type=int,
-            default=15,
-            help="Maximum Hamming distance to consider two images similar (0-5 identical, 10-15 similar] (default: 15)",
+            default=DEFAULT_THRESHOLD,
+            help=f"Maximum Hamming distance to consider two images similar (0-5 identical, 10-15 similar] (default: {DEFAULT_THRESHOLD})",
         )
         parser.add_argument(
             "--force",
@@ -125,14 +130,14 @@ class DetectDuplicatesTool(DatasetTool):
         parser.add_argument(
             "--workers",
             type=int,
-            default=1,
-            help="Workers for neighbor search (CPU-bound). 1 = sequential (default: 1)",
+            default=DEFAULT_WORKERS,
+            help=f"Workers for neighbor search (CPU-bound). 1 = sequential (default: {DEFAULT_WORKERS})",
         )
         parser.add_argument(
             "--neighbor-chunk-size",
             type=int,
-            default=500,
-            help="Number of unique hashes processed per worker task (default: 500)",
+            default=DEFAULT_NEIGHBOR_CHUNK_SIZE,
+            help=f"Number of unique hashes processed per worker task (default: {DEFAULT_NEIGHBOR_CHUNK_SIZE})",
         )
 
     def get_search_query(self) -> str:
@@ -197,6 +202,8 @@ class DetectDuplicatesTool(DatasetTool):
                 group_id = min(str(obj.phash) for obj in group)
                 # logger.info(f"Group {i+1} (id:{group_id}) ({len(group)} images)")
                 self._apply_duplicate_tags(group, group_id)
+
+        self._remove_duplicate_tags_from_singletons(hashed_items, final_groups)
                 
         return final_groups
 
@@ -292,6 +299,29 @@ class DetectDuplicatesTool(DatasetTool):
             except Exception as exc:
                 logger.warning("Failed applying duplicate tags to item %s: %s", obj.item_id, exc)
 
+    def _remove_duplicate_tags_from_singletons(self, hashed_items, final_groups):
+        items_in_groups = {obj.item_id for group in final_groups for obj in group}
+
+        for obj in tqdm(hashed_items, desc="Removing orphan groups", unit="item"):
+            if obj.item_id in items_in_groups:
+                continue
+
+            if not obj.duplicated_tag_ids and not obj.duplicated_group_tags:
+                continue
+
+            tqdm.write(f"Removing duplicated tags for item {obj.item_id}..")
+            for tag_id in obj.duplicated_tag_ids:
+                try:
+                    self.service.delete_item_tag(self.dataset_id, obj.item_id, int(tag_id))
+                except Exception as exc:
+                    tqdm.write("Failed removing duplicated tag from item %s: %s", obj.item_id, exc)
+
+            for duplicated_tag in obj.duplicated_group_tags:
+                try:
+                    self.service.delete_item_tag(self.dataset_id, obj.item_id, int(duplicated_tag.id))
+                except Exception as exc:
+                    tqdm.write("Failed removing duplicated.group tag from item %s: %s", obj.item_id, exc)
+
     def _load_phash_items_from_api(self):
         hashed_items = []
         logger.info("Loading image hashes...")
@@ -303,7 +333,12 @@ class DetectDuplicatesTool(DatasetTool):
             size=1000,
             show_progress=False
         )
-        duplicated_item_ids = {row.item_id for row in duplicated_rows if row.item_id is not None}
+        duplicated_tag_ids_by_item = defaultdict(list)
+        for row in duplicated_rows:
+            if row.item_id is None or row.tag_id is None:
+                continue
+            duplicated_tag_ids_by_item[row.item_id].append(int(row.tag_id))
+        duplicated_item_ids = set(duplicated_tag_ids_by_item.keys())
 
         duplicated_group_rows = self.service.find_dataset_item_tags_by_name(
             self.dataset_id,
@@ -333,6 +368,7 @@ class DetectDuplicatesTool(DatasetTool):
                         item_id=row.item_id,
                         phash=imagehash.hex_to_hash(str(phash_value)),
                         has_duplicated_tag=row.item_id in duplicated_item_ids,
+                        duplicated_tag_ids=list(duplicated_tag_ids_by_item.get(row.item_id, [])),
                         duplicated_group_tags=list(duplicated_group_tags_by_item.get(row.item_id, [])),
                     )
                 )
