@@ -41,7 +41,9 @@
             />
             <svg
               class="drawing-layer"
-              viewBox="0 0 100 100"
+              :viewBox="imageNaturalWidth && imageNaturalHeight
+                ? '0 0 ' + imageNaturalWidth + ' ' + imageNaturalHeight
+                : '0 0 100 100'"
               preserveAspectRatio="none"
               style="position: absolute; top: 0; left: 0; width: 100%; height: 100%; pointer-events: none;"
             >
@@ -301,10 +303,15 @@
               />
             </div>
             <div v-if="tagForm.boundingBox" class="text-body-2 border pa-2 rounded bg-grey-lighten-4">
-              X: {{ Math.round(tagForm.boundingBox.minX) }}%,
-              Y: {{ Math.round(tagForm.boundingBox.minY) }}%,
-              W: {{ Math.round(tagForm.boundingBox.width) }}%,
-              H: {{ Math.round(tagForm.boundingBox.height) }}%
+              <template v-if="boundingBoxDisplay">
+                X: {{ boundingBoxDisplay.minX }},
+                Y: {{ boundingBoxDisplay.minY }},
+                W: {{ boundingBoxDisplay.width }},
+                H: {{ boundingBoxDisplay.height }}
+              </template>
+              <template v-else>
+                Loading...
+              </template>
             </div>
             <div v-else class="text-caption italic font-italic">
               Draw on the image to select a region (optional)
@@ -436,6 +443,19 @@ export default {
     formattedSize() {
       return this.item ? formatSize(this.item.size) : ''
     },
+    boundingBoxDisplay() {
+      if (!this.tagForm.boundingBox) {
+        return null
+      }
+
+      const bbox = this.tagForm.boundingBox
+      return {
+        minX: Math.round(bbox.minX),
+        minY: Math.round(bbox.minY),
+        width: Math.round(bbox.width),
+        height: Math.round(bbox.height)
+      }
+    },
     filteredTags() {
       if (!this.item || !this.item.tags) return []
       return this.item.tags.filter(tag => !tag.name.startsWith('meta.'))
@@ -443,27 +463,9 @@ export default {
     tagsWithBoundingBox() {
       if (!this.filteredTags.length) return []
 
-      const imageWidth = this.imageNaturalWidth
-      const imageHeight = this.imageNaturalHeight
+      if (!this.imageNaturalWidth || !this.imageNaturalHeight) return []
 
-      return this.filteredTags
-        .filter(tag => tag.boundingBox)
-        .map(tag => {
-          const bbox = tag.boundingBox
-          if (imageWidth && imageHeight) {
-            return {
-              ...tag,
-              boundingBox: {
-                minX: (bbox.minX / imageWidth) * 100,
-                minY: (bbox.minY / imageHeight) * 100,
-                width: (bbox.width / imageWidth) * 100,
-                height: (bbox.height / imageHeight) * 100
-              }
-            }
-          }
-
-          return tag
-        })
+      return this.filteredTags.filter(tag => tag.boundingBox)
     }
   },
   watch: {
@@ -525,11 +527,14 @@ export default {
     },
     startDrawing(e) {
       if (this.isVideo) return
+      if (!this.imageNaturalWidth || !this.imageNaturalHeight) return
 
       this.drawing = true
       const rect = e.currentTarget.getBoundingClientRect()
-      const x = ((e.clientX - rect.left) / rect.width) * 100
-      const y = ((e.clientY - rect.top) / rect.height) * 100
+      const scaleX = this.imageNaturalWidth / rect.width
+      const scaleY = this.imageNaturalHeight / rect.height
+      const x = (e.clientX - rect.left) * scaleX
+      const y = (e.clientY - rect.top) * scaleY
 
       this.drawingBox = {
         start: { x, y },
@@ -540,8 +545,12 @@ export default {
       if (!this.drawing || !this.drawingBox) return
 
       const rect = e.currentTarget.getBoundingClientRect()
-      const x = Math.max(0, Math.min(100, ((e.clientX - rect.left) / rect.width) * 100))
-      const y = Math.max(0, Math.min(100, ((e.clientY - rect.top) / rect.height) * 100))
+      const scaleX = this.imageNaturalWidth / rect.width
+      const scaleY = this.imageNaturalHeight / rect.height
+      const maxX = this.imageNaturalWidth
+      const maxY = this.imageNaturalHeight
+      const x = Math.max(0, Math.min(maxX, (e.clientX - rect.left) * scaleX))
+      const y = Math.max(0, Math.min(maxY, (e.clientY - rect.top) * scaleY))
 
       this.drawingBox.current = { x, y }
     },
@@ -558,7 +567,7 @@ export default {
         const width = Math.abs(x1 - x2)
         const height = Math.abs(y1 - y2)
 
-        if (width > 0.5 && height > 0.5) {
+        if (width > 1 && height > 1) {
           this.tagForm.boundingBox = {
             minX: Math.min(x1, x2),
             minY: Math.min(y1, y2),
@@ -655,18 +664,6 @@ export default {
       if (!this.tagForm.boundingBox) return null
 
       const bbox = this.tagForm.boundingBox
-      const imageWidth = this.imageNaturalWidth
-      const imageHeight = this.imageNaturalHeight
-
-      if (imageWidth && imageHeight) {
-        return {
-          minX: Math.round((bbox.minX / 100) * imageWidth),
-          minY: Math.round((bbox.minY / 100) * imageHeight),
-          width: Math.round((bbox.width / 100) * imageWidth),
-          height: Math.round((bbox.height / 100) * imageHeight)
-        }
-      }
-
       return {
         minX: Math.round(bbox.minX),
         minY: Math.round(bbox.minY),
