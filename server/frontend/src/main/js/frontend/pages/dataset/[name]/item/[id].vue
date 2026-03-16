@@ -89,7 +89,7 @@
                 font-size="2"
                 style="pointer-events: none; text-shadow: 0 0 2px white;"
               >
-                {{ tag.value ? formatDisplayValue(tag.value) : tag.name }}
+                {{ tag.value ? formatDisplayValue(tag.value) : getTagDisplayName(tag.name) }}
               </text>
             </svg>
           </div>
@@ -180,7 +180,7 @@
                 size="small"
                 class="mr-2 mb-2"
               >
-                {{ tag.name }}: {{ formatDisplayValue(tag.value) }}
+                {{ getTagDisplayName(tag.name) }}: {{ formatDisplayValue(tag.value) }}
                 <v-tooltip text="Filter by tag" location="top">
                   <template #activator="{ props }">
                     <v-icon
@@ -228,19 +228,39 @@
       </v-card-title>
       <v-card-text>
         <v-form ref="form" v-model="valid">
-          <v-text-field
-            v-model="tagForm.name"
+          <v-combobox
+            v-model="tagForm.nameSelection"
+            :items="tagInfoOptions"
+            item-title="title"
+            item-value="value"
+            :return-object="true"
             label="Name"
             :rules="[rules.required]"
             required
             variant="underlined"
-          />
+            hint="You can type a new name to create a custom tag."
+            persistent-hint
+            @update:model-value="onTagNameChange"
+          >
+            <template #item="{ props, item }">
+              <v-list-item v-bind="props" :title="undefined" :subtitle="undefined">
+                <v-list-item-title>{{ item.title }}</v-list-item-title>
+                <v-list-item-subtitle
+                  v-if="item.raw?.description"
+                  class="text-caption"
+                >
+                  {{ item.raw.description }}
+                </v-list-item-subtitle>
+              </v-list-item>
+            </template>
+          </v-combobox>
           <v-select
             v-model="tagForm.type"
             :items="tagTypes"
             label="Type"
             variant="underlined"
             required
+            :disabled="!!fixedTagType"
           />
 
           <div v-if="tagForm.type === 'BOOLEAN'">
@@ -331,7 +351,7 @@
     <v-card>
       <v-card-title class="text-h5">Delete Tag</v-card-title>
       <v-card-text>
-        Are you sure you want to delete the tag <strong>{{ tagToDelete?.name }}</strong>?
+        Are you sure you want to delete the tag <strong>{{ getTagDisplayName(tagToDelete?.name) }}</strong>?
       </v-card-text>
       <v-card-actions>
         <v-spacer />
@@ -398,8 +418,12 @@ export default {
       addTagDialog: false,
       valid: false,
       savingTag: false,
+      tagInfos: [],
+      publicTagInfos: [],
+      fixedTagType: null,
       tagForm: {
         name: '',
+        nameSelection: '',
         value: '',
         type: 'STRING',
         boundingBox: null
@@ -466,6 +490,15 @@ export default {
       if (!this.imageNaturalWidth || !this.imageNaturalHeight) return []
 
       return this.filteredTags.filter(tag => tag.boundingBox)
+    },
+    tagInfoOptions() {
+      return this.publicTagInfos.map(tagInfo => {
+        return {
+          title: tagInfo.alias || tagInfo.tagName,
+          value: tagInfo.tagName,
+          description: tagInfo.description || ''
+        }
+      })
     }
   },
   watch: {
@@ -494,6 +527,7 @@ export default {
     if (!this.item) {
       this.fetchItem()
     }
+    this.loadTagInfos()
   },
   methods: {
     async fetchItem() {
@@ -584,12 +618,7 @@ export default {
       if (this.$refs.form) {
         this.$refs.form.reset()
       }
-      this.tagForm = {
-        name: '',
-        value: '',
-        type: 'STRING',
-        boundingBox: null
-      }
+      this.resetTagForm()
     },
     async submitTag() {
       const result = await this.$refs.form.validate()
@@ -600,14 +629,19 @@ export default {
         let value = this.tagForm.value
         let type = this.tagForm.type
 
-        if (type === 'NUMBER') {
+        if (this.fixedTagType) {
+          if (this.fixedTagType === 'LONG' || this.fixedTagType === 'DOUBLE') {
+            value = Number(value)
+          }
+          type = this.fixedTagType
+        } else if (type === 'NUMBER') {
           const numValue = Number(value)
           value = numValue
           type = Number.isInteger(numValue) && !String(this.tagForm.value).includes('.') ? 'LONG' : 'DOUBLE'
         }
 
         const tagData = {
-          name: this.tagForm.name,
+          name: this.resolveTagName(this.tagForm.name),
           value: value,
           type: type
         }
@@ -660,6 +694,73 @@ export default {
     formatDisplayValue(val) {
       return parseTagValue(val)
     },
+    resetTagForm() {
+      const defaultName = this.publicTagInfos.length ? this.publicTagInfos[0].tagName : ''
+      this.tagForm = {
+        name: defaultName,
+        nameSelection: defaultName,
+        value: '',
+        type: 'STRING',
+        boundingBox: null
+      }
+      this.onTagNameChange(this.tagForm.nameSelection)
+    },
+    async loadTagInfos() {
+      try {
+        const allTags = await this.$carabassa.getTagInfos()
+        this.tagInfos = Array.isArray(allTags) ? allTags : []
+        const publicTags = await this.$carabassa.getPublicTagInfos()
+        this.publicTagInfos = Array.isArray(publicTags) ? publicTags : []
+        if (!this.tagForm.name && this.publicTagInfos.length) {
+          this.tagForm.name = this.publicTagInfos[0].tagName
+        }
+        this.tagForm.nameSelection = this.tagForm.name
+        this.onTagNameChange(this.tagForm.nameSelection)
+      } catch (err) {
+        console.warn('Failed to load tag info:', err)
+      }
+    },
+    onTagNameChange(selection) {
+      const tagNameOrAlias = this.extractTagName(selection)
+      this.tagForm.name = tagNameOrAlias
+      const match = this.publicTagInfos.find(tagInfo =>
+        tagInfo.tagName === tagNameOrAlias || tagInfo.alias === tagNameOrAlias
+      )
+      if (match?.type) {
+        this.fixedTagType = match.type
+        this.tagForm.type = this.mapTagInfoTypeToFormType(match.type)
+        const option = this.tagInfoOptions.find(tagInfo => tagInfo.value === match.tagName)
+        if (option && this.tagForm.nameSelection !== option) {
+          this.tagForm.nameSelection = option
+        }
+        return
+      }
+      this.fixedTagType = null
+    },
+    extractTagName(selection) {
+      if (!selection) return ''
+      if (typeof selection === 'string') return selection
+      if (typeof selection === 'object') {
+        return selection.value || selection.tagName || selection.title || ''
+      }
+      return ''
+    },
+    mapTagInfoTypeToFormType(valueType) {
+      if (valueType === 'LONG' || valueType === 'DOUBLE') {
+        return 'NUMBER'
+      }
+      return valueType || 'STRING'
+    },
+    getTagDisplayName(tagName) {
+      if (!tagName) return ''
+      const match = this.tagInfos.find(tagInfo => tagInfo.tagName === tagName)
+      return match?.alias || tagName
+    },
+    resolveTagName(tagNameOrAlias) {
+      if (!tagNameOrAlias) return ''
+      const match = this.tagInfos.find(tagInfo => tagInfo.alias === tagNameOrAlias)
+      return match?.tagName || tagNameOrAlias
+    },
     buildBoundingBoxPayload() {
       if (!this.tagForm.boundingBox) return null
 
@@ -696,9 +797,10 @@ export default {
       if (!datasetName) return
 
       const tagValue = tag.value
+      const tagSearchName = this.getTagDisplayName(tag.name)
       const searchValue = tagValue === null || tagValue === undefined || tagValue === ''
-        ? tag.name
-        : `${tag.name}:${tagValue}`
+        ? tagSearchName
+        : `${tagSearchName}:${tagValue}`
 
       this.$router.push({
         path: `/dataset/${datasetName}`,

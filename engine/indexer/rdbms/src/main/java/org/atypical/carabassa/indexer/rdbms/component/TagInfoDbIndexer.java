@@ -32,6 +32,9 @@ public class TagInfoDbIndexer implements TagInfoIndexer {
         if (tagInfo.getInternal() == null) {
             tagInfo.setInternal(false);
         }
+        if (tagInfo.getSortable() == null) {
+            tagInfo.setSortable(false);
+        }
         if (tagInfoRepository.findByTagName(tagInfo.getTagName()).isPresent()) {
             throw new EntityExistsException(
                     localizedMessage.getText(TAG_INFO_NAME_EXISTS_MESSAGE_KEY, tagInfo.getTagName()));
@@ -48,6 +51,9 @@ public class TagInfoDbIndexer implements TagInfoIndexer {
     public TagInfo update(TagInfo tagInfo) throws EntityNotFoundException, EntityExistsException {
         if (tagInfo.getInternal() == null) {
             tagInfo.setInternal(false);
+        }
+        if (tagInfo.getSortable() == null) {
+            tagInfo.setSortable(false);
         }
         TagInfoEntity existing = tagInfoRepository.findById(tagInfo.getId())
                 .orElseThrow(() -> new EntityNotFoundException(
@@ -72,6 +78,7 @@ public class TagInfoDbIndexer implements TagInfoIndexer {
         existing.setDescription(tagInfo.getDescription());
         existing.setAlias(tagInfo.getAlias());
         existing.setInternal(tagInfo.getInternal());
+        existing.setSortable(tagInfo.getSortable());
         return tagInfoRepository.save(existing);
     }
 

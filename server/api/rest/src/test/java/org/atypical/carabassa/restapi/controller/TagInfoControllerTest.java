@@ -3,6 +3,7 @@ package org.atypical.carabassa.restapi.controller;
 import org.atypical.carabassa.core.model.Dataset;
 import org.atypical.carabassa.core.model.IndexedItem;
 import org.atypical.carabassa.core.model.TagInfo;
+import org.atypical.carabassa.core.model.enums.ValueType;
 import org.atypical.carabassa.core.service.DatasetService;
 import org.atypical.carabassa.core.service.TagInfoService;
 import org.atypical.carabassa.restapi.configuration.RestApiConfiguration;
@@ -74,6 +75,7 @@ public class TagInfoControllerTest {
     private static final Long TAG_INFO_ID = 1L;
     private static final String TAG_NAME = "tag.name";
     private static final String TAG_ALIAS = "alias";
+    private static final ValueType TAG_TYPE = ValueType.STRING;
 
     @Autowired
     private MockMvc mvc;
@@ -140,8 +142,10 @@ public class TagInfoControllerTest {
         when(tagInfo.getAlias()).thenReturn(TAG_ALIAS);
         when(tagInfo.getDescription()).thenReturn("description");
         when(tagInfo.getInternal()).thenReturn(false);
+        when(tagInfo.getSortable()).thenReturn(false);
+        when(tagInfo.getType()).thenReturn(TAG_TYPE);
 
-        tagInfoEditable = new TagInfoEditableRepresentation(TAG_NAME, "description", TAG_ALIAS, false);
+        tagInfoEditable = new TagInfoEditableRepresentation(TAG_NAME, "description", TAG_ALIAS, false, false, TAG_TYPE);
 
         tagInfoRepresentation = new TagInfoEntityRepresentation();
         tagInfoRepresentation.setId(TAG_INFO_ID);
@@ -149,6 +153,8 @@ public class TagInfoControllerTest {
         tagInfoRepresentation.setDescription("description");
         tagInfoRepresentation.setAlias(TAG_ALIAS);
         tagInfoRepresentation.setInternal(false);
+        tagInfoRepresentation.setSortable(false);
+        tagInfoRepresentation.setType(TAG_TYPE);
 
         tagInfoDescriptor = getTagInfoDescriptor();
         tagInfoEditableDescriptor = getTagInfoEditableDescriptor();
@@ -161,7 +167,9 @@ public class TagInfoControllerTest {
                 fieldWithPath("tagName").description("Tag name"),
                 fieldWithPath("description").description("Tag description"),
                 fieldWithPath("alias").description("Tag alias"),
-                fieldWithPath("internal").description("Internal tag flag")
+                fieldWithPath("internal").description("Internal tag flag"),
+                fieldWithPath("sortable").description("Sortable tag flag"),
+                fieldWithPath("type").description("Tag value type")
         };
     }
 
@@ -170,7 +178,9 @@ public class TagInfoControllerTest {
                 fieldWithPath("tagName").description("Tag name"),
                 fieldWithPath("description").description("Tag description"),
                 fieldWithPath("alias").description("Tag alias"),
-                fieldWithPath("internal").description("Internal tag flag")
+                fieldWithPath("internal").description("Internal tag flag"),
+                fieldWithPath("sortable").description("Sortable tag flag"),
+                fieldWithPath("type").description("Tag value type")
         };
     }
 

@@ -5,8 +5,8 @@ import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.builder.ToStringBuilder;
 import org.atypical.carabassa.core.model.BoundingBox;
 import org.atypical.carabassa.core.model.Tag;
+import org.atypical.carabassa.core.model.enums.ValueType;
 import org.atypical.carabassa.indexer.rdbms.entity.converter.ValueTypeConverter;
-import org.atypical.carabassa.indexer.rdbms.entity.enums.ValueType;
 
 import jakarta.persistence.Column;
 import jakarta.persistence.Convert;

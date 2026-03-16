@@ -6,6 +6,8 @@ export class CarabassaService {
     const runtimeConfig = useRuntimeConfig()
     this.apiBaseURL = this.normalizeApiBaseURL(runtimeConfig.public.apiBaseURL || '')
     this.datasetStore = datasetStore
+    this.tagInfosCache = null
+    this.tagInfosCachePromise = null
   }
 
   // TODO remove when frontend separated from backend
@@ -45,6 +47,37 @@ export class CarabassaService {
     const searchParam = searchString ? `&search=${searchString}` : ''
     return $fetch(
       `${this.apiBaseURL}/api/dataset/${this.datasetStore.dataset.id}/item?size=${pageSize}&page=${currentPage}${searchParam}${sortParam}`
+    )
+  }
+
+  getTagInfos(page = 0, size = 200, { forceRefresh = false } = {}) {
+    if (!forceRefresh && Array.isArray(this.tagInfosCache)) {
+      return Promise.resolve(this.tagInfosCache)
+    }
+
+    if (!forceRefresh && this.tagInfosCachePromise) {
+      return this.tagInfosCachePromise
+    }
+
+    this.tagInfosCachePromise = $fetch(
+      `${this.apiBaseURL}/api/tag-info?page=${page}&size=${size}`
+    ).then((data) => {
+      let tagInfos = []
+      if (data && data._embedded) {
+        tagInfos = data._embedded.tagInfoEntityRepresentationList || []
+      }
+      this.tagInfosCache = tagInfos
+      return tagInfos
+    }).finally(() => {
+      this.tagInfosCachePromise = null
+    })
+
+    return this.tagInfosCachePromise
+  }
+
+  getPublicTagInfos(page = 0, size = 200, options = {}) {
+    return this.getTagInfos(page, size, options).then((tagInfos) =>
+      tagInfos.filter((tagInfo) => !tagInfo.internal)
     )
   }
 

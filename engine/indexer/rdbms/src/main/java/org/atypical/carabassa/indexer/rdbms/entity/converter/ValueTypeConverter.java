@@ -1,6 +1,6 @@
 package org.atypical.carabassa.indexer.rdbms.entity.converter;
 
-import org.atypical.carabassa.indexer.rdbms.entity.enums.ValueType;
+import org.atypical.carabassa.core.model.enums.ValueType;
 
 import jakarta.persistence.AttributeConverter;
 import jakarta.persistence.Converter;

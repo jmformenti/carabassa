@@ -10,7 +10,7 @@ from tqdm import tqdm
 
 # Add current directory to path to import dataset_api_service
 sys.path.append(str(Path(__file__).parent))
-from dataset_api_service import DatasetApiService, Tag
+from dataset_api_service import ApiException, DatasetApiService, Tag
 
 # Configure logging
 logging.basicConfig(
@@ -21,9 +21,9 @@ logging.basicConfig(
 )
 logger = logging.getLogger(__name__)
 
-class DatasetTool:
+class DatasetTagger:
     """
-    Base class for creating tools that process Carabassa datasets and add tags to images.
+    Base class for creating taggers that process Carabassa datasets and add tags to images.
     """
     def __init__(self, description: str):
         self.parser = argparse.ArgumentParser(description=description)
@@ -97,6 +97,28 @@ class DatasetTool:
         Default is 'type:I' to find only images.
         """
         return "type:I"
+
+    def _ensure_tag_infos(self, tag_names, tag_info_meta=None) -> bool:
+        tag_info_meta = tag_info_meta or {}
+        for tag_name in tag_names:
+            meta = tag_info_meta.get(tag_name, {})
+            try:
+                self.service.create_tag_info(
+                    tag_name,
+                    description=meta.get("description"),
+                    alias=meta.get("alias"),
+                    internal=meta.get("internal"),
+                    sortable=meta.get("sortable"),
+                    tag_type=meta.get("type"),
+                )
+                logger.info("Created tag info for '%s'.", tag_name)
+            except ApiException as exc:
+                if exc.status_code == 409:
+                    logger.info("Tag info '%s' already exists.", tag_name)
+                    continue
+                logger.error("Failed to create tag info '%s': %s", tag_name, exc)
+                return False
+        return True
 
     def _process_dataset_items(self):
         logger.info(f"Fetching items info for dataset ID {self.dataset_id}...")

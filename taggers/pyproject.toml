@@ -1,7 +1,7 @@
 [project]
-name = "carabassa-tools"
+name = "carabassa-taggers"
 version = "0.1.0"
-description = "Python tools for the Carabassa REST API"
+description = "Python taggers for the Carabassa REST API"
 requires-python = ">=3.12"
 dependencies = [
     "requests>=2.32",

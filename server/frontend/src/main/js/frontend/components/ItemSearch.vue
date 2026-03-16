@@ -28,12 +28,22 @@
                 mdi-help-circle
               </v-icon>
             </template>
-            <span>
+            <div>
               Cheatsheet for searching:<br>
               <b>from:</b> YYYY-MM-DD<br>
               <b>to:</b> YYYY-MM-DD<br>
               <b>on:</b> YYYY-MM-DD
-            </span>
+              <template v-if="tagInfos.length">
+                <br>
+                <span
+                  v-for="tagInfo in tagInfos"
+                  :key="tagInfo.id || tagInfo.tagName"
+                >
+                  <b>{{ tagInfo.alias || tagInfo.tagName }}:</b>
+                  {{ tagInfo.description || 'No description' }}<br>
+                </span>
+              </template>
+            </div>
           </v-tooltip>
         </template>
 
@@ -60,7 +70,7 @@
         item-value="value"
         label="Order by"
         variant="underlined"
-        @update:modelValue="onSearch"
+        @update:modelValue="onSortFieldChange"
       >
         <template #append>
           <v-btn
@@ -78,7 +88,7 @@
 </template>
 
 <script setup>
-import { ref, watch, nextTick } from 'vue'
+import { ref, watch, nextTick, onMounted, computed } from 'vue'
 
 const props = defineProps({
   modelValue: {
@@ -96,16 +106,34 @@ const props = defineProps({
 })
 
 const emit = defineEmits(['update:modelValue', 'update:sortField', 'update:sortDirection', 'search'])
+const { $carabassa } = useNuxtApp()
 
 const searchString = ref(props.modelValue)
 const localSortField = ref(props.sortField)
 const localSortDirection = ref(props.sortDirection || 'desc')
+const tagInfos = ref([])
 
-const sortOptions = [
+const baseSortOptions = [
   { text: 'date', value: 'archiveTime' },
-  { text: 'size', value: 'size' },
-  { text: 'duplicated', value: 'duplicated.group' }
+  { text: 'size', value: 'size' }
 ]
+
+const sortOptions = computed(() => {
+  const sortableTagOptions = tagInfos.value
+    .filter((tagInfo) => tagInfo.sortable)
+    .map((tagInfo) => ({
+      text: tagInfo.alias || tagInfo.tagName,
+      value: tagInfo.tagName
+    }))
+
+  const merged = [...baseSortOptions, ...sortableTagOptions]
+  const seen = new Set()
+  return merged.filter((option) => {
+    if (seen.has(option.value)) return false
+    seen.add(option.value)
+    return true
+  })
+})
 
 watch(() => props.modelValue, (newVal) => { searchString.value = newVal })
 watch(() => props.sortField, (newVal) => { localSortField.value = newVal })
@@ -119,11 +147,25 @@ const onSearch = () => {
   emit('search')
 }
 
-const toggleSortDirection = async () => {
-  localSortDirection.value = localSortDirection.value === 'asc' ? 'desc' : 'asc'
-  emit('update:sortDirection', localSortDirection.value)
+const onSortFieldChange = async () => {
   await nextTick()
   onSearch()
+}
+
+const loadTagInfos = async () => {
+  try {
+    const data = await $carabassa.getPublicTagInfos()
+    tagInfos.value = Array.isArray(data) ? data : []
+  } catch (error) {
+    console.warn('Failed to load tag info:', error)
+  }
+}
+
+onMounted(loadTagInfos)
+
+const toggleSortDirection = () => {
+  localSortDirection.value = localSortDirection.value === 'asc' ? 'desc' : 'asc'
+  nextTick().then(onSearch)
 }
 </script>
 
