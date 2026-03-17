@@ -1,0 +1,20 @@
+package org.atypical.carabassa.core.component.indexer;
+
+import org.atypical.carabassa.core.exception.EntityExistsException;
+import org.atypical.carabassa.core.exception.EntityNotFoundException;
+import org.atypical.carabassa.core.model.TagInfo;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+
+public interface TagInfoIndexer {
+
+    TagInfo create(TagInfo tagInfo) throws EntityExistsException;
+
+    TagInfo update(TagInfo tagInfo) throws EntityNotFoundException, EntityExistsException;
+
+    void delete(Long tagInfoId) throws EntityNotFoundException;
+
+    TagInfo findById(Long tagInfoId) throws EntityNotFoundException;
+
+    Page<TagInfo> findAll(Pageable pageable);
+}

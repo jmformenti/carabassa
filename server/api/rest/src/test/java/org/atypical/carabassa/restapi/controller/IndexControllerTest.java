@@ -1,16 +1,21 @@
 package org.atypical.carabassa.restapi.controller;
 
+import org.atypical.carabassa.core.model.TagInfo;
 import org.atypical.carabassa.core.service.DatasetService;
+import org.atypical.carabassa.core.service.TagInfoService;
 import org.atypical.carabassa.restapi.configuration.RestApiConfiguration;
+import org.atypical.carabassa.restapi.representation.assembler.TagInfoModelAssembler;
 import org.atypical.carabassa.restapi.representation.mapper.DatasetMapper;
 import org.atypical.carabassa.restapi.representation.mapper.ItemMapper;
 import org.atypical.carabassa.restapi.representation.mapper.ItemTagMapper;
 import org.atypical.carabassa.restapi.representation.mapper.TagMapper;
+import org.atypical.carabassa.restapi.representation.mapper.TagInfoMapper;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.webmvc.test.autoconfigure.WebMvcTest;
+import org.springframework.data.web.PagedResourcesAssembler;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.hateoas.Links;
 import org.springframework.restdocs.RestDocumentationContextProvider;
@@ -52,6 +57,18 @@ public class IndexControllerTest {
 
         @MockitoBean
         private ItemTagMapper itemTagMapper;
+
+        @MockitoBean
+        private TagInfoService tagInfoService;
+
+        @MockitoBean
+        private TagInfoMapper tagInfoMapper;
+
+        @MockitoBean
+        private TagInfoModelAssembler tagInfoModelAssembler;
+
+        @MockitoBean
+        private PagedResourcesAssembler<TagInfo> tagInfoPagedResourcesAssembler;
 
         @BeforeEach
         public void setUp(WebApplicationContext webApplicationContext,

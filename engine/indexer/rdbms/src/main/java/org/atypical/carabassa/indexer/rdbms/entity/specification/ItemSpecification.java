@@ -11,6 +11,8 @@ import org.atypical.carabassa.indexer.rdbms.entity.IndexedItemEntity;
 import org.atypical.carabassa.indexer.rdbms.entity.IndexedItemEntity_;
 import org.atypical.carabassa.indexer.rdbms.entity.TagEntity;
 import org.atypical.carabassa.indexer.rdbms.entity.TagEntity_;
+import org.atypical.carabassa.indexer.rdbms.entity.TagInfoEntity;
+import org.atypical.carabassa.indexer.rdbms.entity.TagInfoEntity_;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.data.util.Pair;
@@ -145,7 +147,7 @@ public class ItemSpecification implements Specification<IndexedItemEntity> {
     private Subquery<Long> itemsWithMissingTag(CriteriaQuery<?> query, String tag, CriteriaBuilder builder) {
         Subquery<Long> subquery = query.subquery(Long.class);
         Root<TagEntity> subRoot = subquery.from(TagEntity.class);
-        subquery.where(builder.equal(subRoot.get(TagEntity_.NAME), tag));
+        subquery.where(resolveTagNamePredicate(query, builder, subRoot, tag));
         subquery.select(subRoot.get("itemId"));
         return subquery;
     }
@@ -160,7 +162,7 @@ public class ItemSpecification implements Specification<IndexedItemEntity> {
         subPredicates.add(builder.equal(subRoot.get(TagEntity_.ITEM_ID), root.get(IndexedItemEntity_.ID)));
 
         if (tagName != null) {
-            subPredicates.add(builder.equal(subRoot.get(TagEntity_.NAME), tagName));
+            subPredicates.add(resolveTagNamePredicate(query, builder, subRoot, tagName));
         }
 
         if (tagValue != null) {
@@ -170,6 +172,19 @@ public class ItemSpecification implements Specification<IndexedItemEntity> {
 
         subquery.where(subPredicates.toArray(new Predicate[0]));
         return builder.exists(subquery);
+    }
+
+    private Predicate resolveTagNamePredicate(CriteriaQuery<?> query, CriteriaBuilder builder, Root<TagEntity> subRoot,
+                                              String tagName) {
+        Subquery<String> aliasSubquery = query.subquery(String.class);
+        Root<TagInfoEntity> aliasRoot = aliasSubquery.from(TagInfoEntity.class);
+        aliasSubquery.select(aliasRoot.get(TagInfoEntity_.TAG_NAME));
+        aliasSubquery.where(builder.equal(aliasRoot.get(TagInfoEntity_.ALIAS), tagName));
+
+        return builder.or(
+                builder.equal(subRoot.get(TagEntity_.NAME), tagName),
+                subRoot.get(TagEntity_.NAME).in(aliasSubquery)
+        );
     }
 
     private Pair<Instant, Instant> getPeriodDates(String value) {
