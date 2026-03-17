@@ -392,3 +392,122 @@ include::{snippets}/reindex-item/curl-request.adoc[]
 
 ===== Example
 include::{snippets}/reindex-item/http-response.adoc[]
+
+[[resources-tag-info]]
+== Tag info
+Resources to manage tag metadata (alias, description, internal).
+
+[[resources-tag-info-create]]
+=== Create
+Creates a new tag info entry.
+
+==== Request
+
+===== Fields
+include::{snippets}/tag-info-create/request-fields.adoc[]
+
+===== Example
+include::{snippets}/tag-info-create/http-request.adoc[]
+
+===== CURL request
+include::{snippets}/tag-info-create/curl-request.adoc[]
+
+==== Response
+
+===== Fields
+include::{snippets}/tag-info-create/response-fields.adoc[]
+
+===== Example
+include::{snippets}/tag-info-create/http-response.adoc[]
+
+[[resources-tag-info-findall]]
+=== Find all
+Find all tag info entries.
+
+==== Request
+
+===== Query parameters
+include::{snippets}/tag-info-find-all/query-parameters.adoc[]
+
+===== Example
+include::{snippets}/tag-info-find-all/http-request.adoc[]
+
+===== CURL request
+include::{snippets}/tag-info-find-all/curl-request.adoc[]
+
+==== Response
+
+===== Fields
+include::{snippets}/tag-info-find-all/response-fields.adoc[]
+
+===== Links
+include::{snippets}/tag-info-find-all/links.adoc[]
+
+===== Example
+include::{snippets}/tag-info-find-all/http-response.adoc[]
+
+[[resources-tag-info-findbyid]]
+=== Find by identifier
+Find tag info by identifier.
+
+==== Request
+
+===== Path parameters
+include::{snippets}/tag-info-find-by-id/path-parameters.adoc[]
+
+===== Example
+include::{snippets}/tag-info-find-by-id/http-request.adoc[]
+
+===== CURL request
+include::{snippets}/tag-info-find-by-id/curl-request.adoc[]
+
+==== Response
+
+===== Fields
+include::{snippets}/tag-info-find-by-id/response-fields.adoc[]
+
+===== Example
+include::{snippets}/tag-info-find-by-id/http-response.adoc[]
+
+[[resources-tag-info-update]]
+=== Update
+Updates a tag info entry.
+
+==== Request
+
+===== Path parameters
+include::{snippets}/tag-info-update/path-parameters.adoc[]
+
+===== Fields
+include::{snippets}/tag-info-update/request-fields.adoc[]
+
+===== Example
+include::{snippets}/tag-info-update/http-request.adoc[]
+
+===== CURL request
+include::{snippets}/tag-info-update/curl-request.adoc[]
+
+==== Response
+
+===== Example
+include::{snippets}/tag-info-update/http-response.adoc[]
+
+[[resources-tag-info-delete]]
+=== Delete
+Deletes a tag info entry.
+
+==== Request
+
+===== Path parameters
+include::{snippets}/tag-info-delete/path-parameters.adoc[]
+
+===== Example
+include::{snippets}/tag-info-delete/http-request.adoc[]
+
+===== CURL request
+include::{snippets}/tag-info-delete/curl-request.adoc[]
+
+==== Response
+
+===== Example
+include::{snippets}/tag-info-delete/http-response.adoc[]

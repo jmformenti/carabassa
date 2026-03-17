@@ -7,19 +7,23 @@ import org.atypical.carabassa.core.model.SearchCriteria;
 import org.atypical.carabassa.core.model.StoredItem;
 import org.atypical.carabassa.core.model.StoredItemThumbnail;
 import org.atypical.carabassa.core.model.Tag;
+import org.atypical.carabassa.core.model.TagInfo;
 import org.atypical.carabassa.core.model.enums.ItemType;
 import org.atypical.carabassa.core.model.impl.DatasetImpl;
 import org.atypical.carabassa.core.model.impl.ItemTagInfoImpl;
 import org.atypical.carabassa.core.model.impl.StoredItemImpl;
 import org.atypical.carabassa.core.model.impl.StoredItemThumbnailImpl;
 import org.atypical.carabassa.core.service.DatasetService;
+import org.atypical.carabassa.core.service.TagInfoService;
 import org.atypical.carabassa.restapi.configuration.RestApiConfiguration;
 import org.atypical.carabassa.restapi.representation.assembler.DatasetModelAssembler;
 import org.atypical.carabassa.restapi.representation.assembler.ItemModelAssembler;
+import org.atypical.carabassa.restapi.representation.assembler.TagInfoModelAssembler;
 import org.atypical.carabassa.restapi.representation.mapper.DatasetMapper;
 import org.atypical.carabassa.restapi.representation.mapper.ItemMapper;
 import org.atypical.carabassa.restapi.representation.mapper.ItemTagMapper;
 import org.atypical.carabassa.restapi.representation.mapper.TagMapper;
+import org.atypical.carabassa.restapi.representation.mapper.TagInfoMapper;
 import org.atypical.carabassa.restapi.representation.model.BoundingBoxRepresentation;
 import org.atypical.carabassa.restapi.representation.model.DatasetEditableRepresentation;
 import org.atypical.carabassa.restapi.representation.model.ItemTagEntityRepresentation;
@@ -37,6 +41,7 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.web.PagedResourcesAssembler;
 import org.springframework.hateoas.IanaLinkRelations;
 import org.springframework.hateoas.Links;
 import org.springframework.http.MediaType;
@@ -105,6 +110,18 @@ public class DatasetControllerTest extends DatasetControllerHelper {
 
         @MockitoBean
         private ItemTagMapper itemTagMapper;
+
+        @MockitoBean
+        private TagInfoService tagInfoService;
+
+        @MockitoBean
+        private TagInfoMapper tagInfoMapper;
+
+        @MockitoBean
+        private TagInfoModelAssembler tagInfoModelAssembler;
+
+        @MockitoBean
+        private PagedResourcesAssembler<TagInfo> tagInfoPagedResourcesAssembler;
 
         private FieldDescriptor[] datasetDescriptor;
         private FieldDescriptor[] datasetEditableDescriptor;
