@@ -210,6 +210,36 @@ class DatasetApiService:
         response = self._post("dataset", json=payload)
         return response["id"]
 
+    # -- Tag info CRUD ------------------------------------------------------
+
+    def create_tag_info(
+        self,
+        tag_name: str,
+        description: str | None = None,
+        alias: str | None = None,
+        internal: bool | None = None,
+        sortable: bool | None = None,
+        tag_type: str | None = None,
+    ) -> int:
+        """Create a new tag info entry and return its id."""
+        if tag_name is None:
+            raise ValueError("Tag name can not be None.")
+
+        payload: dict[str, object] = {"tagName": tag_name}
+        if description is not None:
+            payload["description"] = description
+        if alias is not None:
+            payload["alias"] = alias
+        if internal is not None:
+            payload["internal"] = internal
+        if sortable is not None:
+            payload["sortable"] = sortable
+        if tag_type is not None:
+            payload["type"] = tag_type
+
+        response = self._post("tag-info", json=payload)
+        return response["id"]
+
     def find_all(
         self, page: int | None = None, size: int | None = None
     ) -> list[Dataset] | PagedResult[Dataset]:

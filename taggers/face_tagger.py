@@ -12,19 +12,39 @@ import sys
 
 # Add current directory to path to import dataset_tool
 sys.path.append(str(Path(__file__).parent))
-from dataset_tool import DatasetTool
-from dataset_api_service import (
-    Tag,
-    BoundingBox,
-)
+from dataset_tagger import DatasetTagger
+from dataset_api_service import Tag, BoundingBox
 
 logger = logging.getLogger(__name__)
 
 onnxruntime.preload_dlls(cuda=True, cudnn=True)
 
-SOURCE_TAG_NAME = "face.name"
-TAG_NAME = "person"
-TAGGER_TAG_NAME = "tagger.detect_faces"
+SOURCE_TAG_NAME = "tagger.face.reference"
+TAG_NAME = "tagger.face.person"
+TAGGER_TAG_NAME = "tagger.face"
+TAG_INFO_META = {
+    TAG_NAME: {
+        "description": "Detected person name from face recognition.",
+        "alias": "person",
+        "internal": False,
+        "sortable": False,
+        "type": "STRING",
+    },
+    SOURCE_TAG_NAME: {
+        "description": "Reference face tag used to build the recognition database.",
+        "alias": "face.reference",
+        "internal": False,
+        "sortable": False,
+        "type": "STRING",
+    },
+    TAGGER_TAG_NAME: {
+        "description": "Marker tag indicating the item was processed by the face tagger.",
+        "alias": None,
+        "internal": True,
+        "sortable": False,
+        "type": "BOOLEAN",
+    },
+}
 
 class FaceDatabase:
     """Face database using ChromaDB"""
@@ -103,9 +123,9 @@ class FaceDatabase:
         
         return matches
 
-class DetectFacesTool(DatasetTool):
+class FaceTagger(DatasetTagger):
     def __init__(self):
-        super().__init__(description="Carabassa Face Recognition")
+        super().__init__(description="Face Recognition")
         self.detector = None
         self.recognizer = None
         self.db = None
@@ -132,6 +152,11 @@ class DetectFacesTool(DatasetTool):
         return f"type:I missing_tag:{TAGGER_TAG_NAME}"
 
     def setup(self):
+        if not self._ensure_tag_infos(
+            (TAG_NAME, SOURCE_TAG_NAME, TAGGER_TAG_NAME),
+            TAG_INFO_META,
+        ):
+            return False
         self.detector = RetinaFace()
         self.recognizer = ArcFace()
         self.db = FaceDatabase()
@@ -246,6 +271,6 @@ class DetectFacesTool(DatasetTool):
         return tags
 
 if __name__ == "__main__":
-    tool = DetectFacesTool()
+    tool = FaceTagger()
     tool.run()
     logger.info("done.")

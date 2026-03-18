@@ -17,52 +17,35 @@ A collection of Python utilities to interact with the Carabassa REST API.
 
 ## Tools
 
-### Face Detection (`detect_faces.py`)
+### Face Detection (`face_tagger.py`)
 
-This script scans items in a specific Carabassa dataset, detects faces, compares them against a directory of "known faces", and tags the items in the dataset with the identified person's name.
+This script scans items in a specific Carabassa dataset, detects faces, compares them against the already tagged images (tag `tagger.face.reference`), and tags the items in the dataset with the identified person's name.
 
 **Usage:**
 
 ```bash
-uv run detect_faces.py --dataset "my-dataset"
+uv run face_tagger.py --dataset "my-dataset"
 ```
 
 **Arguments:**
 
 -   `--dataset`: **(Required)** The name of the Carabassa dataset to process.
--   `--known-dir`: Path to the directory containing known faces (default: `known_faces`).
 -   `--api-url`: The Carabassa API URL. Defaults to the `CARABASSA_API_URL` environment variable or `http://localhost:8080/api/`.
 -   `--threshold`: Similarity threshold for face matching (default: `0.45`).
-
-**Known Faces Directory Structure:**
-
-Expected structure for the `--known-dir`:
-
-```text
-known_faces/
-├── anna/
-│   ├── photo1.jpg
-│   └── photo2.jpg
-├── john/
-│   └── profile.png
-└── ...
-```
-
-The subdirectory name (e.g., `anna`) will be used as the tag value (e.g., `person: anna`).
 
 **Tags Created:**
 
 -   `person`: identified person name, with face bounding box.
 -   `tagger.detect_faces`: processing marker to avoid reprocessing in next runs.
 
-### Duplicate Detection (`detect_duplicates.py`)
+### Duplicate Detection (`duplicate_tagger.py`)
 
 This script computes perceptual hashes (`phash`) for images in a dataset, groups similar images, and tags items as duplicates.
 
 **Usage:**
 
 ```bash
-uv run detect_duplicates.py --dataset "my-dataset"
+uv run duplicate_tagger.py --dataset "my-dataset"
 ```
 
 **Arguments:**

@@ -1,7 +1,12 @@
 package org.atypical.carabassa.restapi.representation.model;
 
 import jakarta.validation.constraints.NotEmpty;
+import lombok.Getter;
+import lombok.Setter;
+import org.atypical.carabassa.core.model.enums.ValueType;
 
+@Getter
+@Setter
 public class TagInfoEditableRepresentation {
 
     @NotEmpty(message = "{api.taginfo.tagName.notEmpty}")
@@ -9,47 +14,20 @@ public class TagInfoEditableRepresentation {
     private String description;
     private String alias;
     private Boolean internal;
+    private Boolean sortable;
+    private ValueType type;
 
     public TagInfoEditableRepresentation() {
         super();
     }
 
-    public TagInfoEditableRepresentation(String tagName, String description, String alias, Boolean internal) {
+    public TagInfoEditableRepresentation(String tagName, String description, String alias, Boolean internal,
+                                         Boolean sortable, ValueType type) {
         this.tagName = tagName;
         this.description = description;
         this.alias = alias;
         this.internal = internal;
-    }
-
-    public String getTagName() {
-        return tagName;
-    }
-
-    public void setTagName(String tagName) {
-        this.tagName = tagName;
-    }
-
-    public String getDescription() {
-        return description;
-    }
-
-    public void setDescription(String description) {
-        this.description = description;
-    }
-
-    public String getAlias() {
-        return alias;
-    }
-
-    public void setAlias(String alias) {
-        this.alias = alias;
-    }
-
-    public Boolean getInternal() {
-        return internal;
-    }
-
-    public void setInternal(Boolean internal) {
-        this.internal = internal;
+        this.sortable = sortable;
+        this.type = type;
     }
 }

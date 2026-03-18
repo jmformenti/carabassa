@@ -1,8 +1,11 @@
 package org.atypical.carabassa.indexer.rdbms.entity;
 
 import org.atypical.carabassa.core.model.TagInfo;
+import org.atypical.carabassa.core.model.enums.ValueType;
+import org.atypical.carabassa.indexer.rdbms.entity.converter.ValueTypeConverter;
 
 import jakarta.persistence.Column;
+import jakarta.persistence.Convert;
 import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
@@ -31,6 +34,13 @@ public class TagInfoEntity implements TagInfo {
     @Column(nullable = false)
     private Boolean internal = false;
 
+    @Column(nullable = false)
+    private Boolean sortable = false;
+
+    @Column(name = "VALUE_TYPE", length = 1, nullable = false)
+    @Convert(converter = ValueTypeConverter.class)
+    private ValueType type = ValueType.STRING;
+
     public TagInfoEntity() {
         super();
     }
@@ -41,6 +51,8 @@ public class TagInfoEntity implements TagInfo {
         this.description = tagInfo.getDescription();
         this.alias = tagInfo.getAlias();
         this.internal = tagInfo.getInternal();
+        this.sortable = tagInfo.getSortable();
+        this.type = tagInfo.getType();
     }
 
     @Override
@@ -91,5 +103,25 @@ public class TagInfoEntity implements TagInfo {
     @Override
     public void setInternal(Boolean internal) {
         this.internal = internal;
+    }
+
+    @Override
+    public Boolean getSortable() {
+        return sortable;
+    }
+
+    @Override
+    public void setSortable(Boolean sortable) {
+        this.sortable = sortable;
+    }
+
+    @Override
+    public ValueType getType() {
+        return type;
+    }
+
+    @Override
+    public void setType(ValueType type) {
+        this.type = type;
     }
 }

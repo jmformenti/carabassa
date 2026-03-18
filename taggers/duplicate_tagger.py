@@ -15,15 +15,45 @@ from collections import defaultdict
 sys.path.append(str(Path(__file__).parent))
 
 from dataset_api_service import Tag
-from dataset_tool import DatasetTool
+from dataset_tagger import DatasetTagger
 
 
 logger = logging.getLogger(__name__)
 
-TAGGER_TAG_NAME = "tagger.detect_duplicates"
-PHASH_TAG_NAME = "phash"
-DUPLICATED_TAG_NAME = "duplicated"
-DUPLICATED_GROUP_TAG_NAME = "duplicated.group"
+TAGGER_TAG_NAME = "tagger.duplicate"
+PHASH_TAG_NAME = "tagger.duplicate.phash"
+DUPLICATED_TAG_NAME = "tagger.duplicate.duplicated"
+DUPLICATED_GROUP_TAG_NAME = "tagger.duplicate.group"
+TAG_INFO_META = {
+    TAGGER_TAG_NAME: {
+        "description": "Marker tag indicating the item was processed by the duplicate tagger.",
+        "alias": None,
+        "internal": True,
+        "sortable": False,
+        "type": "BOOLEAN",
+    },
+    PHASH_TAG_NAME: {
+        "description": "Perceptual hash for duplicate detection.",
+        "alias": "phash",
+        "internal": True,
+        "sortable": False,
+        "type": "STRING",
+    },
+    DUPLICATED_TAG_NAME: {
+        "description": "Flag indicating the item is part of a duplicate group.",
+        "alias": "duplicated",
+        "internal": False,
+        "sortable": False,
+        "type": "BOOLEAN",
+    },
+    DUPLICATED_GROUP_TAG_NAME: {
+        "description": "Group identifier for duplicate items.",
+        "alias": "duplicated.group",
+        "internal": False,
+        "sortable": True,
+        "type": "STRING",
+    },
+}
 
 DEFAULT_THRESHOLD = 12
 DEFAULT_WORKERS = 1
@@ -111,9 +141,9 @@ def _find_neighbors_chunk(item_ids):
             pairs.append((item.item_id, neighbor.item_id))
     return pairs, len(item_ids)
 
-class DetectDuplicatesTool(DatasetTool):
+class DuplicateTagger(DatasetTagger):
     def __init__(self):
-        super().__init__(description="Compute pHash tags and detect similar images in a dataset")
+        super().__init__(description="Find similar images in a dataset")
 
     def add_custom_args(self, parser):
         parser.add_argument(
@@ -144,6 +174,12 @@ class DetectDuplicatesTool(DatasetTool):
         if self.args.force:
             return "type:I"
         return f"type:I missing_tag:{TAGGER_TAG_NAME}"
+
+    def setup(self):
+        return self._ensure_tag_infos(
+            (TAGGER_TAG_NAME, PHASH_TAG_NAME, DUPLICATED_TAG_NAME, DUPLICATED_GROUP_TAG_NAME),
+            TAG_INFO_META,
+        )
 
     def process_item(self, item, img):
         tags = []
@@ -379,6 +415,6 @@ class DetectDuplicatesTool(DatasetTool):
 
 
 if __name__ == "__main__":
-    tool = DetectDuplicatesTool()
+    tool = DuplicateTagger()
     tool.run()
     logger.info("done.")

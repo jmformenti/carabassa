@@ -10,15 +10,20 @@ import org.atypical.carabassa.core.model.Dataset;
 import org.atypical.carabassa.core.model.IndexedItem;
 import org.atypical.carabassa.core.model.ItemTagInfo;
 import org.atypical.carabassa.core.model.SearchCriteria;
+import org.atypical.carabassa.core.model.SearchCondition;
 import org.atypical.carabassa.core.model.impl.SearchCriteriaImpl;
 import org.atypical.carabassa.core.model.Tag;
 import org.atypical.carabassa.core.model.enums.ItemType;
+import org.atypical.carabassa.core.model.enums.SearchOperator;
+import org.atypical.carabassa.core.model.impl.SearchConditionImpl;
 import org.atypical.carabassa.indexer.rdbms.entity.DatasetEntity;
 import org.atypical.carabassa.indexer.rdbms.entity.IndexedItemEntity;
 import org.atypical.carabassa.indexer.rdbms.entity.TagEntity;
+import org.atypical.carabassa.indexer.rdbms.entity.TagInfoEntity;
 import org.atypical.carabassa.indexer.rdbms.entity.specification.ItemSpecification;
 import org.atypical.carabassa.indexer.rdbms.repository.DatasetRepository;
 import org.atypical.carabassa.indexer.rdbms.repository.IndexedItemRepository;
+import org.atypical.carabassa.indexer.rdbms.repository.TagInfoRepository;
 import org.atypical.carabassa.core.model.impl.ItemTagInfoImpl;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.io.Resource;
@@ -68,6 +73,12 @@ public class DatasetDbIndexer implements DatasetIndexer {
     private static final String TAG_NULL_MESSAGE_KEY = "db.indexer.dataset.tag.null";
     private static final String TAG_NAME_NULL_MESSAGE_KEY = "db.indexer.dataset.tag.name_null";
     private static final String TAG_VALUE_NULL_MESSAGE_KEY = "db.indexer.dataset.tag.value_null";
+    private static final String ATTR_ID = "id";
+    private static final String ATTR_TYPE = "type";
+    private static final String ATTR_ON = "on";
+    private static final String ATTR_FROM = "from";
+    private static final String ATTR_TO = "to";
+    private static final String ATTR_MISSING_TAG = "missing_tag";
 
     @Autowired
     private DatasetRepository datasetRepository;
@@ -80,6 +91,9 @@ public class DatasetDbIndexer implements DatasetIndexer {
 
     @Autowired
     private Map<String, Tagger> metadataTaggerByType;
+
+    @Autowired
+    private TagInfoRepository tagInfoRepository;
 
     @PersistenceContext
     private EntityManager em;
@@ -225,15 +239,17 @@ public class DatasetDbIndexer implements DatasetIndexer {
     @Override
     public Page<IndexedItem> findItems(Dataset dataset, SearchCriteria searchCriteria, Pageable pageable) {
         Assert.notNull(searchCriteria, "Search criteria can not be null.");
+        SearchCriteria resolvedCriteria = resolveTagAliases(searchCriteria);
         Sort sort = pageable.getSort();
         Pageable unsortedPageable = PageRequest.of(pageable.getPageNumber(), pageable.getPageSize());
-        return indexedItemRepository.findAll(new ItemSpecification(dataset, searchCriteria, sort), unsortedPageable)
+        return indexedItemRepository.findAll(new ItemSpecification(dataset, resolvedCriteria, sort), unsortedPageable)
                 .map(item -> item);
     }
 
     @Override
     public Page<ItemTagInfo> findItemTagsByName(Dataset dataset, String tagName, Pageable pageable) {
-        return indexedItemRepository.findItemTagsByName(dataset, tagName, pageable)
+        String resolvedTagName = resolveTagAlias(tagName);
+        return indexedItemRepository.findItemTagsByName(dataset, resolvedTagName, pageable)
                 .map(tuple -> new ItemTagInfoImpl((Long) tuple[0], (Tag) tuple[1]));
     }
 
@@ -259,6 +275,55 @@ public class DatasetDbIndexer implements DatasetIndexer {
     @Override
     public Dataset update(Dataset dataset) {
         return datasetRepository.save((DatasetEntity) dataset);
+    }
+
+    private SearchCriteria resolveTagAliases(SearchCriteria searchCriteria) {
+        if (searchCriteria == null || searchCriteria.isEmpty()) {
+            return searchCriteria;
+        }
+
+        SearchCriteriaImpl resolvedCriteria = new SearchCriteriaImpl();
+        for (SearchCondition condition : searchCriteria.getConditions()) {
+            if (condition.getOperation() == null) {
+                resolvedCriteria.add(new SearchConditionImpl(condition.getValue()));
+                continue;
+            }
+
+            String key = condition.getKey();
+            Object value = condition.getValue();
+
+            if (condition.getOperation() == SearchOperator.EQUAL) {
+                if (ATTR_MISSING_TAG.equals(key) && value != null) {
+                    value = resolveTagAlias(value.toString());
+                } else if (!isReservedSearchKey(key)) {
+                    key = resolveTagAlias(key);
+                }
+            }
+
+            resolvedCriteria.add(new SearchConditionImpl(key, condition.getOperation(), value));
+        }
+        return resolvedCriteria;
+    }
+
+    private String resolveTagAlias(String candidate) {
+        if (candidate == null) {
+            return null;
+        }
+        return tagInfoRepository.findByAlias(candidate)
+                .map(TagInfoEntity::getTagName)
+                .orElse(candidate);
+    }
+
+    private boolean isReservedSearchKey(String key) {
+        if (key == null) {
+            return false;
+        }
+        return ATTR_ID.equals(key)
+                || ATTR_TYPE.equals(key)
+                || ATTR_ON.equals(key)
+                || ATTR_FROM.equals(key)
+                || ATTR_TO.equals(key)
+                || ATTR_MISSING_TAG.equals(key);
     }
 
     private IndexedItem addItem(Dataset dataset, IndexedItem indexedItem) {
