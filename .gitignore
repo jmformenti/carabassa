@@ -3,3 +3,5 @@
 /**/.flattened-pom.xml
 /cli/log
 .vscode
+.idea
+.dev
