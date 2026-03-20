@@ -4,22 +4,10 @@ import { useRuntimeConfig } from '#imports'
 export class CarabassaService {
   constructor(datasetStore) {
     const runtimeConfig = useRuntimeConfig()
-    this.apiBaseURL = this.normalizeApiBaseURL(runtimeConfig.public.apiBaseURL || '')
+    this.apiBaseURL = runtimeConfig.public.apiBaseURL || ''
     this.datasetStore = datasetStore
     this.tagInfosCache = null
     this.tagInfosCachePromise = null
-  }
-
-  // TODO remove when frontend separated from backend
-  normalizeApiBaseURL(baseURL) {
-    // Normalize relative base URLs so nested routes still call /api/*
-    let normalized = baseURL
-    if (normalized === '.' || normalized === './') normalized = ''
-    if (normalized && !normalized.startsWith('http') && !normalized.startsWith('/')) {
-      normalized = `/${normalized}`
-    }
-    if (normalized.endsWith('/')) normalized = normalized.slice(0, -1)
-    return normalized
   }
 
   getDatasetByName(datasetName) {

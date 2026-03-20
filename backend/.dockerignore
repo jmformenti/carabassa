@@ -1,0 +1,6 @@
+.git
+.idea
+.vscode
+**/target
+**/logs
+**/CARABASSA_REPO_DIR_IS_UNDEFINED

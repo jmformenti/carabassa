@@ -1,0 +1,12 @@
+.git
+.idea
+.vscode
+**/node_modules
+**/.nuxt
+**/.output
+**/.yarn/unplugged
+**/.yarn/cache
+**/.yarn/build-state.yml
+**/dist
+**/build
+**/logs

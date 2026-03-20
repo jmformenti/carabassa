@@ -1,0 +1,119 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+ROOT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+DEV_DIR="${ROOT_DIR}/.dev"
+REPO_DIR="${ROOT_DIR}/.dev/carabassa"
+
+mkdir -p "${DEV_DIR}"
+
+export CARABASSA_REPO_DIR="${REPO_DIR}"
+export CARABASSA_API_URL="${CARABASSA_API_URL:-http://localhost:8080/api}"
+
+echo "Resetting repo dir at ${CARABASSA_REPO_DIR}..."
+rm -rf "${CARABASSA_REPO_DIR}"
+mkdir -p "${CARABASSA_REPO_DIR}"
+
+backend_log="${REPO_DIR}/backend.log"
+frontend_log="${REPO_DIR}/frontend.log"
+
+start_detached() {
+  local pid_file="$1"
+  shift
+
+  # Detach from the parent shell so services keep running after this script exits.
+  # This is important when run under runners that send SIGHUP/kill the process group.
+  if command -v setsid >/dev/null 2>&1; then
+    setsid "$@" < /dev/null &
+  else
+    nohup "$@" < /dev/null &
+  fi
+  echo "$!" > "${pid_file}"
+}
+
+stop_if_running() {
+  local name="$1"
+  local pid_file="${DEV_DIR}/${name}.pid"
+  if [[ -f "${pid_file}" ]]; then
+    local pid
+    pid="$(cat "${pid_file}")"
+    if [[ -n "${pid}" ]] && kill -0 "${pid}" 2>/dev/null; then
+      echo "Stopping ${name} (pid ${pid})..."
+      # Prefer killing the whole process group (works well with setsid).
+      kill -TERM -- "-${pid}" 2>/dev/null || kill -TERM "${pid}" || true
+      for _ in $(seq 1 10); do
+        if ! kill -0 "${pid}" 2>/dev/null; then
+          break
+        fi
+        sleep 1
+      done
+    fi
+    rm -f "${pid_file}"
+  fi
+}
+
+stop_if_running "backend"
+stop_if_running "frontend"
+
+echo "Starting backend..."
+start_detached "${DEV_DIR}/backend.pid" bash -lc "
+  set -euo pipefail
+  cd \"${ROOT_DIR}\"
+  mvn -pl :carabassa-boot -am -DskipTests install
+  cd \"${ROOT_DIR}/backend/server/boot\"
+  exec mvn -Dcarabassa.repodir=\"${CARABASSA_REPO_DIR}\" spring-boot:run
+" > "${backend_log}" 2>&1
+
+echo "Starting frontend..."
+(cd "${ROOT_DIR}/frontend" && yarn install > "${REPO_DIR}/frontend-install.log" 2>&1)
+start_detached "${DEV_DIR}/frontend.pid" bash -lc "
+  set -euo pipefail
+  cd \"${ROOT_DIR}/frontend\"
+  exec yarn dev
+" > "${frontend_log}" 2>&1
+
+echo "Waiting for backend to be ready at ${CARABASSA_API_URL}..."
+backend_ready=false
+for i in $(seq 1 60); do
+  if curl -sf "${CARABASSA_API_URL}/dataset" > /dev/null; then
+    echo "Backend is ready."
+    backend_ready=true
+    break
+  fi
+  sleep 1
+done
+
+if [[ "${backend_ready}" != "true" ]]; then
+  echo "Backend did not become ready. Showing last 80 log lines:"
+  tail -n 80 "${backend_log}" || true
+  stop_if_running "backend"
+  exit 1
+fi
+
+frontend_ready=false
+for i in $(seq 1 60); do
+  if curl -sf "http://localhost:3000/" > /dev/null; then
+    frontend_ready=true
+    break
+  fi
+  sleep 1
+done
+
+if [[ "${frontend_ready}" != "true" ]]; then
+  echo "Frontend did not become ready. Showing last 80 log lines:"
+  tail -n 80 "${frontend_log}" || true
+  exit 1
+fi
+
+echo "Creating dataset and uploading sample data..."
+(cd "${ROOT_DIR}/cli" && mvn spring-boot:run -Dspring-boot.run.arguments="create --dataset=test" || true)
+(cd "${ROOT_DIR}/cli" && mvn spring-boot:run -Dspring-boot.run.arguments="upload --dataset=test --path=../backend/engine/indexer/rdbms/src/test/resources/images")
+(cd "${ROOT_DIR}/cli" && mvn spring-boot:run -Dspring-boot.run.arguments="upload --dataset=test --path=../backend/engine/indexer/rdbms/src/test/resources/videos")
+
+echo
+echo "Dev environment ready:"
+echo "- Backend: http://localhost:8080 (log: ${backend_log})"
+echo "- Frontend: http://localhost:3000 (log: ${frontend_log})"
+echo
+echo "To stop services:"
+echo "  kill -- -\$(cat ${DEV_DIR}/backend.pid) -\$(cat ${DEV_DIR}/frontend.pid)"

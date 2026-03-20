@@ -1,0 +1,26 @@
+services:
+  carabassa:
+    build:
+      context: .
+      dockerfile: backend/Dockerfile
+    environment:
+      CARABASSA_REPO_DIR: /data
+    volumes:
+      - .:/input
+      - carabassa-data:/data
+    ports:
+      - "8080:8080"
+
+  frontend:
+    build:
+      context: .
+      dockerfile: frontend/Dockerfile
+      args:
+        NUXT_PUBLIC_API_BASE_URL: /
+    depends_on:
+      - carabassa
+    ports:
+      - "3000:80"
+
+volumes:
+  carabassa-data:

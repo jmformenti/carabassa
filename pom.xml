@@ -20,7 +20,7 @@
     <properties>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
 
-        <java.compiler>17</java.compiler>
+        <java.compiler>21</java.compiler>
 
         <m2e.apt.activation>jdt_apt</m2e.apt.activation>
         <org.mapstruct.version>1.6.3</org.mapstruct.version>
@@ -171,10 +171,10 @@
     </build>
 
     <modules>
-        <module>engine</module>
-        <module>server</module>
+        <module>backend/engine</module>
+        <module>backend/server</module>
+        <module>backend/aggregator</module>
         <module>cli</module>
-        <module>aggregator</module>
     </modules>
 
 </project>
