@@ -3,17 +3,21 @@
     xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 https://maven.apache.org/xsd/maven-4.0.0.xsd">
     <modelVersion>4.0.0</modelVersion>
     <parent>
-        <groupId>org.atypical.carabassa</groupId>
-        <artifactId>carabassa-parent</artifactId>
-        <version>${revision}</version>
+        <groupId>org.springframework.boot</groupId>
+        <artifactId>spring-boot-starter-parent</artifactId>
+        <version>4.0.1</version>
+        <relativePath /> <!-- lookup parent from repository -->
     </parent>
 
     <groupId>org.atypical.carabassa.cli</groupId>
     <artifactId>carabassa-cli</artifactId>
     <packaging>jar</packaging>
+    <version>${revision}</version>
 
     <properties>
+        <java.compiler>21</java.compiler>
         <picocli.version>4.7.7</picocli.version>
+        <revision>1.0.0-SNAPSHOT</revision>
     </properties>
 
     <dependencies>
@@ -56,8 +60,15 @@
     <build>
         <plugins>
             <plugin>
+                <artifactId>maven-compiler-plugin</artifactId>
+                <configuration>
+                    <release>${java.compiler}</release>
+                </configuration>
+            </plugin>
+            <plugin>
                 <groupId>org.jacoco</groupId>
                 <artifactId>jacoco-maven-plugin</artifactId>
+                <version>0.8.14</version>
                 <executions>
                     <execution>
                         <id>default-prepare-agent</id>
