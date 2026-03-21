@@ -11,7 +11,7 @@
     </parent>
 
     <groupId>org.atypical.carabassa</groupId>
-    <artifactId>carabassa-parent</artifactId>
+    <artifactId>carabassa-backend</artifactId>
     <version>${revision}</version>
     <packaging>pom</packaging>
     <name>carabassa</name>
@@ -27,7 +27,7 @@
         <!-- TODO: update to 2.4.240, unit tests fail validating check constraints for enum types -->
         <h2.version>2.3.232</h2.version>
 
-        <revision>0.7.0-SNAPSHOT</revision>
+        <revision>1.0.0-SNAPSHOT</revision>
     </properties>
 
     <dependencyManagement>
@@ -83,8 +83,7 @@
             <plugin>
                 <artifactId>maven-compiler-plugin</artifactId>
                 <configuration>
-                    <source>${java.compiler}</source>
-                    <target>${java.compiler}</target>
+                    <release>${java.compiler}</release>
                     <annotationProcessorPaths>
                         <path>
                             <groupId>org.projectlombok</groupId>
@@ -102,7 +101,7 @@
             <plugin>
                 <groupId>org.jacoco</groupId>
                 <artifactId>jacoco-maven-plugin</artifactId>
-                <version>0.8.12</version>
+                <version>0.8.14</version>
                 <executions>
                     <execution>
                         <id>default-prepare-agent</id>
@@ -124,7 +123,7 @@
                 <version>3.26.0</version>
                 <configuration>
                     <linkXRef>false</linkXRef>
-                    <targetJdk>17</targetJdk>
+                    <targetJdk>21</targetJdk>
                     <excludes>
                         <exclude>**/ws/schild/jave/*.java</exclude>
                     </excludes>
@@ -171,10 +170,9 @@
     </build>
 
     <modules>
-        <module>backend/engine</module>
-        <module>backend/server</module>
-        <module>backend/aggregator</module>
-        <module>cli</module>
+        <module>engine</module>
+        <module>server</module>
+        <module>aggregator</module>
     </modules>
 
 </project>
