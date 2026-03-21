@@ -15,8 +15,9 @@ export default defineNuxtConfig({
   },
   runtimeConfig: {
     public: {
-      // to override, export NUXT_PUBLIC_API_BASE_URL=http://192.168.1.2:8080
-      apiBaseURL: 'http://localhost:8080'
+      // to override, export NUXT_PUBLIC_API_BASE_URL
+      apiBaseUrl: 'http://localhost:8080',
+      appVersion: ''
     }
   },
   css: [

@@ -65,6 +65,9 @@
       >
         <v-card-text class="py-1 font-weight-light">
           &copy; {{ new Date().getFullYear() }}
+          <span class="version">
+            v.{{ $config.public.appVersion }}
+          </span>
         </v-card-text>
       </v-card>
     </v-footer>
@@ -137,3 +140,10 @@ export default {
   }
 }
 </script>
+
+<style scoped>
+.version {
+  float: right;
+  margin-right: 20px;
+}
+</style>
