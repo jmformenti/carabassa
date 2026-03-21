@@ -33,6 +33,17 @@ class SearchCriteriaParserTest {
         assertEquals("att2", searchCriteria.getConditions().get(2).getKey());
         assertEquals(SearchOperator.EQUAL, searchCriteria.getConditions().get(2).getOperation());
         assertEquals("123", searchCriteria.getConditions().get(2).getValue());
+
+        SearchCriteria searchCriteriaNumeric = SearchCriteriaParser.parse("score>=5 price<=10 weight>2 height<1");
+        assertEquals(4, searchCriteriaNumeric.getConditions().size());
+        assertEquals(SearchOperator.GREATER_THAN_EQUAL, searchCriteriaNumeric.getConditions().get(0).getOperation());
+        assertEquals("5", searchCriteriaNumeric.getConditions().get(0).getValue());
+        assertEquals(SearchOperator.LESS_THAN_EQUAL, searchCriteriaNumeric.getConditions().get(1).getOperation());
+        assertEquals("10", searchCriteriaNumeric.getConditions().get(1).getValue());
+        assertEquals(SearchOperator.GREATER_THAN, searchCriteriaNumeric.getConditions().get(2).getOperation());
+        assertEquals("2", searchCriteriaNumeric.getConditions().get(2).getValue());
+        assertEquals(SearchOperator.LESS_THAN, searchCriteriaNumeric.getConditions().get(3).getOperation());
+        assertEquals("1", searchCriteriaNumeric.getConditions().get(3).getValue());
     }
 
     @Test

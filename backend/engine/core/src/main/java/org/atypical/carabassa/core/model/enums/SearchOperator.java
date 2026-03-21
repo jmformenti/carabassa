@@ -5,7 +5,7 @@ import java.util.Map;
 
 public enum SearchOperator {
 
-    EQUAL(":"), GREATER_THAN(">"), LESS_THAN("<");
+    EQUAL(":"), GREATER_THAN(">"), LESS_THAN("<"), GREATER_THAN_EQUAL(">="), LESS_THAN_EQUAL("<=");
 
     private static final Map<String, SearchOperator> codes = new HashMap<>();
 

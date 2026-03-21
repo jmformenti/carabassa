@@ -20,6 +20,19 @@
           @search="search"
         />
 
+        <v-row v-if="searchError">
+          <v-col>
+            <v-alert
+              type="error"
+              variant="tonal"
+              closable
+              @click:close="searchError = null"
+            >
+              {{ searchError }}
+            </v-alert>
+          </v-col>
+        </v-row>
+
         <v-row>
           <v-col>
             <div
@@ -123,6 +136,7 @@ const deleteDialog = ref(false)
 const waitingResults = ref(false)
 const selectedSortField = ref('archiveTime')
 const selectedSortDirection = ref('desc')
+const searchError = ref(null)
 
 const hasDataset = computed(() => !!datasetStore.dataset)
 const datasetsLoaded = computed(() => datasetStore.datasetsLoaded)
@@ -143,6 +157,7 @@ const getItems = async () => {
   if (!hasDataset.value || waitingResults.value) return
   const requestedPage = currentPage.value
   waitingResults.value = true
+  searchError.value = null
   try {
     const data = await $carabassa.getItems(requestedPage, pageSize.value, searchString.value, combinedSort.value)
     if (data._embedded) {
@@ -163,6 +178,11 @@ const getItems = async () => {
     }
     searched.value = true
   } catch (err) {
+    if (err.data && err.data.message) {
+      searchError.value = err.data.message
+    } else {
+      searchError.value = 'An error occurred while searching.'
+    }
     console.error(err)
   } finally {
     waitingResults.value = false
