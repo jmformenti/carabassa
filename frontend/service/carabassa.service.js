@@ -4,7 +4,8 @@ import { useRuntimeConfig } from '#imports'
 export class CarabassaService {
   constructor(datasetStore) {
     const runtimeConfig = useRuntimeConfig()
-    this.apiBaseURL = runtimeConfig.public.apiBaseURL || ''
+    this.apiBaseURL = runtimeConfig.public.apiBaseUrl || ''
+    console.log(`API base url: ${this.apiBaseURL}`)
     this.datasetStore = datasetStore
     this.tagInfosCache = null
     this.tagInfosCachePromise = null

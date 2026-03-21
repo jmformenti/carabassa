@@ -7,33 +7,15 @@ services:
       CARABASSA_REPO_DIR: /data
     volumes:
       - carabassa-data:/data
-      - m2-cache:/root/.m2
-    ports:
-      - "8080:8080"
-
-  cli:
-    build:
-      context: ./cli
-      dockerfile: Dockerfile
-    environment:
-      CARABASSA_API_URL: http://backend:8080/api
-    depends_on:
-      - backend
-    volumes:
-      - .:/input
-      - m2-cache:/root/.m2
 
   frontend:
     build:
       context: ./frontend
       dockerfile: Dockerfile
-      args:
-        NUXT_PUBLIC_API_BASE_URL: http://localhost:8080
     depends_on:
       - backend
     ports:
-      - "3000:80"
+      - "8080:80"
 
 volumes:
   carabassa-data:
-  m2-cache:

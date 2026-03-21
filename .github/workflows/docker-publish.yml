@@ -68,6 +68,7 @@ jobs:
         with:
           context: backend
           file: backend/Dockerfile
+          platforms: linux/amd64,linux/arm64
           push: true
           tags: ${{ steps.meta-backend.outputs.tags }}
           labels: ${{ steps.meta-backend.outputs.labels }}
@@ -89,6 +90,7 @@ jobs:
         with:
           context: cli
           file: cli/Dockerfile
+          platforms: linux/amd64,linux/arm64
           push: true
           tags: ${{ steps.meta-cli.outputs.tags }}
           labels: ${{ steps.meta-cli.outputs.labels }}
@@ -105,6 +107,18 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v4
+
+      - name: Extract version from tag
+        run: |
+          VERSION=${GITHUB_REF#refs/tags/v}
+          echo "VERSION=${VERSION:-0.0.0-local}" >> $GITHUB_ENV
+
+      - name: Cache yarn dependencies
+        uses: actions/cache@v4
+        with:
+          path: frontend/.yarn/cache
+          key: yarn-${{ hashFiles('frontend/yarn.lock') }}
+          restore-keys: yarn-
 
       - name: Log in to GitHub Container Registry
         uses: docker/login-action@v3
@@ -131,6 +145,9 @@ jobs:
         with:
           context: frontend
           file: frontend/Dockerfile
+          build-args: |
+            APP_VERSION=${{ env.VERSION }}
+          platforms: linux/amd64,linux/arm64
           push: true
           tags: ${{ steps.meta.outputs.tags }}
           labels: ${{ steps.meta.outputs.labels }}
