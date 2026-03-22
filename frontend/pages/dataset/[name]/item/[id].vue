@@ -55,7 +55,7 @@
                 :height="Math.abs(drawingBox.start.y - drawingBox.current.y)"
                 fill="rgba(255, 152, 0, 0.2)"
                 stroke="rgba(255, 152, 0, 1)"
-                stroke-width="0.5"
+                :stroke-width="bboxStrokeWidth"
               />
               <rect
                 v-if="tagForm.boundingBox"
@@ -65,7 +65,7 @@
                 :height="tagForm.boundingBox.height"
                 fill="none"
                 stroke="rgba(255, 152, 0, 1)"
-                stroke-width="0.5"
+                :stroke-width="bboxStrokeWidth"
                 stroke-dasharray="2"
               />
               <rect
@@ -77,17 +77,17 @@
                 :height="tag.boundingBox.height"
                 fill="none"
                 stroke="rgba(33, 150, 243, 0.6)"
-                stroke-width="0.3"
+                :stroke-width="bboxStrokeWidth"
                 class="existing-bbox"
               />
               <text
                 v-for="tag in tagsWithBoundingBox"
                 :key="'label-' + tag.id"
-                :x="tag.boundingBox.minX + 0.5"
-                :y="tag.boundingBox.minY + 2.5"
+                :x="tag.boundingBox.minX + bboxStrokeWidth"
+                :y="tag.boundingBox.minY + bboxFontSize * 1.2"
                 fill="rgba(33, 150, 243, 1)"
-                font-size="2"
-                style="pointer-events: none; text-shadow: 0 0 2px white;"
+                :font-size="bboxFontSize"
+                style="pointer-events: none; text-shadow: 0 0 2px white; font-weight: bold;"
               >
                 {{ tag.value ? formatDisplayValue(tag.value) : getTagDisplayName(tag.name) }}
               </text>
@@ -499,6 +499,14 @@ export default {
           description: tagInfo.description || ''
         }
       })
+    },
+    bboxStrokeWidth() {
+      if (!this.imageNaturalWidth) return 1
+      return Math.max(2, this.imageNaturalWidth / 400)
+    },
+    bboxFontSize() {
+      if (!this.imageNaturalWidth) return 16
+      return Math.max(16, this.imageNaturalWidth / 50)
     }
   },
   watch: {
