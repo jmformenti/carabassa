@@ -123,19 +123,34 @@ const router = useRouter()
 const datasetStore = useDatasetStore()
 const { $carabassa } = useNuxtApp()
 
-const searchString = ref('')
-const totalItems = ref(0)
-const items = ref([])
-const currentPage = ref(0)
+const initialState = datasetStore.listState.datasetName === route.params.name
+  ? datasetStore.listState
+  : {
+    datasetName: route.params.name,
+    items: [],
+    currentPage: 0,
+    totalItems: 0,
+    totalPages: 0,
+    searchString: route.query.search || '',
+    sortField: 'archiveTime',
+    sortDirection: 'desc',
+    scrollPosition: 0,
+    searched: false
+  }
+
+const searchString = ref(initialState.searchString)
+const totalItems = ref(initialState.totalItems)
+const items = ref([...initialState.items])
+const currentPage = ref(initialState.currentPage)
 const pageSize = ref(24)
-const totalPages = ref(0)
-const searched = ref(false)
+const totalPages = ref(initialState.totalPages)
+const searched = ref(initialState.searched)
 const overlay = ref(false)
 const selectedItem = ref(null)
 const deleteDialog = ref(false)
 const waitingResults = ref(false)
-const selectedSortField = ref('archiveTime')
-const selectedSortDirection = ref('desc')
+const selectedSortField = ref(initialState.sortField)
+const selectedSortDirection = ref(initialState.sortDirection)
 const searchError = ref(null)
 
 const hasDataset = computed(() => !!datasetStore.dataset)
@@ -175,6 +190,14 @@ const getItems = async () => {
         seenIds.add(item.id)
         return true
       })
+      
+      datasetStore.setListState({
+        items: [...items.value],
+        totalItems: totalItems.value,
+        totalPages: totalPages.value,
+        searched: true,
+        currentPage: requestedPage
+      })
     }
     searched.value = true
   } catch (err) {
@@ -195,6 +218,8 @@ const reset = () => {
   totalPages.value = 0
   items.value = []
   searched.value = false
+  datasetStore.resetListState()
+  datasetStore.setListState({ datasetName: route.params.name })
 }
 
 const search = () => {
@@ -255,6 +280,10 @@ const deleteItem = async () => {
     items.value = items.value.filter(i => i.id !== itemId)
     totalItems.value--
     selectedItem.value = null
+    datasetStore.setListState({
+      items: [...items.value],
+      totalItems: totalItems.value
+    })
   } catch (err) {
     console.error(err)
   }
@@ -279,6 +308,10 @@ const applySortFromRoute = () => {
     selectedSortField.value = 'archiveTime'
     selectedSortDirection.value = 'desc'
   }
+  datasetStore.setListState({
+    sortField: selectedSortField.value,
+    sortDirection: selectedSortDirection.value
+  })
 }
 
 onMounted(async () => {
@@ -290,15 +323,25 @@ onMounted(async () => {
     }
   }, { immediate: true })
 
-  if (route.query.search) searchString.value = route.query.search
   applySortFromRoute()
 
   if (datasetStore.datasetsLoaded && datasetStore.dataset && datasetStore.dataset.name === route.params.name) {
-    getItems()
+    if (items.value.length === 0) {
+      getItems()
+    } else if (datasetStore.listState.scrollPosition > 0) {
+      setTimeout(() => {
+        window.scrollTo(0, datasetStore.listState.scrollPosition)
+      }, 100)
+    }
   }
 })
 
 onUnmounted(() => {
+  datasetStore.setListState({
+    scrollPosition: window.pageYOffset || document.documentElement.scrollTop,
+    searchString: searchString.value,
+    datasetName: route.params.name
+  })
   window.onscroll = null
   window.removeEventListener('keydown', handleKeyDown)
 })
