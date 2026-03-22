@@ -8,10 +8,20 @@ REPO_DIR="${ROOT_DIR}/.dev/carabassa"
 mkdir -p "${DEV_DIR}"
 
 export CARABASSA_REPO_DIR="${REPO_DIR}"
-export CARABASSA_API_URL="${CARABASSA_API_URL:-http://localhost:8080/api}"
+export CARABASSA_API_URL=http://localhost:8080/api
 
-echo "Resetting repo dir at ${CARABASSA_REPO_DIR}..."
-rm -rf "${CARABASSA_REPO_DIR}"
+RESET_DB=false
+for arg in "$@"; do
+  if [[ "$arg" == "--reset" ]]; then
+    RESET_DB=true
+  fi
+done
+
+if [[ "${RESET_DB}" == "true" ]]; then
+  echo "Resetting repo dir at ${CARABASSA_REPO_DIR}..."
+  rm -rf "${CARABASSA_REPO_DIR}"
+fi
+
 mkdir -p "${CARABASSA_REPO_DIR}"
 
 backend_log="${REPO_DIR}/backend.log"
@@ -58,10 +68,9 @@ stop_if_running "frontend"
 echo "Starting backend..."
 start_detached "${DEV_DIR}/backend.pid" bash -lc "
   set -euo pipefail
-  cd \"${ROOT_DIR}\"
+  cd \"${ROOT_DIR}/backend\"
   mvn -pl :carabassa-boot -am -DskipTests install
-  cd \"${ROOT_DIR}/backend/server/boot\"
-  exec mvn -Dcarabassa.repodir=\"${CARABASSA_REPO_DIR}\" spring-boot:run
+  exec mvn -Dcarabassa.repodir=\"${CARABASSA_REPO_DIR}\" -pl :carabassa-boot -am spring-boot:run
 " > "${backend_log}" 2>&1
 
 echo "Starting frontend..."
@@ -105,10 +114,12 @@ if [[ "${frontend_ready}" != "true" ]]; then
   exit 1
 fi
 
-echo "Creating dataset and uploading sample data..."
-(cd "${ROOT_DIR}/cli" && mvn spring-boot:run -Dspring-boot.run.arguments="create --dataset=test" || true)
-(cd "${ROOT_DIR}/cli" && mvn spring-boot:run -Dspring-boot.run.arguments="upload --dataset=test --path=../backend/engine/indexer/rdbms/src/test/resources/images")
-(cd "${ROOT_DIR}/cli" && mvn spring-boot:run -Dspring-boot.run.arguments="upload --dataset=test --path=../backend/engine/indexer/rdbms/src/test/resources/videos")
+if [[ "${RESET_DB}" == "true" ]]; then
+  echo "Creating dataset and uploading sample data..."
+  (cd "${ROOT_DIR}/cli" && mvn spring-boot:run -Dspring-boot.run.arguments="create --dataset=test" || true)
+  (cd "${ROOT_DIR}/cli" && mvn spring-boot:run -Dspring-boot.run.arguments="upload --dataset=test --path=../backend/engine/indexer/rdbms/src/test/resources/images")
+  (cd "${ROOT_DIR}/cli" && mvn spring-boot:run -Dspring-boot.run.arguments="upload --dataset=test --path=../backend/engine/indexer/rdbms/src/test/resources/videos")
+fi
 
 echo
 echo "Dev environment ready:"

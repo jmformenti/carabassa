@@ -7,6 +7,7 @@ import org.atypical.carabassa.core.model.SearchCriteria;
 import org.atypical.carabassa.core.model.enums.ItemType;
 import org.atypical.carabassa.core.model.enums.PeriodType;
 import org.atypical.carabassa.core.model.enums.SearchOperator;
+import org.atypical.carabassa.core.model.enums.ValueType;
 import org.atypical.carabassa.indexer.rdbms.entity.IndexedItemEntity;
 import org.atypical.carabassa.indexer.rdbms.entity.IndexedItemEntity_;
 import org.atypical.carabassa.indexer.rdbms.entity.TagEntity;
@@ -134,10 +135,23 @@ public class ItemSpecification implements Specification<IndexedItemEntity> {
                 default:
                     return existsTagCondition(query, condition.getKey(), condition.getValue().toString(), builder, root);
             }
-        } else if (condition.getOperation() == SearchOperator.LESS_THAN && ATTR_ID.equals(condition.getKey())) {
-            return builder.lessThan(root.get(IndexedItemEntity_.ID), condition.getValue().toString());
-        } else if (condition.getOperation() == SearchOperator.GREATER_THAN && ATTR_ID.equals(condition.getKey())) {
-            return builder.greaterThan(root.get(IndexedItemEntity_.ID), condition.getValue().toString());
+        } else if (condition.getOperation() == SearchOperator.LESS_THAN ||
+                   condition.getOperation() == SearchOperator.GREATER_THAN ||
+                   condition.getOperation() == SearchOperator.LESS_THAN_EQUAL ||
+                   condition.getOperation() == SearchOperator.GREATER_THAN_EQUAL) {
+            if (ATTR_ID.equals(condition.getKey())) {
+                if (condition.getOperation() == SearchOperator.LESS_THAN) {
+                    return builder.lessThan(root.get(IndexedItemEntity_.ID), condition.getValue().toString());
+                } else if (condition.getOperation() == SearchOperator.GREATER_THAN) {
+                    return builder.greaterThan(root.get(IndexedItemEntity_.ID), condition.getValue().toString());
+                } else if (condition.getOperation() == SearchOperator.LESS_THAN_EQUAL) {
+                    return builder.lessThanOrEqualTo(root.get(IndexedItemEntity_.ID), condition.getValue().toString());
+                } else if (condition.getOperation() == SearchOperator.GREATER_THAN_EQUAL) {
+                    return builder.greaterThanOrEqualTo(root.get(IndexedItemEntity_.ID), condition.getValue().toString());
+                }
+            } else {
+                return existsNumericTagCondition(query, condition.getKey(), condition.getValue().toString(), condition.getOperation(), builder, root);
+            }
         }
         throw new IllegalArgumentException(String.format("Operation %s not implemented yet", condition.getOperation()));
     }
@@ -152,6 +166,16 @@ public class ItemSpecification implements Specification<IndexedItemEntity> {
 
     private Predicate existsTagCondition(CriteriaQuery<?> query, String tagName, String tagValue,
                                          CriteriaBuilder builder, Root<IndexedItemEntity> root) {
+        return buildTagConditionSubquery(query, tagName, tagValue, null, builder, root);
+    }
+
+    private Predicate existsNumericTagCondition(CriteriaQuery<?> query, String tagName, String tagValue, SearchOperator op,
+                                                CriteriaBuilder builder, Root<IndexedItemEntity> root) {
+        return buildTagConditionSubquery(query, tagName, tagValue, op, builder, root);
+    }
+
+    private Predicate buildTagConditionSubquery(CriteriaQuery<?> query, String tagName, String tagValue, SearchOperator op,
+                                                CriteriaBuilder builder, Root<IndexedItemEntity> root) {
         Subquery<Long> subquery = query.subquery(Long.class);
         Root<TagEntity> subRoot = subquery.from(TagEntity.class);
         subquery.select(subRoot.get(TagEntity_.ITEM_ID));
@@ -164,8 +188,46 @@ public class ItemSpecification implements Specification<IndexedItemEntity> {
         }
 
         if (tagValue != null) {
-            subPredicates.add(builder.equal(builder.lower(subRoot.get(TagEntity_.TEXT_VALUE)),
-                    builder.lower(builder.literal(tagValue))));
+            if (op == null || op == SearchOperator.EQUAL) {
+                subPredicates.add(builder.equal(builder.lower(subRoot.get(TagEntity_.TEXT_VALUE)),
+                        builder.lower(builder.literal(tagValue))));
+            } else {
+                Double val;
+                try {
+                    val = Double.parseDouble(tagValue);
+                } catch (NumberFormatException e) {
+                    throw new IllegalArgumentException("Invalid numeric value for operator " + op + ": " + tagValue);
+                }
+                Predicate doublePredicate;
+                Predicate longPredicate;
+                switch(op) {
+                    case GREATER_THAN:
+                        doublePredicate = builder.greaterThan(subRoot.get(TagEntity_.DOUBLE_VALUE), val);
+                        longPredicate = builder.greaterThan(subRoot.get(TagEntity_.LONG_VALUE), val.longValue());
+                        break;
+                    case LESS_THAN:
+                        doublePredicate = builder.lessThan(subRoot.get(TagEntity_.DOUBLE_VALUE), val);
+                        longPredicate = builder.lessThan(subRoot.get(TagEntity_.LONG_VALUE), val.longValue());
+                        break;
+                    case GREATER_THAN_EQUAL:
+                        doublePredicate = builder.greaterThanOrEqualTo(subRoot.get(TagEntity_.DOUBLE_VALUE), val);
+                        longPredicate = builder.greaterThanOrEqualTo(subRoot.get(TagEntity_.LONG_VALUE), val.longValue());
+                        break;
+                    case LESS_THAN_EQUAL:
+                        doublePredicate = builder.lessThanOrEqualTo(subRoot.get(TagEntity_.DOUBLE_VALUE), val);
+                        longPredicate = builder.lessThanOrEqualTo(subRoot.get(TagEntity_.LONG_VALUE), val.longValue());
+                        break;
+                    default:
+                        throw new IllegalArgumentException("Unsupported operation for numeric tag search");
+                }
+                Predicate isDouble = builder.equal(subRoot.get(TagEntity_.VALUE_TYPE), ValueType.DOUBLE);
+                Predicate isLong = builder.equal(subRoot.get(TagEntity_.VALUE_TYPE), ValueType.LONG);
+
+                subPredicates.add(builder.or(
+                    builder.and(isDouble, doublePredicate),
+                    builder.and(isLong, longPredicate)
+                ));
+            }
         }
 
         subquery.where(subPredicates.toArray(new Predicate[0]));

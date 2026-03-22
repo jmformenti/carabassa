@@ -14,7 +14,6 @@ import org.atypical.carabassa.core.model.SearchCondition;
 import org.atypical.carabassa.core.model.impl.SearchCriteriaImpl;
 import org.atypical.carabassa.core.model.Tag;
 import org.atypical.carabassa.core.model.enums.ItemType;
-import org.atypical.carabassa.core.model.enums.SearchOperator;
 import org.atypical.carabassa.core.model.impl.SearchConditionImpl;
 import org.atypical.carabassa.indexer.rdbms.entity.DatasetEntity;
 import org.atypical.carabassa.indexer.rdbms.entity.IndexedItemEntity;
@@ -292,12 +291,10 @@ public class DatasetDbIndexer implements DatasetIndexer {
             String key = condition.getKey();
             Object value = condition.getValue();
 
-            if (condition.getOperation() == SearchOperator.EQUAL) {
-                if (ATTR_MISSING_TAG.equals(key) && value != null) {
-                    value = resolveTagAlias(value.toString());
-                } else if (!isReservedSearchKey(key)) {
-                    key = resolveTagAlias(key);
-                }
+            if (ATTR_MISSING_TAG.equals(key) && value != null) {
+                value = resolveTagAlias(value.toString());
+            } else if (!isReservedSearchKey(key)) {
+                key = resolveTagAlias(key);
             }
 
             resolvedCriteria.add(new SearchConditionImpl(key, condition.getOperation(), value));

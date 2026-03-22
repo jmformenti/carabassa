@@ -156,19 +156,23 @@ public class DatasetControllerImpl implements DatasetController {
     public PagedModel<ItemRepresentation> findItems(Long datasetId, String search, Pageable pageable) {
         Dataset dataset = getDataset(datasetId);
 
-        SearchCriteria searchCriteria = null;
-        if (search != null) {
-            searchCriteria = SearchCriteriaParser.parse(search);
-        }
+        try {
+            SearchCriteria searchCriteria = null;
+            if (search != null) {
+                searchCriteria = SearchCriteriaParser.parse(search);
+            }
 
-        Page<IndexedItem> page;
-        if (searchCriteria == null || searchCriteria.isEmpty()) {
-            page = datasetService.findItems(dataset, pageable);
-        } else {
-            page = datasetService.findItems(dataset, searchCriteria, pageable);
-        }
+            Page<IndexedItem> page;
+            if (searchCriteria == null || searchCriteria.isEmpty()) {
+                page = datasetService.findItems(dataset, pageable);
+            } else {
+                page = datasetService.findItems(dataset, searchCriteria, pageable);
+            }
 
-        return itemPagedResourcesAssembler.toModel(page, itemModelAssembler);
+            return itemPagedResourcesAssembler.toModel(page, itemModelAssembler);
+        } catch (Exception e) {
+            throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, e.getMessage());
+        }
     }
 
     @Override
@@ -179,7 +183,7 @@ public class DatasetControllerImpl implements DatasetController {
 
     @Override
     public PagedModel<ItemTagEntityRepresentation> findDatasetItemTagsByName(Long datasetId, String tagName,
-                                                                              Pageable pageable) {
+            Pageable pageable) {
         Dataset dataset = getDataset(datasetId);
         Page<ItemTagInfo> page = datasetService.findItemTagsByName(dataset, tagName, pageable);
         List<ItemTagEntityRepresentation> pageContent = page.getContent().stream()
@@ -215,7 +219,8 @@ public class DatasetControllerImpl implements DatasetController {
         }
 
         return ResponseEntity.ok() //
-                .contentType(MediaType.parseMediaType(indexedItem.getType().normalized() + "/" + indexedItem.getFormat()))
+                .contentType(
+                        MediaType.parseMediaType(indexedItem.getType().normalized() + "/" + indexedItem.getFormat()))
                 .header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=\"" + indexedItem.getFilename() + "\"")
                 .body(storedItem.getResource());
     }
