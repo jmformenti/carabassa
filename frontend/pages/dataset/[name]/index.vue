@@ -33,14 +33,22 @@
           </v-col>
         </v-row>
 
-        <v-row>
-          <v-col>
-            <div
-              v-if="searched"
-              class="text-body-2"
-            >
+        <v-row v-if="searched">
+          <v-col class="d-flex align-center">
+            <div class="text-body-2">
               {{ totalItems }} found
             </div>
+            <v-spacer />
+            <v-btn
+              v-if="selectedIds.length > 0"
+              color="orange-darken-2"
+              variant="tonal"
+              prepend-icon="mdi-trash-can-outline"
+              class="ml-2"
+              @click="confirmBulkDelete"
+            >
+              Delete ({{ selectedIds.length }})
+            </v-btn>
           </v-col>
         </v-row>
 
@@ -48,7 +56,10 @@
           :items="items"
           :searched="searched"
           :loading="waitingResults"
+          :selectable="true"
+          :selected-items="selectedIds"
           @select="expandItem"
+          @toggle-select="toggleSelect"
         />
 
         <v-row>
@@ -110,6 +121,32 @@
         </v-card-actions>
       </v-card>
     </v-dialog>
+
+    <v-dialog
+      v-model="bulkDeleteDialog"
+      max-width="400"
+    >
+      <v-card>
+        <v-card-title>Delete items</v-card-title>
+        <v-card-text>Are you sure you want to delete {{ selectedIds.length }} selected items?</v-card-text>
+        <v-card-actions>
+          <v-spacer />
+          <v-btn
+            color="orange-darken-2"
+            @click="bulkDeleteDialog = false"
+          >
+            Cancel
+          </v-btn>
+          <v-btn
+            color="orange-darken-2"
+            :loading="deletingBulk"
+            @click="deleteSelectedItems"
+          >
+            Delete
+          </v-btn>
+        </v-card-actions>
+      </v-card>
+    </v-dialog>
   </div>
 </template>
 
@@ -152,6 +189,10 @@ const waitingResults = ref(false)
 const selectedSortField = ref(initialState.sortField)
 const selectedSortDirection = ref(initialState.sortDirection)
 const searchError = ref(null)
+
+const selectedIds = ref([])
+const bulkDeleteDialog = ref(false)
+const deletingBulk = ref(false)
 
 const hasDataset = computed(() => !!datasetStore.dataset)
 const datasetsLoaded = computed(() => datasetStore.datasetsLoaded)
@@ -286,6 +327,40 @@ const deleteItem = async () => {
     })
   } catch (err) {
     console.error(err)
+  }
+}
+
+const toggleSelect = (item) => {
+  const index = selectedIds.value.indexOf(item.id)
+  if (index === -1) {
+    selectedIds.value.push(item.id)
+  } else {
+    selectedIds.value.splice(index, 1)
+  }
+}
+
+const confirmBulkDelete = () => {
+  bulkDeleteDialog.value = true
+}
+
+const deleteSelectedItems = async () => {
+  deletingBulk.value = true
+  try {
+    for (const id of selectedIds.value) {
+      await $carabassa.deleteItem(id)
+    }
+    items.value = items.value.filter(item => !selectedIds.value.includes(item.id))
+    totalItems.value -= selectedIds.value.length
+    selectedIds.value = []
+    bulkDeleteDialog.value = false
+    datasetStore.setListState({
+      items: [...items.value],
+      totalItems: totalItems.value
+    })
+  } catch (err) {
+    console.error('Error deleting items:', err)
+  } finally {
+    deletingBulk.value = false
   }
 }
 
