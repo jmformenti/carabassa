@@ -8,55 +8,81 @@
       sm="8"
       md="6"
     >
-      <v-text-field
-        v-model="searchString"
-        label="Search"
-        variant="underlined"
-        clear-icon="mdi-close-circle"
-        clearable
-        @keyup.enter="onSearch"
+      <v-menu
+        v-model="menu"
+        :close-on-content-click="false"
+        location="bottom"
+        activator="#search-input"
+        max-height="300"
+        :open-on-click="false"
+        :open-on-focus="false"
+        :offset="[0, 5]"
       >
-        <template #prepend>
-          <v-tooltip location="bottom">
-            <template #activator="{ props }">
+        <template #activator="{ props: menuProps }">
+          <v-text-field
+            ref="textField"
+            id="search-input"
+            v-model="searchString"
+            label="Search"
+            variant="underlined"
+            clear-icon="mdi-close-circle"
+            clearable
+            @keyup.enter="onSearch"
+            @input="handleInput"
+            @click="handleInput"
+          >
+            <template #prepend>
+              <v-tooltip location="bottom">
+                <template #activator="{ props: tooltipProps }">
+                  <v-icon
+                    small
+                    class="with-pointer no-opacity"
+                    color="orange-darken-2"
+                    v-bind="tooltipProps"
+                  >
+                    mdi-help-circle
+                  </v-icon>
+                </template>
+                <div>
+                  Cheatsheet for searching:<br>
+                  <b>from:</b> YYYY-MM-DD<br>
+                  <b>to:</b> YYYY-MM-DD<br>
+                  <b>on:</b> YYYY-MM-DD
+                  <template v-if="tagInfos.length">
+                    <br>
+                    <span
+                      v-for="tagInfo in tagInfos"
+                      :key="tagInfo.id || tagInfo.tagName"
+                    >
+                      <b>{{ tagInfo.alias || tagInfo.tagName }}:</b>
+                      {{ tagInfo.description || 'No description' }}<br>
+                    </span>
+                  </template>
+                </div>
+              </v-tooltip>
+            </template>
+
+            <template #append>
               <v-icon
-                small
-                class="with-pointer no-opacity"
+                class="no-opacity"
                 color="orange-darken-2"
-                v-bind="props"
+                @click="onSearch"
               >
-                mdi-help-circle
+                mdi-send
               </v-icon>
             </template>
-            <div>
-              Cheatsheet for searching:<br>
-              <b>from:</b> YYYY-MM-DD<br>
-              <b>to:</b> YYYY-MM-DD<br>
-              <b>on:</b> YYYY-MM-DD
-              <template v-if="tagInfos.length">
-                <br>
-                <span
-                  v-for="tagInfo in tagInfos"
-                  :key="tagInfo.id || tagInfo.tagName"
-                >
-                  <b>{{ tagInfo.alias || tagInfo.tagName }}:</b>
-                  {{ tagInfo.description || 'No description' }}<br>
-                </span>
-              </template>
-            </div>
-          </v-tooltip>
+          </v-text-field>
         </template>
-
-        <template #append>
-          <v-icon
-            class="no-opacity"
-            color="orange-darken-2"
-            @click="onSearch"
+        <v-list v-if="suggestions.length > 0" density="compact">
+          <v-list-item
+            v-for="(item, i) in suggestions"
+            :key="i"
+            @click="selectSuggestion(item)"
           >
-            mdi-send
-          </v-icon>
-        </template>
-      </v-text-field>
+            <v-list-item-title>{{ item }}</v-list-item-title>
+          </v-list-item>
+        </v-list>
+      </v-menu>
     </v-col>
     <v-col
       cols="12"
@@ -112,6 +138,10 @@ const searchString = ref(props.modelValue)
 const localSortField = ref(props.sortField)
 const localSortDirection = ref(props.sortDirection || 'desc')
 const tagInfos = ref([])
+const textField = ref(null)
+const menu = ref(false)
+const suggestions = ref([])
+const currentTagMatch = ref(null)
 
 const baseSortOptions = [
   { text: 'date', value: 'archiveTime' },
@@ -161,7 +191,73 @@ const loadTagInfos = async () => {
   }
 }
 
-onMounted(loadTagInfos)
+const onMountedActions = async () => {
+  await loadTagInfos()
+}
+
+onMounted(onMountedActions)
+
+const handleInput = async () => {
+  await nextTick()
+  if (!textField.value) {
+    menu.value = false
+    return
+  }
+  const el = textField.value.$el
+  if (!el) return
+  const input = el.querySelector('input')
+  if (!input) return
+  
+  const pos = input.selectionStart
+  const textBefore = (searchString.value || '').substring(0, pos)
+  
+  // Match tagName:partialValue
+  const match = textBefore.match(/(\w+):([^:\s]*)$/)
+  if (match) {
+    const key = match[1]
+    const val = match[2]
+    
+    // Find tag info
+    const tagInfo = (tagInfos.value || []).find(t => t.tagName === key || t.alias === key)
+    if (tagInfo && tagInfo.type === 'STRING') {
+      try {
+        const values = await $carabassa.getItemTagValues(tagInfo.tagName)
+        suggestions.value = values.filter(v => 
+          String(v || '').toLowerCase().startsWith(val.toLowerCase())
+        ).slice(0, 10)
+        
+        if (suggestions.value.length > 0) {
+          currentTagMatch.value = {
+            tagName: key,
+            value: val,
+            start: pos - val.length,
+            end: pos
+          }
+          menu.value = true
+          return
+        }
+      } catch (err) {
+        console.error('Failed to load suggestions:', err)
+      }
+    }
+  }
+  menu.value = false
+}
+
+const selectSuggestion = (suggestion) => {
+  const match = currentTagMatch.value
+  if (!match) return
+  
+  const text = searchString.value
+  const newText = text.substring(0, match.start) + suggestion + ' ' + text.substring(match.end)
+  searchString.value = newText
+  menu.value = false
+  
+  // Refocus input
+  nextTick(() => {
+    textField.value.$el.querySelector('input').focus()
+  })
+}
 
 const toggleSortDirection = () => {
   localSortDirection.value = localSortDirection.value === 'asc' ? 'desc' : 'asc'

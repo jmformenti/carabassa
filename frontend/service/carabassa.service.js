@@ -139,4 +139,16 @@ export class CarabassaService {
     }
     return response.json()
   }
+
+  getItemTagValues(tagName, page = 0, size = 100) {
+    return $fetch(
+      `${this.apiBaseURL}/api/dataset/${this.datasetStore.dataset.id}/item/tag/${tagName}/values?page=${page}&size=${size}`
+    ).then((data) => {
+      if (data.content) return data.content
+      if (data._embedded && data._embedded.stringList) {
+        return data._embedded.stringList
+      }
+      return []
+    })
+  }
 }
