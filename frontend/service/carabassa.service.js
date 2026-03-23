@@ -115,4 +115,28 @@ export class CarabassaService {
       }
     })
   }
+
+  async addItem(file) {
+    const formData = new FormData()
+    formData.append('file', file, file.name)
+    const response = await fetch(
+      `${this.apiBaseURL}/api/dataset/${this.datasetStore.dataset.id}/item`,
+      { method: 'POST', body: formData }
+    )
+    if (response.status === 409) {
+      // Duplicate - item already exists
+      const err = new Error('Duplicate')
+      err.isDuplicate = true
+      throw err
+    }
+    if (!response.ok) {
+      let msg = `Error ${response.status}`
+      try {
+        const body = await response.json()
+        if (body && body.message) msg = body.message
+      } catch (_) { /* ignore */ }
+      throw new Error(msg)
+    }
+    return response.json()
+  }
 }

@@ -49,6 +49,15 @@
             >
               Delete ({{ selectedIds.length }})
             </v-btn>
+            <v-btn
+              color="orange-darken-2"
+              variant="tonal"
+              prepend-icon="mdi-upload"
+              class="ml-2"
+              @click="importDialog = true"
+            >
+              Upload
+            </v-btn>
           </v-col>
         </v-row>
 
@@ -95,6 +104,11 @@
       @previous="previousImage"
       @next="nextImage"
       @delete="confirmDelete"
+    />
+
+    <ImportDialog
+      v-model="importDialog"
+      @imported="onImported"
     />
 
     <v-dialog
@@ -193,6 +207,7 @@ const searchError = ref(null)
 const selectedIds = ref([])
 const bulkDeleteDialog = ref(false)
 const deletingBulk = ref(false)
+const importDialog = ref(false)
 
 const hasDataset = computed(() => !!datasetStore.dataset)
 const datasetsLoaded = computed(() => datasetStore.datasetsLoaded)
@@ -337,6 +352,11 @@ const toggleSelect = (item) => {
   } else {
     selectedIds.value.splice(index, 1)
   }
+}
+
+const onImported = () => {
+  reset()
+  getItems()
 }
 
 const confirmBulkDelete = () => {
