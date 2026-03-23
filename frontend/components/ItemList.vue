@@ -11,7 +11,6 @@
         lg="2"
       >
         <v-img
-          v-if="!isVideo(item)"
           :src="$carabassa.getItemThumbnailURL(item.id)"
           :lazy-src="$carabassa.getItemThumbnailURL(item.id)"
           :aspect-ratio="1"
@@ -31,40 +30,9 @@
               {{ isSelected(item) ? 'mdi-checkbox-marked' : 'mdi-checkbox-blank-outline' }}
             </v-icon>
           </div>
-          <template #placeholder>
-            <div class="d-flex align-center justify-center fill-height">
-              <v-progress-circular
-                indeterminate
-                color="grey-lighten-5"
-              />
-            </div>
-          </template>
-        </v-img>
-        <div
-          v-else
-          class="media-preview with-pointer"
-          :title="`${item.id} - ${item.archiveTime}`"
-          @click="$emit('select', item)"
-        >
-          <video
-            class="video-preview"
-            :src="$carabassa.getItemContentURL(item.id)"
-            preload="metadata"
-            muted
-            playsinline
-          />
-          <div
-            class="selection-overlay"
-            @click.stop="$emit('toggle-select', item)"
-          >
-            <v-icon
-              :color="isSelected(item) ? 'primary' : 'grey-darken-1'"
-              size="20"
-            >
-              {{ isSelected(item) ? 'mdi-checkbox-marked' : 'mdi-checkbox-blank-outline' }}
-            </v-icon>
-          </div>
+
           <div 
+            v-if="isVideo(item)"
             class="video-preview-overlay"
           >
             <v-icon
@@ -74,7 +42,16 @@
               mdi-play-circle-outline
             </v-icon>
           </div>
-        </div>
+
+          <template #placeholder>
+            <div class="d-flex align-center justify-center fill-height">
+              <v-progress-circular
+                indeterminate
+                color="grey-lighten-5"
+              />
+            </div>
+          </template>
+        </v-img>
       </v-col>
     </v-row>
     <v-row v-if="loading">
