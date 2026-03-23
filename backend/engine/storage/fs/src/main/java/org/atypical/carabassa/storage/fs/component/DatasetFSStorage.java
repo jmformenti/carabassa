@@ -111,25 +111,26 @@ public class DatasetFSStorage implements DatasetStorage {
 
     @Override
     public StoredItemThumbnail getItemThumbnail(IndexedItem item) throws IOException, EntityNotFoundException {
-        if (item.getType() == ItemType.IMAGE) {
-            Path itemPath = getItemPath(item);
+        Path itemPath = getItemPath(item);
 
-            if (Files.exists(itemPath)) {
-                Path thumbnailPath = getThumbnailPath(item);
+        if (Files.exists(itemPath)) {
+            Path thumbnailPath = getThumbnailPath(item);
 
-                byte[] contents;
-                if (Files.exists(thumbnailPath)) {
-                    contents = Files.readAllBytes(thumbnailPath);
-                } else {
-                    contents = writeThumbnail(item);
-                }
+            byte[] contents;
+            if (Files.exists(thumbnailPath)) {
+                contents = Files.readAllBytes(thumbnailPath);
+            } else {
+                contents = writeThumbnail(item);
+            }
 
+            if (contents != null) {
                 return new StoredItemThumbnailImpl(getThumbnailFilename(item), contents);
             } else {
-                throw new EntityNotFoundException(localizedMessage.getText(ITEM_NOT_EXISTS_MESSAGE_KEY, item.getId()));
+                throw new UnsupportedOperationException(
+                        "Thumbnail generation not supported for item type: " + item.getType());
             }
         } else {
-            throw new IllegalArgumentException("Thumbnail implemented only for images");
+            throw new EntityNotFoundException(localizedMessage.getText(ITEM_NOT_EXISTS_MESSAGE_KEY, item.getId()));
         }
     }
 
@@ -186,20 +187,48 @@ public class DatasetFSStorage implements DatasetStorage {
     }
 
     private byte[] writeThumbnail(IndexedItem item) throws IOException {
+        byte[] contents = null;
         if (item.getType() == ItemType.IMAGE) {
-            byte[] contents = createThumbnail(getItemPath(item));
-            Files.write(getThumbnailPath(item), contents);
-
-            return contents;
-        } else {
-            return null;
+            contents = createThumbnail(getItemPath(item));
+        } else if (item.getType() == ItemType.VIDEO) {
+            contents = createVideoThumbnail(getItemPath(item));
         }
+
+        if (contents != null) {
+            Files.write(getThumbnailPath(item), contents);
+        }
+
+        return contents;
     }
 
     private byte[] createThumbnail(Path itemPath) throws IOException {
         ByteArrayOutputStream baos = new ByteArrayOutputStream();
         Thumbnails.of(itemPath.toFile()).size(200, 200).keepAspectRatio(true).toOutputStream(baos);
         return baos.toByteArray();
+    }
+
+    private byte[] createVideoThumbnail(Path itemPath) throws IOException {
+        Path tempThumbnail = Files.createTempFile("vthumb", ".jpg");
+        try {
+            ProcessBuilder pb = new ProcessBuilder(
+                    "ffmpeg", "-y", "-i", itemPath.toString(),
+                    "-ss", "00:00:01.000", "-vframes", "1",
+                    "-vf", "scale=200:200:force_original_aspect_ratio=decrease",
+                    "-f", "image2",
+                    tempThumbnail.toString());
+            Process process = pb.start();
+            int exitCode = process.waitFor();
+            if (exitCode == 0 && Files.exists(tempThumbnail)) {
+                return Files.readAllBytes(tempThumbnail);
+            } else {
+                return null;
+            }
+        } catch (InterruptedException e) {
+            Thread.currentThread().interrupt();
+            throw new IOException("Video thumbnail generation interrupted", e);
+        } finally {
+            Files.deleteIfExists(tempThumbnail);
+        }
     }
 
     private StoredItemInfo readJson(IndexedItem item) throws IOException {
