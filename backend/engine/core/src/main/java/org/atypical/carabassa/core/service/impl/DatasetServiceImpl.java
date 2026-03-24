@@ -110,8 +110,13 @@ public class DatasetServiceImpl implements org.atypical.carabassa.core.service.D
     }
 
     @Override
-    public Page<ItemTagInfo> findItemTagsByName(Dataset dataset, String tagName, Pageable pageable) {
+    public Page<ItemTagInfo> findItemTagsByName(Dataset dataset, String tagName, Pageable pageable) throws EntityNotFoundException {
         return datasetIndexer.findItemTagsByName(dataset, tagName, pageable);
+    }
+
+    @Override
+    public Page<String> findDistinctTagValuesByName(Dataset dataset, String tagName, Pageable pageable) throws EntityNotFoundException {
+        return datasetIndexer.findDistinctTagValuesByName(dataset, tagName, pageable);
     }
 
     @Override

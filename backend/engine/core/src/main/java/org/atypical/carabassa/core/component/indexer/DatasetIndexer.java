@@ -50,6 +50,8 @@ public interface DatasetIndexer {
 
     Page<ItemTagInfo> findItemTagsByName(Dataset dataset, String tagName, Pageable pageable);
 
+    Page<String> findDistinctTagValuesByName(Dataset dataset, String tagName, Pageable pageable);
+
     Tag findItemTagById(Dataset dataset, Long itemId, Long tagId) throws EntityNotFoundException;
 
     IndexedItem reindex(Dataset dataset, Long itemId, Resource inputItem) throws EntityNotFoundException, IOException;

@@ -185,11 +185,29 @@ public class DatasetControllerImpl implements DatasetController {
     public PagedModel<ItemTagEntityRepresentation> findDatasetItemTagsByName(Long datasetId, String tagName,
             Pageable pageable) {
         Dataset dataset = getDataset(datasetId);
-        Page<ItemTagInfo> page = datasetService.findItemTagsByName(dataset, tagName, pageable);
+        Page<ItemTagInfo> page;
+        try {
+            page = datasetService.findItemTagsByName(dataset, tagName, pageable);
+        } catch (EntityNotFoundException e) {
+            throw new ResponseStatusException(HttpStatus.NOT_FOUND, e.getMessage());
+        }
         List<ItemTagEntityRepresentation> pageContent = page.getContent().stream()
                 .map(itemTagMapper::toRepresentation)
                 .collect(Collectors.toList());
         return PagedModel.of(pageContent,
+                new PagedModel.PageMetadata(page.getSize(), page.getNumber(), page.getTotalElements()));
+    }
+
+    @Override
+    public PagedModel<String> findDatasetItemTagValuesByName(Long datasetId, String tagName, Pageable pageable) {
+        Dataset dataset = getDataset(datasetId);
+        Page<String> page;
+        try {
+            page = datasetService.findDistinctTagValuesByName(dataset, tagName, pageable);
+        } catch (EntityNotFoundException e) {
+            throw new ResponseStatusException(HttpStatus.NOT_FOUND, e.getMessage());
+        }
+        return PagedModel.of(page.getContent(), 
                 new PagedModel.PageMetadata(page.getSize(), page.getNumber(), page.getTotalElements()));
     }
 

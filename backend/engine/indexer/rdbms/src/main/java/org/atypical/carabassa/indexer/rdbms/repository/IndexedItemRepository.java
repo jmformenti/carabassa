@@ -23,6 +23,10 @@ public interface IndexedItemRepository
             "where i.dataset=:dataset and t.name=:tagName")
     Page<Object[]> findItemTagsByName(Dataset dataset, String tagName, Pageable pageable);
 
+    @Query("select distinct t.textValue from IndexedItemEntity i join i.tags t " +
+            "where i.dataset=:dataset and t.name=:tagName")
+    Page<String> findDistinctTagValuesByName(Dataset dataset, String tagName, Pageable pageable);
+
     @Query("from IndexedItemEntity where dataset=:dataset and id=:itemId")
     Optional<IndexedItem> findItemById(Dataset dataset, Long itemId);
 

@@ -253,6 +253,12 @@ public class DatasetDbIndexer implements DatasetIndexer {
     }
 
     @Override
+    public Page<String> findDistinctTagValuesByName(Dataset dataset, String tagName, Pageable pageable) {
+        String resolvedTagName = resolveTagAlias(tagName);
+        return indexedItemRepository.findDistinctTagValuesByName(dataset, resolvedTagName, pageable);
+    }
+
+    @Override
     public Tag findItemTagById(Dataset dataset, Long itemId, Long tagId) throws EntityNotFoundException {
         return findItemById(dataset, itemId).getTags() //
                 .stream().filter(t -> tagId.equals(t.getId())) //
