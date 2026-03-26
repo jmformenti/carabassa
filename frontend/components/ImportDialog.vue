@@ -88,21 +88,13 @@
               :base-color="r.color"
             >
               <v-list-item-title class="text-body-2">
-                <span class="font-weight-medium text-truncate">{{ r.filename }}</span>
-                <v-tooltip
+                <div class="font-weight-medium text-truncate">{{ r.filename }}</div>
+                <div
                   v-if="r.message"
-                  :text="r.message"
-                  location="top"
-                  max-width="400"
+                  class="text-caption text-medium-emphasis message-wrap"
                 >
-                  <template #activator="{ props: tooltipProps }">
-                    <span
-                      v-bind="tooltipProps"
-                      class="ml-2 text-medium-emphasis text-truncate"
-                      style="max-width:220px; display:inline-block; vertical-align:bottom; cursor:default"
-                    >— {{ r.message }}</span>
-                  </template>
-                </v-tooltip>
+                  {{ r.message }}
+                </div>
               </v-list-item-title>
             </v-list-item>
           </v-list>
@@ -148,6 +140,7 @@
 
 <script setup>
 import { ref, computed } from 'vue'
+import SparkMD5 from 'spark-md5'
 
 const ACCEPTED_TYPES = /^(image|video)\//
 
@@ -187,7 +180,9 @@ const openPicker = () => {
 const onFilesSelected = (event) => {
   const all = Array.from(event.target.files)
   // Filter to images and videos only (directories might contain other things)
-  pendingFiles.value = all.filter(f => ACCEPTED_TYPES.test(f.type))
+  pendingFiles.value = all
+    .filter(f => ACCEPTED_TYPES.test(f.type))
+    .sort((a, b) => a.name.localeCompare(b.name))
 }
 
 const startImport = async () => {
@@ -203,6 +198,19 @@ const startImport = async () => {
 
   for (const file of pendingFiles.value) {
     try {
+      const hash = SparkMD5.ArrayBuffer.hash(await file.arrayBuffer())
+      const exists = await $carabassa.itemExists(hash)
+      if (exists) {
+        results.value.push({
+          filename: file.name,
+          status: 'warn',
+          icon: 'mdi-alert-circle',
+          color: 'warning',
+          message: null
+        })
+        done.value++
+        continue
+      }
       await $carabassa.addItem(file)
       results.value.push({
         filename: file.name,
@@ -219,7 +227,7 @@ const startImport = async () => {
           status: 'warn',
           icon: 'mdi-alert-circle',
           color: 'warning',
-          message: 'Already exists'
+          message: null
         })
       } else {
         results.value.push({
@@ -259,3 +267,11 @@ const resetState = () => {
   total.value = 0
 }
 </script>
+
+<style scoped>
+.message-wrap {
+  white-space: normal;
+  overflow-wrap: anywhere;
+  word-break: break-word;
+}
+</style>

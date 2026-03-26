@@ -76,6 +76,22 @@ export class CarabassaService {
     )
   }
 
+  async itemExists(hash) {
+    const response = await fetch(
+      `${this.apiBaseURL}/api/dataset/${this.datasetStore.dataset.id}/item/exists/${hash}`
+    )
+    if (response.status === 404) return false
+    if (!response.ok) {
+      let msg = `Error ${response.status}`
+      try {
+        const body = await response.json()
+        if (body && body.message) msg = body.message
+      } catch (_) { /* ignore */ }
+      throw new Error(msg)
+    }
+    return true
+  }
+
   addItemTag(itemId, tagRepresentation) {
     return $fetch(
       `${this.apiBaseURL}/api/dataset/${this.datasetStore.dataset.id}/item/${itemId}/tag`,
