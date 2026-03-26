@@ -1,7 +1,7 @@
 # Carabassa — Agent Instructions
 
 ## Project
-Application with a Spring Boot backend and CLI, and Vue 3 frontend.
+Application with a Spring Boot backend, CLI, and Vue 3 frontend.
 
 ## Build the project
 
@@ -11,20 +11,25 @@ mvn clean install
 
 ## Run application
 
-### Run the backend
-```bash
-cd backend/server/boot
-export CARABASSA_REPO_DIR=/tmp/carabassa && mvn spring-boot:run
-```
-Starts at http://localhost:8080 and supports hot reloading
+### Run the main application
 
-### Run the frontend
+Runs the backend, frontend, and creates a `test` dataset for testing.
+
 ```bash
-cd frontend
-yarn install
-yarn dev
+./run-dev.sh
 ```
-Starts at http://localhost:3000 and supports hot reloading
+
+To restart and reset the dataset:
+
+```bash
+./run-dev.sh --reset
+```
+
+To stop the services:
+
+```bash
+./run-dev.sh --stop
+```
 
 ### Run the cli
 ```bash
@@ -36,7 +41,7 @@ mvn spring-boot:run
 
 ### Run the backend tests
 ```bash
-cd backend/server/boot && mvn test
+cd backend && mvn test
 ```
 
 ### Run the frontend tests
@@ -47,17 +52,6 @@ cd frontend && yarn test
 ### Run the cli tests
 ```bash
 cd cli && mvn test
-```
-
-### Run all the tests
-```bash
-mvn test
-```
-
-## Prepare minimal environment for manual testing
-
-```bash
-./run-dev.sh
 ```
 
 ## Important notes

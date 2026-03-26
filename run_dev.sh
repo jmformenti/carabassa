@@ -11,9 +11,13 @@ export CARABASSA_REPO_DIR="${REPO_DIR}"
 export CARABASSA_API_URL=http://localhost:8080/api
 
 RESET_DB=false
+STOP_ONLY=false
 for arg in "$@"; do
   if [[ "$arg" == "--reset" ]]; then
     RESET_DB=true
+  fi
+  if [[ "$arg" == "--stop" ]]; then
+    STOP_ONLY=true
   fi
 done
 
@@ -65,6 +69,11 @@ stop_if_running() {
 stop_if_running "backend"
 stop_if_running "frontend"
 
+if [[ "${STOP_ONLY}" == "true" ]]; then
+  echo "Services stopped."
+  exit 0
+fi
+
 echo "Starting backend..."
 start_detached "${DEV_DIR}/backend.pid" bash -lc "
   set -euo pipefail
@@ -78,7 +87,7 @@ echo "Starting frontend..."
 start_detached "${DEV_DIR}/frontend.pid" bash -lc "
   set -euo pipefail
   cd \"${ROOT_DIR}/frontend\"
-  exec yarn dev
+  exec yarn dev --host
 " > "${frontend_log}" 2>&1
 
 echo "Waiting for backend to be ready at ${CARABASSA_API_URL}..."
@@ -127,4 +136,5 @@ echo "- Backend: http://localhost:8080 (log: ${backend_log})"
 echo "- Frontend: http://localhost:3000 (log: ${frontend_log})"
 echo
 echo "To stop services:"
+echo "  ./run_dev.sh --stop"
 echo "  kill -- -\$(cat ${DEV_DIR}/backend.pid) -\$(cat ${DEV_DIR}/frontend.pid)"

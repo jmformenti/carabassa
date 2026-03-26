@@ -92,6 +92,11 @@ export default {
           title: 'Search',
           icon: 'mdi-magnify',
           to: '/'
+        },
+        {
+          title: 'PWA Debug',
+          icon: 'mdi-bug',
+          to: '/pwa-debug'
         }
       ]
     }

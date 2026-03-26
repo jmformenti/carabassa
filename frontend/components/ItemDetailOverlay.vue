@@ -6,7 +6,7 @@
   >
     <v-card
       v-if="item"
-      class="navigation-card"
+      class="navigation-card overlay-card"
     >
       <v-btn
         v-if="hasPrevious"
@@ -36,7 +36,10 @@
           />
         </template>
       </v-card-item>
-      <v-card-text>
+      <v-card-text
+        class="overlay-content"
+        :class="{ 'overlay-content-image': !isVideo(item) }"
+      >
         <video
           v-if="isVideo(item)"
           class="overlay-video"
@@ -47,12 +50,13 @@
         <v-img
           v-else
           width="500"
-          max-height="500"
+          max-height="65vh"
           :src="$carabassa.getItemContentURL(item.id)"
+          class="overlay-image"
           @click="$emit('update:modelValue', false)" 
         />
       </v-card-text>
-      <v-card-actions>
+      <v-card-actions class="overlay-actions">
         <v-tooltip text="Enter detail" location="top">
           <template #activator="{ props }">
             <v-btn
@@ -138,6 +142,33 @@ const copyLink = async () => {
 <style scoped>
 .navigation-card {
   overflow: visible !important;
+}
+.overlay-card {
+  max-width: 90vw;
+  max-height: 90vh;
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+}
+.overlay-content {
+  overflow: auto;
+  min-height: 0;
+  flex: 1 1 auto;
+}
+.overlay-content-image {
+  padding: 0 !important;
+  background-color: transparent !important;
+}
+.overlay-image {
+  width: 100%;
+  max-width: 90vw;
+  display: block;
+  box-shadow: none !important;
+  background-color: transparent !important;
+}
+.overlay-actions {
+  border-top: none !important;
+  box-shadow: none !important;
 }
 .nav-btn {
   position: absolute;
