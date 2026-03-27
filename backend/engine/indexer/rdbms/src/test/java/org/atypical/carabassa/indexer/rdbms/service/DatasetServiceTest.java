@@ -27,6 +27,7 @@ import org.atypical.carabassa.indexer.rdbms.configuration.IndexerRdbmsConfigurat
 import org.atypical.carabassa.indexer.rdbms.entity.TagEntity;
 import org.atypical.carabassa.indexer.rdbms.test.configuration.TestConfiguration;
 import org.atypical.carabassa.indexer.rdbms.test.helper.TestHelper;
+import org.atypical.carabassa.storage.fs.component.DatasetFSStorage;
 import org.atypical.carabassa.storage.fs.configuration.StorageFSConfiguration;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
@@ -71,6 +72,7 @@ public class DatasetServiceTest {
     void setUp() throws EntityExistsException, IOException {
         datasetService.deleteAll();
         datasetService.create(new DatasetImpl(DATASET_TEST_NAME));
+        assertTrue(Files.exists(Paths.get(repoDir, DatasetFSStorage.DATASET_DIR, DATASET_TEST_NAME)));
     }
 
     @AfterEach
@@ -506,9 +508,9 @@ public class DatasetServiceTest {
         assertThrows(EntityNotFoundException.class, () -> datasetService.getStoredItem(finalDataset, indexedItem));
 
         // verify trash
-        assertTrue(Files.exists(Paths.get(repoDir, "trash", DATASET_TEST_NAME, indexedItem.getHash() + ".jpg")), "Main file should be in trash");
-        assertTrue(Files.exists(Paths.get(repoDir, "trash", DATASET_TEST_NAME, indexedItem.getHash() + ".json")), "JSON file should be in trash");
-        assertTrue(Files.exists(Paths.get(repoDir, "trash", DATASET_TEST_NAME, "." + indexedItem.getHash() + "_thumb.jpg")), "Thumbnail file should be in trash");
+        assertTrue(Files.exists(Paths.get(repoDir, DatasetFSStorage.TRASH_DIR, DATASET_TEST_NAME, indexedItem.getHash() + ".jpg")), "Main file should be in trash");
+        assertTrue(Files.exists(Paths.get(repoDir, DatasetFSStorage.TRASH_DIR, DATASET_TEST_NAME, indexedItem.getHash() + ".json")), "JSON file should be in trash");
+        assertTrue(Files.exists(Paths.get(repoDir, DatasetFSStorage.TRASH_DIR, DATASET_TEST_NAME, "." + indexedItem.getHash() + "_thumb.jpg")), "Thumbnail file should be in trash");
     }
 
     @Test
@@ -545,9 +547,9 @@ public class DatasetServiceTest {
         assertThrows(EntityNotFoundException.class, () -> datasetService.getStoredItem(finalDataset, finalIndexedItem));
 
         // verify trash
-        assertTrue(Files.exists(Paths.get(repoDir, "trash", DATASET_TEST_NAME, finalIndexedItem.getHash() + ".jpg")), "Main file should be in trash");
-        assertTrue(Files.exists(Paths.get(repoDir, "trash", DATASET_TEST_NAME, finalIndexedItem.getHash() + ".json")), "JSON file should be in trash");
-        assertTrue(Files.exists(Paths.get(repoDir, "trash", DATASET_TEST_NAME, "." + finalIndexedItem.getHash() + "_thumb.jpg")), "Thumbnail file should be in trash");
+        assertTrue(Files.exists(Paths.get(repoDir, DatasetFSStorage.TRASH_DIR, DATASET_TEST_NAME, finalIndexedItem.getHash() + ".jpg")), "Main file should be in trash");
+        assertTrue(Files.exists(Paths.get(repoDir, DatasetFSStorage.TRASH_DIR, DATASET_TEST_NAME, finalIndexedItem.getHash() + ".json")), "JSON file should be in trash");
+        assertTrue(Files.exists(Paths.get(repoDir, DatasetFSStorage.TRASH_DIR, DATASET_TEST_NAME, "." + finalIndexedItem.getHash() + "_thumb.jpg")), "Thumbnail file should be in trash");
     }
 
     @Test
