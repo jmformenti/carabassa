@@ -27,6 +27,8 @@
               size="small"
               variant="tonal"
               color="orange-darken-2"
+              :loading="isResuming"
+              :disabled="isResuming"
               @click="resumeNow"
             >
               Resume now
@@ -87,6 +89,10 @@
             <div v-if="hasSavedHandle" class="mt-2 text-caption text-medium-emphasis">
               <v-icon size="x-small">mdi-information</v-icon>
               Folder selected: {{ savedFolderName }}
+            </div>
+            <div v-if="loadingDirectory" class="mt-2 text-caption text-medium-emphasis">
+              Loading files... {{ loadingFilesProcessed }} scanned
+              <span v-if="loadingFilesMatched > 0">({{ loadingFilesMatched }} matched)</span>
             </div>
           </div>
 
@@ -250,6 +256,9 @@ const savedFolderName = ref('')
 const confirmUploadDialog = ref(false)
 const confirmCount = ref(0)
 const confirmDatasetName = ref('this dataset')
+const loadingFilesProcessed = ref(0)
+const loadingFilesMatched = ref(0)
+const isResuming = ref(false)
 
 const progress = computed(() => total.value > 0 ? (done.value / total.value) * 100 : 0)
 const successCount = computed(() => results.value.filter(r => r.status === 'success').length)
@@ -273,19 +282,20 @@ onMounted(async () => {
   }
 })
 
-const hasReadPermission = async (handle) => {
-  if (!handle || !handle.queryPermission) return true
-  const perm = await handle.queryPermission({ mode: 'read' })
-  return perm === 'granted'
-}
-
 const maybeAutoResumeFromDirectory = async () => {
   if (started.value) return
   if (!directoryHandle.value) return
   if (!pendingFromDb.value.length) return
-  if (!(await hasReadPermission(directoryHandle.value))) return
-
-  const files = await getFilesFromHandle(directoryHandle.value)
+  const pendingNames = new Set(pendingFromDb.value.map(p => p.fileName))
+  loadingFilesProcessed.value = 0
+  loadingFilesMatched.value = 0
+  const files = await getFilesFromHandle(directoryHandle.value, {
+    nameSet: pendingNames,
+    onProgress: ({ processed, matched }) => {
+      loadingFilesProcessed.value = processed
+      loadingFilesMatched.value = matched
+    }
+  })
   if (!files.length) return
   const pendingKeys = new Set(
     pendingFromDb.value.map(p => `${p.fileName}::${p.fileSize}::${p.lastModified}`)
@@ -300,9 +310,17 @@ const maybeAutoResumeFromDirectory = async () => {
 }
 
 const resumeNow = async () => {
-  const resumed = await maybeAutoResumeFromDirectory()
-  if (!resumed) {
+  if (isResuming.value) return
+  isResuming.value = true
+  try {
+    const resumed = await maybeAutoResumeFromDirectory()
+    if (!resumed) {
+      await openDirectory()
+    }
+  } catch (err) {
     await openDirectory()
+  } finally {
+    isResuming.value = false
   }
 }
 
@@ -333,7 +351,14 @@ const loadDirectory = async (forcePick = false) => {
       }
       directoryHandle.value = handle
       savedFolderName.value = handle?.name || ''
-      const files = await getFilesFromHandle(handle)
+      loadingFilesProcessed.value = 0
+      loadingFilesMatched.value = 0
+      const files = await getFilesFromHandle(handle, {
+        onProgress: ({ processed, matched }) => {
+          loadingFilesProcessed.value = processed
+          loadingFilesMatched.value = matched
+        }
+      })
       pendingFiles.value = files
       return
     }

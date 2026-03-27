@@ -105,7 +105,7 @@ export const useUploadQueue = () => {
     return await dbGetHandle(DIRECTORY_HANDLE_ID)
   }
 
-  async function getFilesFromHandle(handle) {
+  async function getFilesFromHandle(handle, { nameSet, onProgress } = {}) {
     if (!handle) return []
     if (handle.queryPermission && handle.requestPermission) {
       const perm = await handle.queryPermission({ mode: 'read' })
@@ -118,12 +118,23 @@ export const useUploadQueue = () => {
     }
 
     const files = []
+    let processed = 0
+    let matched = 0
     for await (const entry of handle.values()) {
       if (entry.kind !== 'file') continue
+      processed += 1
+      if (nameSet && !nameSet.has(entry.name)) continue
       const file = await entry.getFile()
       if (file && file.type && /^(image|video)\//.test(file.type)) {
         files.push(file)
+        matched += 1
       }
+      if (onProgress && processed % 20 === 0) {
+        onProgress({ processed, matched })
+      }
+    }
+    if (onProgress) {
+      onProgress({ processed, matched, done: true })
     }
     files.sort((a, b) => a.name.localeCompare(b.name))
     return files
