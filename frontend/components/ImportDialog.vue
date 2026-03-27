@@ -183,6 +183,31 @@
       </v-card-actions>
     </v-card>
   </v-dialog>
+
+  <v-dialog v-model="confirmUploadDialog" max-width="420">
+    <v-card>
+      <v-card-title class="d-flex align-center">
+        <v-icon class="mr-2" color="orange-darken-2">mdi-checkbox-marked-circle-outline</v-icon>
+        Confirm upload
+      </v-card-title>
+      <v-card-text>
+        Upload
+        <span class="text-orange text-body-1 font-weight-bold">{{ confirmCount }}</span>
+        item(s) to
+        <span class="text-orange text-body-1 font-weight-bold">{{ confirmDatasetName }}</span>
+        ?
+      </v-card-text>
+      <v-card-actions>
+        <v-spacer />
+        <v-btn variant="text" color="orange-darken-2" @click="confirmUploadDialog = false">
+          Cancel
+        </v-btn>
+        <v-btn variant="tonal" color="orange-darken-2" @click="confirmUpload">
+          Confirm
+        </v-btn>
+      </v-card-actions>
+    </v-card>
+  </v-dialog>
 </template>
 
 <script setup>
@@ -195,6 +220,7 @@ const model = defineModel({ type: Boolean, default: false })
 const emit = defineEmits(['imported'])
 
 const { $carabassa } = useNuxtApp()
+const datasetStore = useDatasetStore()
 const {
   getPendingFromDB,
   saveToQueue,
@@ -221,6 +247,9 @@ const loadingDirectory = ref(false)
 const pendingFromDb = ref([])
 const directoryHandle = ref(null)
 const savedFolderName = ref('')
+const confirmUploadDialog = ref(false)
+const confirmCount = ref(0)
+const confirmDatasetName = ref('this dataset')
 
 const progress = computed(() => total.value > 0 ? (done.value / total.value) * 100 : 0)
 const successCount = computed(() => results.value.filter(r => r.status === 'success').length)
@@ -266,7 +295,7 @@ const maybeAutoResumeFromDirectory = async () => {
 
   mode.value = 'directory'
   pendingFiles.value = filesToResume
-  await startImport()
+  await beginImport()
   return true
 }
 
@@ -332,8 +361,9 @@ const onFilesSelected = (event) => {
     .sort((a, b) => a.name.localeCompare(b.name))
 }
 
-const startImport = async () => {
+const beginImport = async () => {
   if (pendingFiles.value.length === 0) return
+
   started.value = true
   finished.value = false
   results.value = []
@@ -347,6 +377,18 @@ const startImport = async () => {
   }
   pendingFromDb.value = await getPendingFromDB()
   finished.value = true
+}
+
+const startImport = async () => {
+  if (pendingFiles.value.length === 0 || started.value) return
+  confirmCount.value = pendingFiles.value.length
+  confirmDatasetName.value = datasetStore?.dataset?.name || 'this dataset'
+  confirmUploadDialog.value = true
+}
+
+const confirmUpload = async () => {
+  confirmUploadDialog.value = false
+  await beginImport()
 }
 
 const processFiles = async (files) => {
