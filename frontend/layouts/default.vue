@@ -6,7 +6,7 @@
     >
       <v-list>
         <v-list-item
-          v-for="(item, i) in items"
+          v-for="(item, i) in menuItems"
           :key="i"
           :prepend-icon="item.icon"
           :title="item.title"
@@ -87,6 +87,7 @@ export default {
       apiBaseURL: null,
       drawer: false,
       datasets: [],
+      showPwaDebug: false,
       items: [
         {
           title: 'Search',
@@ -103,6 +104,7 @@ export default {
   },
 
   mounted () {
+    this.updatePwaDebugVisibility()
     this.$carabassa.getDatasets()
       .then(async data => {
         this.datasets = data
@@ -111,7 +113,22 @@ export default {
       })
   },
 
+  computed: {
+    menuItems () {
+      return this.items.filter(item => {
+        if (item.to !== '/pwa-debug') return true
+        return this.showPwaDebug
+      })
+    }
+  },
+
   methods: {
+    updatePwaDebugVisibility () {
+      if (typeof window === 'undefined') return
+      const isAndroid = /Android/i.test(window.navigator?.userAgent || '')
+      const isBrowserMode = window.matchMedia && window.matchMedia('(display-mode: browser)').matches
+      this.showPwaDebug = isAndroid && isBrowserMode
+    },
     changeDataset (dataset) {
       if (dataset) {
         this.$router.push(`/dataset/${dataset.name}`)
