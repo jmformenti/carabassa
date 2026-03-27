@@ -29,7 +29,7 @@ import java.util.Set;
 
 @Entity
 @Table(name = "ITEM")
-@SequenceGenerator(name = "item_id_gen", sequenceName = "item_sequence")
+@SequenceGenerator(name = "item_id_gen", sequenceName = "item_sequence", allocationSize = 1)
 public class IndexedItemEntity implements IndexedItem {
 
     @Id

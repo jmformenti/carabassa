@@ -21,7 +21,7 @@ import java.util.Set;
 
 @Entity
 @Table(name = "DATASET")
-@SequenceGenerator(name = "dataset_id_gen", sequenceName = "dataset_sequence")
+@SequenceGenerator(name = "dataset_id_gen", sequenceName = "dataset_sequence", allocationSize = 1)
 public class DatasetEntity implements Dataset {
 
     @Id

@@ -38,7 +38,7 @@ import jakarta.persistence.CascadeType;
                 @Index(name = "idx_tag_name_item_id", columnList = "NAME, ITEM_ID")
         }
 )
-@SequenceGenerator(name = "tag_id_gen", sequenceName = "tag_sequence")
+@SequenceGenerator(name = "tag_id_gen", sequenceName = "tag_sequence", allocationSize = 1)
 public class TagEntity implements Tag {
 
     private static final int MAX_TEXT_LENGTH = 255;
