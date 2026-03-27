@@ -43,6 +43,8 @@ public class DatasetFSStorage implements DatasetStorage {
     private static final String ITEM_NOT_EXISTS_MESSAGE_KEY = "core.storage.repo.item.not_exists";
     private static final String ITEM_EXISTS_MESSAGE_KEY = "core.storage.repo.item.exists";
 
+    public static final String DATASET_DIR = "dataset";
+    public static final String TRASH_DIR = "trash";
     private static final String ARCHIVED_DIR = "archived";
     private static final String NOT_ARCHIVED_DIR = "not_archived";
 
@@ -63,6 +65,10 @@ public class DatasetFSStorage implements DatasetStorage {
         Assert.notNull(repoDir, localizedMessage.getText(NO_REPO_DIR_MESSAGE_KEY));
         if (!Files.exists(Paths.get(repoDir))) {
             Files.createDirectories(Paths.get(repoDir));
+        }
+        Path datasetsRoot = Paths.get(repoDir, DATASET_DIR);
+        if (!Files.exists(datasetsRoot)) {
+            Files.createDirectories(datasetsRoot);
         }
     }
 
@@ -163,7 +169,7 @@ public class DatasetFSStorage implements DatasetStorage {
     }
 
     private Path getTrashPath(Dataset dataset) {
-        return Paths.get(repoDir, "trash", dataset.getName());
+        return Paths.get(repoDir, TRASH_DIR, dataset.getName());
     }
 
     @Override
@@ -300,7 +306,7 @@ public class DatasetFSStorage implements DatasetStorage {
     }
 
     private Path getDatasetPath(String datasetName) {
-        return Paths.get(repoDir, datasetName);
+        return Paths.get(repoDir, DATASET_DIR, datasetName);
     }
 
     private String getTypeDir(ItemType type) {
