@@ -12,25 +12,83 @@
       </v-card-title>
 
       <v-card-text>
+        <!-- Pending uploads warning -->
+        <v-alert
+          v-if="showPendingBanner"
+          type="warning"
+          variant="tonal"
+          class="mb-4"
+          density="compact"
+        >
+          <div class="d-flex align-center justify-space-between gap-2">
+            <span>Uploads were interrupted.</span>
+            <v-btn
+              v-if="canResumeNow"
+              size="small"
+              variant="tonal"
+              color="orange-darken-2"
+              @click="resumeNow"
+            >
+              Resume now
+            </v-btn>
+          </div>
+        </v-alert>
+
         <!-- File source selector -->
         <div v-if="!started">
-          <v-radio-group
-            v-model="mode"
-            inline
-            class="mb-4"
-          >
+          <v-radio-group v-model="mode" inline class="mb-4">
             <v-radio label="Files" value="files" />
             <v-radio label="Directory" value="directory" />
           </v-radio-group>
 
+          <!-- Files picker -->
           <v-btn
+            v-if="mode === 'files'"
             variant="tonal"
             color="orange-darken-2"
             prepend-icon="mdi-folder-open"
             @click="openPicker"
           >
-            {{ mode === 'directory' ? 'Choose directory' : 'Choose files' }}
+            Choose files
           </v-btn>
+
+          <!-- Directory picker -->
+          <div v-else>
+            <div v-if="hasSavedHandle" class="d-flex flex-wrap gap-2">
+              <v-btn
+                variant="tonal"
+                color="orange-darken-2"
+                prepend-icon="mdi-folder-open"
+                :loading="loadingDirectory"
+                @click="openDirectory"
+              >
+                Load folder
+              </v-btn>
+              <v-btn
+                variant="text"
+                color="orange-darken-2"
+                prepend-icon="mdi-folder-edit"
+                :disabled="loadingDirectory"
+                @click="changeDirectory"
+              >
+                Change folder
+              </v-btn>
+            </div>
+            <v-btn
+              v-else
+              variant="tonal"
+              color="orange-darken-2"
+              prepend-icon="mdi-folder-open"
+              :loading="loadingDirectory"
+              @click="openDirectory"
+            >
+              Select folder
+            </v-btn>
+            <div v-if="hasSavedHandle" class="mt-2 text-caption text-medium-emphasis">
+              <v-icon size="x-small">mdi-information</v-icon>
+              Folder selected: {{ savedFolderName }}
+            </div>
+          </div>
 
           <!-- Hidden file inputs -->
           <input
@@ -71,16 +129,8 @@
         </div>
 
         <!-- Results log -->
-        <div
-          v-if="results.length > 0"
-          class="results-log mt-2"
-        >
-          <v-list
-            density="compact"
-            lines="one"
-            max-height="240"
-            style="overflow-y:auto"
-          >
+        <div v-if="results.length > 0" class="results-log mt-2">
+          <v-list density="compact" lines="one" max-height="240" style="overflow-y:auto">
             <v-list-item
               v-for="(r, i) in results"
               :key="i"
@@ -89,10 +139,7 @@
             >
               <v-list-item-title class="text-body-2">
                 <div class="font-weight-medium text-truncate">{{ r.filename }}</div>
-                <div
-                  v-if="r.message"
-                  class="text-caption text-medium-emphasis message-wrap"
-                >
+                <div v-if="r.message" class="text-caption text-medium-emphasis message-wrap">
                   {{ r.message }}
                 </div>
               </v-list-item-title>
@@ -139,7 +186,7 @@
 </template>
 
 <script setup>
-import { ref, computed } from 'vue'
+import { ref, computed, onMounted } from 'vue'
 import SparkMD5 from 'spark-md5'
 
 const ACCEPTED_TYPES = /^(image|video)\//
@@ -148,6 +195,16 @@ const model = defineModel({ type: Boolean, default: false })
 const emit = defineEmits(['imported'])
 
 const { $carabassa } = useNuxtApp()
+const {
+  getPendingFromDB,
+  saveToQueue,
+  markDone,
+  clearQueue,
+  isFSASupported,
+  pickDirectory,
+  getSavedDirectory,
+  getFilesFromHandle
+} = useUploadQueue()
 
 const mode = ref('files')
 const fileInput = ref(null)
@@ -159,27 +216,117 @@ const started = ref(false)
 const finished = ref(false)
 const done = ref(0)
 const total = ref(0)
+const hasSavedHandle = ref(false)
+const loadingDirectory = ref(false)
+const pendingFromDb = ref([])
+const directoryHandle = ref(null)
+const savedFolderName = ref('')
 
 const progress = computed(() => total.value > 0 ? (done.value / total.value) * 100 : 0)
 const successCount = computed(() => results.value.filter(r => r.status === 'success').length)
 const warnCount = computed(() => results.value.filter(r => r.status === 'warn').length)
 const errorCount = computed(() => results.value.filter(r => r.status === 'error').length)
-
 const isPersistent = computed(() => started.value && !finished.value)
+const showPendingBanner = computed(() => pendingFromDb.value.length > 0 && !started.value)
+const canResumeNow = computed(() =>
+  !started.value && !!directoryHandle.value && pendingFromDb.value.length > 0
+)
 
-const openPicker = () => {
-  if (mode.value === 'directory') {
-    dirInput.value.value = ''
-    dirInput.value.click()
-  } else {
-    fileInput.value.value = ''
-    fileInput.value.click()
+onMounted(async () => {
+  const pending = await getPendingFromDB()
+  pendingFromDb.value = pending
+  // Check if a saved directory handle exists
+  if (isFSASupported()) {
+    const handle = await getSavedDirectory().catch(() => null)
+    directoryHandle.value = handle
+    hasSavedHandle.value = !!handle
+    savedFolderName.value = handle?.name || ''
+  }
+})
+
+const hasReadPermission = async (handle) => {
+  if (!handle || !handle.queryPermission) return true
+  const perm = await handle.queryPermission({ mode: 'read' })
+  return perm === 'granted'
+}
+
+const maybeAutoResumeFromDirectory = async () => {
+  if (started.value) return
+  if (!directoryHandle.value) return
+  if (!pendingFromDb.value.length) return
+  if (!(await hasReadPermission(directoryHandle.value))) return
+
+  const files = await getFilesFromHandle(directoryHandle.value)
+  if (!files.length) return
+  const pendingKeys = new Set(
+    pendingFromDb.value.map(p => `${p.fileName}::${p.fileSize}::${p.lastModified}`)
+  )
+  const filesToResume = files.filter(f => pendingKeys.has(getFileId(f)))
+  if (filesToResume.length === 0) return
+
+  mode.value = 'directory'
+  pendingFiles.value = filesToResume
+  await startImport()
+  return true
+}
+
+const resumeNow = async () => {
+  const resumed = await maybeAutoResumeFromDirectory()
+  if (!resumed) {
+    await openDirectory()
   }
 }
 
+const openPicker = () => {
+  fileInput.value.value = ''
+  fileInput.value.click()
+}
+
+const getFileId = (file) => `${file.name}::${file.size}::${file.lastModified}`
+
+const enqueuePendingFiles = async (files) => {
+  for (const file of files) {
+    const id = getFileId(file)
+    await saveToQueue(id, file.name, file.size, file.lastModified)
+  }
+  pendingFromDb.value = await getPendingFromDB()
+}
+
+const loadDirectory = async (forcePick = false) => {
+  loadingDirectory.value = true
+  try {
+    if (isFSASupported()) {
+      // Try saved handle; request new if missing
+      let handle = forcePick ? null : await getSavedDirectory().catch(() => null)
+      if (!handle) {
+        handle = await pickDirectory()
+        hasSavedHandle.value = true
+      }
+      directoryHandle.value = handle
+      savedFolderName.value = handle?.name || ''
+      const files = await getFilesFromHandle(handle)
+      pendingFiles.value = files
+      return
+    }
+
+    // Fallback for browsers without FSA support
+    dirInput.value.value = ''
+    dirInput.value.click()
+  } catch (err) {
+    // User has cancelled the picker or has denied the permission
+    if (err.name !== 'AbortError') {
+      console.error('[directory] Error accessing folder:', err)
+    }
+  } finally {
+    loadingDirectory.value = false
+  }
+}
+
+const openDirectory = async () => loadDirectory(false)
+const changeDirectory = async () => loadDirectory(true)
+
 const onFilesSelected = (event) => {
   const all = Array.from(event.target.files)
-  // Filter to images and videos only (directories might contain other things)
   pendingFiles.value = all
     .filter(f => ACCEPTED_TYPES.test(f.type))
     .sort((a, b) => a.name.localeCompare(b.name))
@@ -187,18 +334,30 @@ const onFilesSelected = (event) => {
 
 const startImport = async () => {
   if (pendingFiles.value.length === 0) return
-
   started.value = true
   finished.value = false
   results.value = []
   done.value = 0
   total.value = pendingFiles.value.length
 
-  let anySuccess = false
+  await enqueuePendingFiles(pendingFiles.value)
+  const hadOfflineError = await processFiles(pendingFiles.value)
+  if (!hadOfflineError) {
+    await clearQueue()
+  }
+  pendingFromDb.value = await getPendingFromDB()
+  finished.value = true
+}
 
-  for (const file of pendingFiles.value) {
+const processFiles = async (files) => {
+  let anySuccess = false
+  let hadOfflineError = false
+
+  for (const file of files) {
+    const queueId = getFileId(file)
+    const hash = SparkMD5.ArrayBuffer.hash(await file.arrayBuffer())
+
     try {
-      const hash = SparkMD5.ArrayBuffer.hash(await file.arrayBuffer())
       const exists = await $carabassa.itemExists(hash)
       if (exists) {
         results.value.push({
@@ -208,10 +367,14 @@ const startImport = async () => {
           color: 'warning',
           message: null
         })
+        await markDone(queueId)
         done.value++
         continue
       }
+
       await $carabassa.addItem(file)
+      await markDone(queueId)
+
       results.value.push({
         filename: file.name,
         status: 'success',
@@ -220,6 +383,7 @@ const startImport = async () => {
         message: null
       })
       anySuccess = true
+
     } catch (err) {
       if (err.isDuplicate) {
         results.value.push({
@@ -229,7 +393,14 @@ const startImport = async () => {
           color: 'warning',
           message: null
         })
+        await markDone(queueId)
       } else {
+        const isOffline = typeof navigator !== 'undefined' && navigator.onLine === false
+        if (isOffline) {
+          hadOfflineError = true
+        } else {
+          await markDone(queueId)
+        }
         results.value.push({
           filename: file.name,
           status: 'error',
@@ -242,20 +413,17 @@ const startImport = async () => {
     done.value++
   }
 
-  finished.value = true
   if (anySuccess) emit('imported')
+  return hadOfflineError
 }
 
 const close = () => {
   model.value = false
-  // Reset state
   resetState()
 }
 
 const onModelUpdate = (val) => {
-  if (!val) {
-    resetState()
-  }
+  if (!val) resetState()
 }
 
 const resetState = () => {
