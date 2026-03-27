@@ -15,7 +15,7 @@ import jakarta.persistence.Table;
 
 @Entity
 @Table(name = "TAG_INFO")
-@SequenceGenerator(name = "tag_info_id_gen", sequenceName = "tag_info_sequence")
+@SequenceGenerator(name = "tag_info_id_gen", sequenceName = "tag_info_sequence", allocationSize = 1)
 public class TagInfoEntity implements TagInfo {
 
     @Id

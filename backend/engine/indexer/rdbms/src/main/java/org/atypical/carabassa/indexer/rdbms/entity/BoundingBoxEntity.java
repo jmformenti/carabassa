@@ -12,7 +12,7 @@ import jakarta.persistence.Table;
 
 @Entity
 @Table(name = "BOUNDING_BOX")
-@SequenceGenerator(name = "bbox_id_gen", sequenceName = "bbox_sequence")
+@SequenceGenerator(name = "bbox_id_gen", sequenceName = "bbox_sequence", allocationSize = 1)
 public class BoundingBoxEntity implements BoundingBox {
 
     @Id
