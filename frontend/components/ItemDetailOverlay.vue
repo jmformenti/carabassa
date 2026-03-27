@@ -39,6 +39,10 @@
       <v-card-text
         class="overlay-content"
         :class="{ 'overlay-content-image': !isVideo(item) }"
+        @touchstart.passive="onTouchStart"
+        @touchmove.passive="onTouchMove"
+        @touchend="onTouchEnd"
+        @touchcancel="onTouchCancel"
       >
         <video
           v-if="isVideo(item)"
@@ -116,6 +120,56 @@ const route = useRoute()
 const { $notification } = useNuxtApp()
 const snackbar = ref(false)
 const { copyItemLink } = useItemActions()
+const touchState = ref({
+  active: false,
+  startX: 0,
+  startY: 0,
+  lastX: 0,
+  lastY: 0
+})
+
+const swipeThreshold = 50
+const swipeAngleRatio = 1.5
+
+const onTouchStart = (event) => {
+  if (!event.touches || event.touches.length !== 1) return
+  const touch = event.touches[0]
+  touchState.value = {
+    active: true,
+    startX: touch.clientX,
+    startY: touch.clientY,
+    lastX: touch.clientX,
+    lastY: touch.clientY
+  }
+}
+
+const onTouchMove = (event) => {
+  if (!touchState.value.active || !event.touches || event.touches.length !== 1) return
+  const touch = event.touches[0]
+  touchState.value.lastX = touch.clientX
+  touchState.value.lastY = touch.clientY
+}
+
+const onTouchEnd = () => {
+  if (!touchState.value.active) return
+  const { startX, startY, lastX, lastY } = touchState.value
+  touchState.value.active = false
+
+  const deltaX = lastX - startX
+  const deltaY = lastY - startY
+  if (Math.abs(deltaX) < swipeThreshold) return
+  if (Math.abs(deltaX) < Math.abs(deltaY) * swipeAngleRatio) return
+
+  if (deltaX > 0 && props.hasPrevious) {
+    emit('previous')
+  } else if (deltaX < 0 && props.hasNext) {
+    emit('next')
+  }
+}
+
+const onTouchCancel = () => {
+  touchState.value.active = false
+}
 
 const navigateDetail = () => {
   emit('update:modelValue', false)

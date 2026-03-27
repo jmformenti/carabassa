@@ -87,7 +87,7 @@ echo "Starting frontend..."
 start_detached "${DEV_DIR}/frontend.pid" bash -lc "
   set -euo pipefail
   cd \"${ROOT_DIR}/frontend\"
-  exec yarn dev --host
+  exec yarn dev --host --port 3000
 " > "${frontend_log}" 2>&1
 
 echo "Waiting for backend to be ready at ${CARABASSA_API_URL}..."
@@ -137,4 +137,3 @@ echo "- Frontend: http://localhost:3000 (log: ${frontend_log})"
 echo
 echo "To stop services:"
 echo "  ./run_dev.sh --stop"
-echo "  kill -- -\$(cat ${DEV_DIR}/backend.pid) -\$(cat ${DEV_DIR}/frontend.pid)"

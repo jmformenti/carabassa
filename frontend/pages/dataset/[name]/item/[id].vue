@@ -31,6 +31,10 @@
             @mousemove="draw"
             @mouseup="endDrawing"
             @mouseleave="endDrawing"
+            @touchstart.prevent="startDrawing"
+            @touchmove.prevent="draw"
+            @touchend.prevent="endDrawing"
+            @touchcancel.prevent="endDrawing"
           >
             <img
               ref="mediaImage"
@@ -98,7 +102,7 @@
 
       <v-col cols="12" md="4">
         <v-card class="mb-4" flat color="grey-lighten-4">
-          <v-card-title>Information</v-card-title>
+          <v-card-title class="section-header">Information</v-card-title>
           <v-list lines="one" bg-color="transparent" density="compact" class="info-list pt-0 pb-2">
             <v-list-item class="py-0">
               <template #prepend>
@@ -154,9 +158,17 @@
         </v-card>
 
         <v-card flat color="grey-lighten-4">
-          <v-card-title class="d-flex align-center">
+          <v-card-title class="d-flex align-center section-header">
             Tags
             <v-spacer />
+            <v-checkbox
+              v-model="showAllTags"
+              density="compact"
+              hide-details
+              label="Show all"
+              color="grey"
+              class="mr-2 show-all-toggle"
+            />
             <v-tooltip text="Add Tag" location="top">
               <template #activator="{ props }">
                 <v-btn
@@ -300,7 +312,21 @@
           </div>
 
           <div v-else>
+            <v-combobox
+              v-if="shouldAutocompleteValue"
+              v-model="tagForm.value"
+              :items="tagValueOptions"
+              label="Value"
+              :rules="[rules.required, ...(tagForm.type === 'NUMBER' ? [rules.numeric] : [])]"
+              required
+              variant="underlined"
+              clearable
+              :loading="tagValueLoading"
+              hint="Pick an existing value or type a new one."
+              persistent-hint
+            />
             <v-text-field
+              v-else
               v-model="tagForm.value"
               label="Value"
               :rules="[rules.required, ...(tagForm.type === 'NUMBER' ? [rules.numeric] : [])]"
@@ -421,6 +447,8 @@ export default {
       tagInfos: [],
       publicTagInfos: [],
       fixedTagType: null,
+      isTagInfoSelection: false,
+      showAllTags: false,
       tagForm: {
         name: '',
         nameSelection: '',
@@ -428,6 +456,8 @@ export default {
         type: 'STRING',
         boundingBox: null
       },
+      tagValueOptions: [],
+      tagValueLoading: false,
       imageNaturalWidth: null,
       imageNaturalHeight: null,
       drawing: false,
@@ -482,6 +512,7 @@ export default {
     },
     filteredTags() {
       if (!this.item || !this.item.tags) return []
+      if (this.showAllTags) return this.item.tags
       return this.item.tags.filter(tag => !tag.name.startsWith('meta.'))
     },
     tagsWithBoundingBox() {
@@ -507,6 +538,10 @@ export default {
     bboxFontSize() {
       if (!this.imageNaturalWidth) return 16
       return Math.max(16, this.imageNaturalWidth / 50)
+    },
+    shouldAutocompleteValue() {
+      if (!this.isTagInfoSelection) return false
+      return this.tagForm.type === 'STRING'
     }
   },
   watch: {
@@ -527,6 +562,10 @@ export default {
           this.datePickerValue = null
         } else {
           this.tagForm.value = ''
+        }
+        if (newType !== 'STRING') {
+          this.tagValueOptions = []
+          this.tagValueLoading = false
         }
       }
     }
@@ -572,11 +611,13 @@ export default {
       if (!this.imageNaturalWidth || !this.imageNaturalHeight) return
 
       this.drawing = true
+      const point = this.getEventPoint(e)
+      if (!point) return
       const rect = e.currentTarget.getBoundingClientRect()
       const scaleX = this.imageNaturalWidth / rect.width
       const scaleY = this.imageNaturalHeight / rect.height
-      const x = (e.clientX - rect.left) * scaleX
-      const y = (e.clientY - rect.top) * scaleY
+      const x = (point.clientX - rect.left) * scaleX
+      const y = (point.clientY - rect.top) * scaleY
 
       this.drawingBox = {
         start: { x, y },
@@ -585,19 +626,34 @@ export default {
     },
     draw(e) {
       if (!this.drawing || !this.drawingBox) return
+      const point = this.getEventPoint(e)
+      if (!point) return
 
       const rect = e.currentTarget.getBoundingClientRect()
       const scaleX = this.imageNaturalWidth / rect.width
       const scaleY = this.imageNaturalHeight / rect.height
       const maxX = this.imageNaturalWidth
       const maxY = this.imageNaturalHeight
-      const x = Math.max(0, Math.min(maxX, (e.clientX - rect.left) * scaleX))
-      const y = Math.max(0, Math.min(maxY, (e.clientY - rect.top) * scaleY))
+      const x = Math.max(0, Math.min(maxX, (point.clientX - rect.left) * scaleX))
+      const y = Math.max(0, Math.min(maxY, (point.clientY - rect.top) * scaleY))
 
       this.drawingBox.current = { x, y }
     },
-    endDrawing() {
+    endDrawing(e) {
       if (!this.drawing) return
+      if (this.drawingBox && e) {
+        const point = this.getEventPoint(e)
+        if (point) {
+          const rect = e.currentTarget.getBoundingClientRect()
+          const scaleX = this.imageNaturalWidth / rect.width
+          const scaleY = this.imageNaturalHeight / rect.height
+          const maxX = this.imageNaturalWidth
+          const maxY = this.imageNaturalHeight
+          const x = Math.max(0, Math.min(maxX, (point.clientX - rect.left) * scaleX))
+          const y = Math.max(0, Math.min(maxY, (point.clientY - rect.top) * scaleY))
+          this.drawingBox.current = { x, y }
+        }
+      }
       this.drawing = false
 
       if (this.drawingBox) {
@@ -620,6 +676,19 @@ export default {
         }
       }
       this.drawingBox = null
+    },
+    getEventPoint(e) {
+      if (!e) return null
+      if (e.touches && e.touches.length) {
+        return e.touches[0]
+      }
+      if (e.changedTouches && e.changedTouches.length) {
+        return e.changedTouches[0]
+      }
+      if (typeof e.clientX === 'number' && typeof e.clientY === 'number') {
+        return { clientX: e.clientX, clientY: e.clientY }
+      }
+      return null
     },
     closeAddTagDialog() {
       this.addTagDialog = false
@@ -734,6 +803,7 @@ export default {
       const match = this.publicTagInfos.find(tagInfo =>
         tagInfo.tagName === tagNameOrAlias || tagInfo.alias === tagNameOrAlias
       )
+      this.isTagInfoSelection = !!match
       if (match?.type) {
         this.fixedTagType = match.type
         this.tagForm.type = this.mapTagInfoTypeToFormType(match.type)
@@ -741,9 +811,28 @@ export default {
         if (option && this.tagForm.nameSelection !== option) {
           this.tagForm.nameSelection = option
         }
+        this.loadTagValueOptions(match.tagName)
         return
       }
       this.fixedTagType = null
+      this.tagValueOptions = []
+      this.tagValueLoading = false
+    },
+    async loadTagValueOptions(tagName) {
+      if (!tagName || !this.datasetStore.dataset) {
+        this.tagValueOptions = []
+        return
+      }
+      this.tagValueLoading = true
+      try {
+        const values = await this.$carabassa.getItemTagValues(tagName)
+        this.tagValueOptions = Array.isArray(values) ? values : []
+      } catch (err) {
+        console.warn('Failed to load tag values:', err)
+        this.tagValueOptions = []
+      } finally {
+        this.tagValueLoading = false
+      }
     },
     extractTagName(selection) {
       if (!selection) return ''
@@ -846,6 +935,7 @@ export default {
   position: relative;
   display: inline-block;
   line-height: 0;
+  touch-action: none;
 }
 .media-content {
   max-width: 100%;
@@ -854,6 +944,26 @@ export default {
 }
 .cursor-pointer {
   cursor: pointer;
+}
+.show-all-toggle {
+  margin-top: 0;
+  margin-bottom: 0;
+}
+.show-all-toggle :deep(.v-label) {
+  font-size: 0.75rem;
+  color: rgba(0, 0, 0, 0.55);
+}
+.show-all-toggle :deep(.v-selection-control) {
+  opacity: 0.7;
+}
+.show-all-toggle :deep(.v-selection-control__input) {
+  transform: scale(0.85);
+}
+.show-all-toggle :deep(.v-selection-control__input .v-icon) {
+  font-size: 18px;
+}
+.section-header {
+  color: rgba(0, 0, 0, 0.6);
 }
 .info-list :deep(.v-list-item) {
   min-height: 28px !important;
