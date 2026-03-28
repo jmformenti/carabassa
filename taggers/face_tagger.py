@@ -9,6 +9,7 @@ import onnxruntime
 import logging
 from tqdm import tqdm
 import sys
+import shutil
 
 # Add current directory to path to import dataset_tool
 sys.path.append(str(Path(__file__).parent))
@@ -74,7 +75,8 @@ class FaceDatabase:
         # Check if already exists
         existing = self.faces_collection.get(ids=[doc_id])
         if existing['ids']:
-            tqdm.write(f"✓ {file_path.name} ({person_name}) already exists in DB.")
+            if logger.isEnabledFor(logging.DEBUG):
+                tqdm.write(f"✓ {file_path.name} ({person_name}) already exists in DB.")
         else:
             # Add new embedding
             self.faces_collection.add(
@@ -145,6 +147,8 @@ class FaceTagger(DatasetTagger):
     def add_custom_args(self, parser):
         parser.add_argument("--threshold", type=float, default=0.45, help="Similarity threshold (default: 0.45)")
         parser.add_argument("--force", action="store_true", help="Force reprocessing of all items")
+        parser.add_argument("--global-faces", action="store_true", help="Use a shared face DB across all datasets")
+        parser.add_argument("--rebuild-db", action="store_true", help="Rebuild face DB for this run")
 
     def get_search_query(self) -> str:
         if self.args.force:
@@ -159,15 +163,38 @@ class FaceTagger(DatasetTagger):
             return False
         self.detector = RetinaFace()
         self.recognizer = ArcFace()
-        self.db = FaceDatabase()
-        
-        return self._process_dataset_faces()
+        db_path = self._resolve_db_path()
+        if self.args.rebuild_db:
+            shutil.rmtree(db_path, ignore_errors=True)
+        logger.info("Using face DB at '%s'.", db_path)
+        self.db = FaceDatabase(str(db_path))
 
-    def _process_dataset_faces(self):
-        logger.info(f"Processing faces from dataset '{self.dataset_id}' tagged with '{SOURCE_TAG_NAME}'...")
-        
-        tag_infos = self.service.find_dataset_item_tags_by_name(self.dataset_id, SOURCE_TAG_NAME)
-        
+        return self._process_reference_faces()
+
+    def _resolve_db_path(self) -> Path:
+        base_dir = Path("./chroma_db")
+        if self.args.global_faces:
+            return base_dir / "global_faces"
+        safe_name = self.args.dataset.replace("/", "_").replace("\\", "_").replace(" ", "_")
+        return base_dir / f"faces_{safe_name}"
+
+    def _get_reference_datasets(self) -> list[tuple[int, str]]:
+        if self.args.global_faces:
+            datasets = self.service.find_all()
+            return [(d.id, d.name) for d in datasets if d.id is not None]
+        return [(self.dataset_id, self.args.dataset)]
+
+    def _process_reference_faces(self):
+        datasets = self._get_reference_datasets()
+        for dataset_id, dataset_name in datasets:
+            if dataset_id is None:
+                continue
+            logger.info(f"Processing faces from dataset '{dataset_name}' tagged with '{SOURCE_TAG_NAME}'...")
+            tag_infos = self.service.find_dataset_item_tags_by_name(dataset_id, SOURCE_TAG_NAME)
+            self._process_dataset_faces(dataset_id, tag_infos)
+        return True
+
+    def _process_dataset_faces(self, dataset_id, tag_infos):
         if not tag_infos:
             logger.info("No source faces found in dataset.")
             return True
@@ -182,8 +209,8 @@ class FaceTagger(DatasetTagger):
         for item_id, infos in tqdm(item_tags.items(), desc="Extracting facial encodings"):
             try:
                 # Get full item to have the tags with bounding boxes
-                item = self.service.find_item(self.dataset_id, item_id)
-                img_path = self.service.get_item_content(self.dataset_id, item_id)
+                item = self.service.find_item(dataset_id, item_id)
+                img_path = self.service.get_item_content(dataset_id, item_id)
                 img = self.load_image(img_path)
                 
                 if img is None: continue
