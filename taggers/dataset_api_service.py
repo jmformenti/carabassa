@@ -257,7 +257,7 @@ class DatasetApiService:
             data = self._get("dataset", params=params)
             return self._parse_paged_result(data, "datasetEntityRepresentationList", Dataset.from_dict)
         
-        return self._fetch_all_pages("dataset", params, "datasetEntityRepresentationList", Dataset.from_dict)
+        return self._fetch_all_pages("dataset", params, "datasetEntityRepresentationList", Dataset.from_dict, show_progress=False)
 
     def find_by_name(self, dataset_name: str) -> int:
         """Find a dataset by name and return its id."""
