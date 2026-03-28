@@ -18,6 +18,15 @@ services:
     volumes:
       - carabassa-data:/data
 
+  cli:
+    build:
+      context: ./cli
+      dockerfile: Dockerfile
+    environment:
+      CARABASSA_API_URL: http://backend:8080/api
+    volumes:
+      - ./input:/input
+
   frontend:
     build:
       context: ./frontend
