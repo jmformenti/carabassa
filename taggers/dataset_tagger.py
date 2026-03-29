@@ -27,7 +27,7 @@ class DatasetTagger:
     """
     def __init__(self, description: str):
         self.parser = argparse.ArgumentParser(description=description)
-        self.parser.add_argument("--dataset", type=str, required=True, help="Name of the Carabassa dataset to process")
+        self.parser.add_argument("--dataset", type=str, help="Name of the Carabassa dataset to process")
         self.parser.add_argument("--api-url", type=str, default=os.environ.get("CARABASSA_API_URL", "http://localhost:8080/api/"), help="Carabassa API URL")
         
         # Allow subclasses to add more arguments
@@ -59,6 +59,12 @@ class DatasetTagger:
         """
         return True
 
+    def is_debug(self) -> bool:
+        """
+        Check if the logger is currently in debug mode.
+        """
+        return logger.isEnabledFor(logging.DEBUG)
+
     def process_item(self, item, img) -> List[Tag]:
         """
         Override this method to process a single item.
@@ -77,6 +83,13 @@ class DatasetTagger:
         Main execution method.
         """
         self.args = self.parser.parse_args()
+        
+        if getattr(self, "handle_test_mode", lambda: False)():
+            return
+
+        if not self.args.dataset:
+            self.parser.error("the following arguments are required: --dataset")
+
         logger.info(f"Processing dataset '{self.args.dataset}' with API URL '{self.args.api_url}'")
         self.service = DatasetApiService(self.args.api_url)
 
