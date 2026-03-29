@@ -18,7 +18,7 @@ from dataset_api_service import Tag, BoundingBox
 
 logger = logging.getLogger(__name__)
 
-onnxruntime.preload_dlls(cuda=True, cudnn=True)
+
 
 SOURCE_TAG_NAME = "tagger.face.reference"
 TAG_NAME = "tagger.face.person"
@@ -149,6 +149,7 @@ class FaceTagger(DatasetTagger):
         parser.add_argument("--force", action="store_true", help="Force reprocessing of all items")
         parser.add_argument("--global-faces", action="store_true", help="Use a shared face DB across all datasets")
         parser.add_argument("--rebuild-db", action="store_true", help="Rebuild face DB for this run")
+        parser.add_argument("--device", type=str, choices=["cuda", "cpu"], default="cuda", help="Device to run inference on")
 
     def get_search_query(self) -> str:
         if self.args.force:
@@ -161,6 +162,18 @@ class FaceTagger(DatasetTagger):
             TAG_INFO_META,
         ):
             return False
+
+        if self.args.device == "cuda":
+            try:
+                onnxruntime.preload_dlls(cuda=True, cudnn=True)
+            except Exception:
+                pass
+            providers = ["CUDAExecutionProvider", "CPUExecutionProvider"]
+        else:
+            providers = ["CPUExecutionProvider"]
+
+        logger.info(f"Using device: {self.args.device}")
+
         self.detector = RetinaFace()
         self.recognizer = ArcFace()
         db_path = self._resolve_db_path()
@@ -190,18 +203,18 @@ class FaceTagger(DatasetTagger):
             if dataset_id is None:
                 continue
             logger.info(f"Processing faces from dataset '{dataset_name}' tagged with '{SOURCE_TAG_NAME}'...")
-            tag_infos = self.service.find_dataset_item_tags_by_name(dataset_id, SOURCE_TAG_NAME)
-            self._process_dataset_faces(dataset_id, tag_infos)
+            reference_tags = self.service.find_dataset_item_tags_by_name(dataset_id, SOURCE_TAG_NAME)
+            self._process_dataset_faces(dataset_id, reference_tags)
         return True
 
-    def _process_dataset_faces(self, dataset_id, tag_infos):
+    def _process_dataset_faces(self, dataset_id, reference_tags):
         if not tag_infos:
             logger.info("No source faces found in dataset.")
             return True
 
         # Group by item_id
         item_tags = {}
-        for info in tag_infos:
+        for info in reference_tags:
             if info.item_id not in item_tags:
                 item_tags[info.item_id] = []
             item_tags[info.item_id].append(info)

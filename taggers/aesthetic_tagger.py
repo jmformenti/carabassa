@@ -122,7 +122,8 @@ class AestheticTagger(DatasetTagger):
                     score = self.aesthetic_model(image_features).squeeze(-1).cpu().item()
 
                 tags.append(Tag(name=SCORE_TAG_NAME, value=round(float(score), 4)))
-                # tqdm.write(f"✓ Score for {item.filename} ({item.id}): {score:.4f}")
+                if self.is_debug():
+                    tqdm.write(f"✓ Score for {item.filename} ({item.id}): {score:.4f}")
             except Exception as e:
                 logger.error(f"Error calculating aesthetic score for item {item.id}: {e}")
 

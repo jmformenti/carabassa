@@ -47,27 +47,22 @@ start_detached() {
 
 stop_if_running() {
   local name="$1"
-  local pid_file="${DEV_DIR}/${name}.pid"
-  if [[ -f "${pid_file}" ]]; then
-    local pid
-    pid="$(cat "${pid_file}")"
-    if [[ -n "${pid}" ]] && kill -0 "${pid}" 2>/dev/null; then
-      echo "Stopping ${name} (pid ${pid})..."
-      # Prefer killing the whole process group (works well with setsid).
-      kill -TERM -- "-${pid}" 2>/dev/null || kill -TERM "${pid}" || true
-      for _ in $(seq 1 10); do
-        if ! kill -0 "${pid}" 2>/dev/null; then
-          break
-        fi
-        sleep 1
-      done
-    fi
-    rm -f "${pid_file}"
+  local port="$2"
+  
+  local pids
+  # fuser outputs pids to stdout and port info to stderr
+  pids=$(fuser -n tcp "${port}" 2>/dev/null)
+  
+  if [[ -n "${pids}" ]]; then
+    echo "Stopping ${name} on port ${port} (pids:${pids})..."
+    for pid in ${pids}; do
+      kill -9 "${pid}" 2>/dev/null || true
+    done
   fi
 }
 
-stop_if_running "backend"
-stop_if_running "frontend"
+stop_if_running "backend" 8080
+stop_if_running "frontend" 3000
 
 if [[ "${STOP_ONLY}" == "true" ]]; then
   echo "Services stopped."
@@ -104,7 +99,7 @@ done
 if [[ "${backend_ready}" != "true" ]]; then
   echo "Backend did not become ready. Showing last 80 log lines:"
   tail -n 80 "${backend_log}" || true
-  stop_if_running "backend"
+  stop_if_running "backend" 8080
   exit 1
 fi
 
