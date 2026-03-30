@@ -24,7 +24,7 @@
     </template>
   </v-tooltip>
 
-  <v-tooltip text="Copy internal link" location="top">
+  <v-tooltip text="Copy link" location="top">
     <template #activator="{ props }">
       <v-btn
         v-bind="props"
