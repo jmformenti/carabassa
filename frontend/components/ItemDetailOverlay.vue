@@ -203,11 +203,15 @@ const copyLink = async () => {
   width: 100%;
   display: flex;
   flex-direction: column;
+  border-radius: 20px !important;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  box-shadow: 0 10px 30px rgba(0,0,0,0.4) !important;
 }
 .overlay-content {
   overflow: auto;
   min-height: 0;
   flex: 1 1 auto;
+  background-color: #000;
 }
 .overlay-content-image {
   padding: 0 !important;
@@ -223,20 +227,28 @@ const copyLink = async () => {
 .overlay-actions {
   border-top: none !important;
   box-shadow: none !important;
+  background-color: rgba(var(--v-theme-surface), 0.85);
+  backdrop-filter: blur(10px);
+  border-bottom-left-radius: 20px !important;
+  border-bottom-right-radius: 20px !important;
 }
 .nav-btn {
   position: absolute;
   top: 50%;
   transform: translateY(-50%);
   z-index: 10;
-  background-color: rgba(var(--v-theme-surface), 0.5) !important;
+  background-color: rgba(0, 0, 0, 0.4) !important;
+  color: white !important;
   border-radius: 50%;
-  backdrop-filter: blur(4px);
-  transition: all 0.3s ease;
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  border: 1px solid rgba(255, 255, 255, 0.2) !important;
 }
 .nav-btn:hover {
-  background-color: rgba(var(--v-theme-surface), 0.8) !important;
-  transform: translateY(-50%) scale(1.1);
+  background-color: rgba(var(--v-theme-primary), 0.9) !important;
+  transform: translateY(-50%) scale(1.15);
+  box-shadow: 0 0 15px rgba(var(--v-theme-primary), 0.5);
 }
 .prev-btn {
   left: -80px;
@@ -250,7 +262,7 @@ const copyLink = async () => {
   max-height: 70vh;
   display: block;
 }
-@media (max-width: 800px) {
+@media (max-width: 1024px) {
   .prev-btn {
     left: 8px;
   }
@@ -258,7 +270,7 @@ const copyLink = async () => {
     right: 8px;
   }
   .nav-btn {
-    background-color: rgba(var(--v-theme-surface), 0.8) !important;
+    background-color: rgba(0, 0, 0, 0.6) !important;
   }
 }
 </style>

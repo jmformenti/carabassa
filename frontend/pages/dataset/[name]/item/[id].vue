@@ -3,7 +3,7 @@
     <v-row>
       <v-col>
         <div class="d-flex align-center mb-4">
-          <v-btn icon="mdi-arrow-left" variant="text" class="mr-4" @click="$router.back()" />
+          <v-btn icon="mdi-arrow-left" variant="text" class="mr-4 back-btn" @click="$router.back()" />
           <h2 class="text-h4 mr-2">{{ item.filename }}</h2>
           <ItemActions
             :item="item"
@@ -983,5 +983,11 @@ export default {
   stroke: rgba(33, 150, 243, 1);
   stroke-width: 0.8;
   filter: drop-shadow(0 0 2px rgba(33, 150, 243, 0.5));
+}
+.back-btn {
+  transition: color 0.2s ease-in-out;
+}
+.back-btn:hover {
+  color: rgb(var(--v-theme-primary)) !important;
 }
 </style>
