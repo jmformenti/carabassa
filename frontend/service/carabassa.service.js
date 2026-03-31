@@ -2,18 +2,24 @@ import { $fetch } from 'ofetch'
 import { useRuntimeConfig } from '#imports'
 
 export class CarabassaService {
-  constructor(datasetStore) {
+  constructor(datasetStore, authStore) {
     const runtimeConfig = useRuntimeConfig()
     this.apiBaseURL = runtimeConfig.public.apiBaseUrl || ''
     console.log(`API base url: ${this.apiBaseURL}`)
     this.datasetStore = datasetStore
+    this.authStore = authStore
     this.tagInfosCache = null
     this.tagInfosCachePromise = null
   }
 
+  _headers() {
+    return this.authStore ? this.authStore.authHeaders : {}
+  }
+
   getDatasetByName(datasetName) {
     return $fetch(
-      `${this.apiBaseURL}/api/dataset/name/${datasetName}`
+      `${this.apiBaseURL}/api/dataset/name/${datasetName}`,
+      { headers: this._headers() }
     ).then((data) => {
       return Promise.resolve(data)
     })
@@ -21,7 +27,8 @@ export class CarabassaService {
 
   getDatasets() {
     return $fetch(
-      `${this.apiBaseURL}/api/dataset`
+      `${this.apiBaseURL}/api/dataset`,
+      { headers: this._headers() }
     ).then((data) => {
       let datasets = []
       if (data._embedded) {
@@ -35,7 +42,8 @@ export class CarabassaService {
     const sortParam = sort ? `&sort=${sort}` : ''
     const searchParam = searchString ? `&search=${searchString}` : ''
     return $fetch(
-      `${this.apiBaseURL}/api/dataset/${this.datasetStore.dataset.id}/item?size=${pageSize}&page=${currentPage}${searchParam}${sortParam}`
+      `${this.apiBaseURL}/api/dataset/${this.datasetStore.dataset.id}/item?size=${pageSize}&page=${currentPage}${searchParam}${sortParam}`,
+      { headers: this._headers() }
     )
   }
 
@@ -49,7 +57,8 @@ export class CarabassaService {
     }
 
     this.tagInfosCachePromise = $fetch(
-      `${this.apiBaseURL}/api/tag-info?page=${page}&size=${size}`
+      `${this.apiBaseURL}/api/tag-info?page=${page}&size=${size}`,
+      { headers: this._headers() }
     ).then((data) => {
       let tagInfos = []
       if (data && data._embedded) {
@@ -72,13 +81,15 @@ export class CarabassaService {
 
   getItem(itemId) {
     return $fetch(
-      `${this.apiBaseURL}/api/dataset/${this.datasetStore.dataset.id}/item/${itemId}`
+      `${this.apiBaseURL}/api/dataset/${this.datasetStore.dataset.id}/item/${itemId}`,
+      { headers: this._headers() }
     )
   }
 
   async itemExists(hash) {
     const response = await fetch(
-      `${this.apiBaseURL}/api/dataset/${this.datasetStore.dataset.id}/item/exists/${hash}`
+      `${this.apiBaseURL}/api/dataset/${this.datasetStore.dataset.id}/item/exists/${hash}`,
+      { headers: this._headers() }
     )
     if (response.status === 404) return false
     if (!response.ok) {
@@ -97,23 +108,32 @@ export class CarabassaService {
       `${this.apiBaseURL}/api/dataset/${this.datasetStore.dataset.id}/item/${itemId}/tag`,
       {
         method: 'POST',
+        headers: this._headers(),
         body: tagRepresentation
       }
     )
   }
 
   getItemThumbnailURL(itemId) {
-    return `${this.apiBaseURL}/api/dataset/${this.datasetStore.dataset.id}/item/${itemId}/thumbnail`
+    const url = `${this.apiBaseURL}/api/dataset/${this.datasetStore.dataset.id}/item/${itemId}/thumbnail`
+    if (this.authStore && this.authStore.token) {
+      return `${url}?token=${this.authStore.token}`
+    }
+    return url
   }
 
   getItemContentURL(itemId) {
-    return `${this.apiBaseURL}/api/dataset/${this.datasetStore.dataset.id}/item/${itemId}/content`
+    const url = `${this.apiBaseURL}/api/dataset/${this.datasetStore.dataset.id}/item/${itemId}/content`
+    if (this.authStore && this.authStore.token) {
+      return `${url}?token=${this.authStore.token}`
+    }
+    return url
   }
 
   deleteItem(itemId) {
     return fetch(
       `${this.apiBaseURL}/api/dataset/${this.datasetStore.dataset.id}/item/${itemId}`,
-      { method: 'DELETE' }
+      { method: 'DELETE', headers: this._headers() }
     ).then((response) => {
       if (!response.ok) {
         throw new Error(`Delete failed: ${response.status}`)
@@ -124,7 +144,7 @@ export class CarabassaService {
   deleteItemTag(itemId, tagId) {
     return fetch(
       `${this.apiBaseURL}/api/dataset/${this.datasetStore.dataset.id}/item/${itemId}/tag/${tagId}`,
-      { method: 'DELETE' }
+      { method: 'DELETE', headers: this._headers() }
     ).then((response) => {
       if (!response.ok) {
         throw new Error(`Delete tag failed: ${response.status}`)
@@ -137,7 +157,7 @@ export class CarabassaService {
     formData.append('file', file, file.name)
     const response = await fetch(
       `${this.apiBaseURL}/api/dataset/${this.datasetStore.dataset.id}/item`,
-      { method: 'POST', body: formData }
+      { method: 'POST', headers: this._headers(), body: formData }
     )
     if (response.status === 409) {
       // Duplicate - item already exists
@@ -158,7 +178,8 @@ export class CarabassaService {
 
   getItemTagValues(tagName, page = 0, size = 100) {
     return $fetch(
-      `${this.apiBaseURL}/api/dataset/${this.datasetStore.dataset.id}/item/tag/${tagName}/values?page=${page}&size=${size}`
+      `${this.apiBaseURL}/api/dataset/${this.datasetStore.dataset.id}/item/tag/${tagName}/values?page=${page}&size=${size}`,
+      { headers: this._headers() }
     ).then((data) => {
       if (data.content) return data.content
       if (data._embedded && data._embedded.stringList) {
@@ -166,5 +187,59 @@ export class CarabassaService {
       }
       return []
     })
+  }
+
+  // -------------------------------------------------------------------------
+  // User Management (Admin only)
+  // -------------------------------------------------------------------------
+
+  getUsers() {
+    return $fetch(
+      `${this.apiBaseURL}/api/auth/users`,
+      { headers: this._headers() }
+    )
+  }
+
+  createUser(user) {
+    return $fetch(
+      `${this.apiBaseURL}/api/auth/users`,
+      {
+        method: 'POST',
+        headers: this._headers(),
+        body: user
+      }
+    )
+  }
+
+  updateUser(id, user) {
+    return $fetch(
+      `${this.apiBaseURL}/api/auth/users/${id}`,
+      {
+        method: 'PUT',
+        headers: this._headers(),
+        body: user
+      }
+    )
+  }
+
+  deleteUser(id) {
+    return $fetch(
+      `${this.apiBaseURL}/api/auth/users/${id}`,
+      {
+        method: 'DELETE',
+        headers: this._headers()
+      }
+    )
+  }
+
+  changeMyPassword(password) {
+    return $fetch(
+      `${this.apiBaseURL}/api/auth/me/password`,
+      {
+        method: 'PUT',
+        headers: this._headers(),
+        body: { password }
+      }
+    )
   }
 }

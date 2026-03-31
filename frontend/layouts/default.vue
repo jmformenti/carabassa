@@ -1,9 +1,19 @@
 <template>
   <v-app>
     <v-navigation-drawer
+      v-if="$route.path !== '/login'"
       v-model="drawer"
       color="orange-darken-1"
     >
+      <v-list v-if="authStore.isAuthenticated">
+        <v-list-item
+          prepend-icon="mdi-account"
+          :title="authStore.user"
+          :subtitle="authStore.role"
+          class="bg-orange-darken-2 mb-2"
+        />
+        <v-divider />
+      </v-list>
       <v-list>
         <v-list-item
           v-for="(item, i) in menuItems"
@@ -18,6 +28,7 @@
       color="orange-darken-4"
     >
       <v-app-bar-nav-icon
+        v-if="$route.path !== '/login'"
         color="orange-lighten-1"
         @click.stop="drawer = !drawer" 
       />
@@ -46,6 +57,15 @@
           </v-list-item>
         </v-list>
       </v-menu>
+
+      <v-btn
+        v-if="authStore.isAuthenticated"
+        icon
+        title="Logout"
+        @click="logout"
+      >
+        <v-icon>mdi-logout</v-icon>
+      </v-btn>
     </v-app-bar>
     <v-main>
       <v-container>
@@ -75,10 +95,13 @@
 </template>
 
 <script>
+import { useAuthStore } from '~/stores/auth'
+
 export default {
   setup () {
     const datasetStore = useDatasetStore()
-    return { datasetStore }
+    const authStore = useAuthStore()
+    return { datasetStore, authStore }
   },
 
   data () {
@@ -93,6 +116,17 @@ export default {
           title: 'Search',
           icon: 'mdi-magnify',
           to: '/'
+        },
+        {
+          title: 'Profile',
+          icon: 'mdi-account-cog',
+          to: '/user'
+        },
+        {
+          title: 'Users',
+          icon: 'mdi-account-group',
+          to: '/admin/users',
+          adminOnly: true
         },
         {
           title: 'PWA Debug',
@@ -116,13 +150,18 @@ export default {
   computed: {
     menuItems () {
       return this.items.filter(item => {
-        if (item.to !== '/pwa-debug') return true
-        return this.showPwaDebug
+        if (item.adminOnly && !this.authStore.isAdmin) return false
+        if (item.to === '/pwa-debug') return this.showPwaDebug
+        return true
       })
     }
   },
 
   methods: {
+    logout () {
+      this.authStore.logout()
+      this.$router.push('/login')
+    },
     updatePwaDebugVisibility () {
       if (typeof window === 'undefined') return
       const isAndroid = /Android/i.test(window.navigator?.userAgent || '')

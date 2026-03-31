@@ -4,6 +4,7 @@ import org.atypical.carabassa.core.configuration.CoreConfiguration;
 import org.atypical.carabassa.indexer.rdbms.configuration.IndexerRdbmsConfiguration;
 import org.atypical.carabassa.restapi.configuration.RestApiConfiguration;
 import org.atypical.carabassa.restapi.rdbms.configuration.RestApiRdbmsMapperConfiguration;
+import org.atypical.carabassa.security.configuration.SecurityModuleConfiguration;
 import org.atypical.carabassa.storage.fs.configuration.StorageFSConfiguration;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -21,7 +22,7 @@ import java.nio.file.Paths;
 import java.util.TimeZone;
 
 @SpringBootApplication(scanBasePackageClasses = {CoreConfiguration.class, RestApiConfiguration.class, RestApiRdbmsMapperConfiguration.class,
-        IndexerRdbmsConfiguration.class, StorageFSConfiguration.class})
+        IndexerRdbmsConfiguration.class, StorageFSConfiguration.class, SecurityModuleConfiguration.class})
 public class Application extends SpringBootServletInitializer {
 
     private static final Logger logger = LoggerFactory.getLogger(Application.class);
