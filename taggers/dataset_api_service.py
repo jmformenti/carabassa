@@ -192,9 +192,11 @@ class DatasetApiService:
         datasets = service.find_all()
     """
 
-    def __init__(self, base_url: str) -> None:
+    def __init__(self, base_url: str, token: str | None = None) -> None:
         self.base_url = base_url if base_url.endswith("/") else base_url + "/"
         self.session = requests.Session()
+        if token:
+            self.session.headers.update({"Authorization": f"Bearer {token}"})
 
     # -- Dataset CRUD -------------------------------------------------------
 

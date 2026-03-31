@@ -78,7 +78,8 @@ class DatasetTagger:
         """
         self.args = self.parser.parse_args()
         logger.info(f"Processing dataset '{self.args.dataset}' with API URL '{self.args.api_url}'")
-        self.service = DatasetApiService(self.args.api_url)
+        token = os.environ.get("CARABASSA_TOKEN")
+        self.service = DatasetApiService(self.args.api_url, token=token)
 
         try:
             self.dataset_id = self.service.find_by_name(self.args.dataset)

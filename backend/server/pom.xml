@@ -17,6 +17,7 @@
     <modules>
         <module>api</module>
         <module>adapters</module>
+        <module>security</module>
         <module>boot</module>
     </modules>
 

@@ -8,7 +8,9 @@ REPO_DIR="${ROOT_DIR}/.dev/carabassa"
 mkdir -p "${DEV_DIR}"
 
 export CARABASSA_REPO_DIR="${REPO_DIR}"
-export CARABASSA_API_URL=http://localhost:8080/api
+export CARABASSA_BASE_URL=http://localhost:8080
+export CARABASSA_API_URL="${CARABASSA_BASE_URL}/api"
+export CARABASSA_H2_CONSOLE=true
 
 RESET_DB=false
 STOP_ONLY=false
@@ -90,10 +92,10 @@ start_detached "${DEV_DIR}/frontend.pid" bash -lc "
   exec yarn dev --host --port 3000
 " > "${frontend_log}" 2>&1
 
-echo "Waiting for backend to be ready at ${CARABASSA_API_URL}..."
+echo "Waiting for backend to be ready..."
 backend_ready=false
 for i in $(seq 1 60); do
-  if curl -sf "${CARABASSA_API_URL}/dataset" > /dev/null; then
+  if curl -sf "${CARABASSA_BASE_URL}/actuator/health" > /dev/null; then
     echo "Backend is ready."
     backend_ready=true
     break
@@ -125,9 +127,31 @@ fi
 
 if [[ "${RESET_DB}" == "true" ]]; then
   echo "Creating dataset and uploading sample data..."
-  (cd "${ROOT_DIR}/cli" && mvn spring-boot:run -Dspring-boot.run.arguments="create --dataset=test" || true)
-  (cd "${ROOT_DIR}/cli" && mvn spring-boot:run -Dspring-boot.run.arguments="upload --dataset=test --path=../backend/engine/indexer/rdbms/src/test/resources/images")
-  (cd "${ROOT_DIR}/cli" && mvn spring-boot:run -Dspring-boot.run.arguments="upload --dataset=test --path=../backend/engine/indexer/rdbms/src/test/resources/videos")
+  
+  echo "Logging in as admin..."
+  TOKEN=$(curl -s -X POST "${CARABASSA_BASE_URL}/api/auth/login" \
+    -H "Content-Type: application/json" \
+    -d '{"username":"admin", "password":"changeme"}' | jq -r .token)
+  
+  if [[ "${TOKEN}" == "null" || -z "${TOKEN}" ]]; then
+    echo "Failed to obtain authentication token. Check backend logs."
+    exit 1
+  fi
+  
+  echo "Importing items using the CLI..."
+  (
+    cd "${ROOT_DIR}/cli"
+    # Ensure CLI is up-to-date
+    mvn -DskipTests install > /dev/null 2>&1
+    
+    # Use MAVEN_OPTS for reliable property propagation
+    export MAVEN_OPTS="-Dcarabassa.auth.token=${TOKEN} -Dcarabassa.api-url=${CARABASSA_API_URL}"
+    
+    mvn spring-boot:run -Dspring-boot.run.arguments="create --dataset=test"
+    mvn spring-boot:run -Dspring-boot.run.arguments="upload --dataset=test --path=../backend/engine/indexer/rdbms/src/test/resources/images"
+    mvn spring-boot:run -Dspring-boot.run.arguments="upload --dataset=test --path=../backend/engine/indexer/rdbms/src/test/resources/videos"
+  )
+  echo "Dataset 'test' created and items imported."
 fi
 
 echo

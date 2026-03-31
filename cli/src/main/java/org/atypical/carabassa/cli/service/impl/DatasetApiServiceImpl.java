@@ -11,6 +11,7 @@ import org.atypical.carabassa.cli.exception.ApiException;
 import org.atypical.carabassa.cli.exception.ItemAlreadyExists;
 import org.atypical.carabassa.cli.exception.ResponseBodyException;
 import org.atypical.carabassa.cli.service.DatasetApiService;
+import org.atypical.carabassa.cli.util.CommandLogger;
 import org.atypical.carabassa.core.util.HashGenerator;
 import org.atypical.carabassa.restapi.representation.model.DatasetEntityRepresentation;
 import org.atypical.carabassa.restapi.representation.model.IdRepresentation;
@@ -45,6 +46,9 @@ public class DatasetApiServiceImpl implements DatasetApiService {
     @Value("${carabassa.api-url}")
     private String apiUrl;
 
+    @Value("${carabassa.auth.token:}")
+    private String token;
+
     @Autowired
     private WebClient.Builder webClientBuilder;
 
@@ -55,7 +59,13 @@ public class DatasetApiServiceImpl implements DatasetApiService {
     @PostConstruct
     private void postConstruct() {
         String baseApiUrl = apiUrl.endsWith("/") ? apiUrl : apiUrl + "/";
-        webClient = webClientBuilder.baseUrl(baseApiUrl).build();
+        WebClient.Builder builder = WebClient.builder().baseUrl(baseApiUrl);
+        if (token != null && !token.isBlank()) {
+            builder.defaultHeader(HttpHeaders.AUTHORIZATION, "Bearer " + token);
+        } else {
+            CommandLogger.warn("No token provided.");
+        }
+        webClient = builder.build();
 
         objectMapper = JsonMapper.builder()
                 .disable(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES)
@@ -104,19 +114,20 @@ public class DatasetApiServiceImpl implements DatasetApiService {
         return body;
     }
 
-    private boolean findItemByHash(Long datasetId, Resource item) throws IOException {
+    private boolean findItemByHash(Long datasetId, Resource item) throws IOException, ApiException {
         try {
             webClient.get()
                     .uri("dataset/{datasetId}/item/exists/{hash}", datasetId, HashGenerator.generate(item))
                     .retrieve()
                     .toBodilessEntity()
                     .block();
+            return true;
         } catch (WebClientResponseException e) {
             if (e.getStatusCode().value() == HttpStatus.NOT_FOUND.value()) {
                 return false;
             }
+            throw buildApiException(e);
         }
-        return true;
     }
 
     @Override

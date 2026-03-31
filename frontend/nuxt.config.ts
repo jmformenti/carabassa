@@ -25,7 +25,8 @@ export default defineNuxtConfig({
     public: {
       // to override, export NUXT_PUBLIC_API_BASE_URL
       apiBaseUrl: 'http://localhost:8080',
-      appVersion: ''
+      appVersion: '',
+      authEnabled: true
     }
   },
   css: [
