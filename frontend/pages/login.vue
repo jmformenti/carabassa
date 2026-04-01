@@ -70,7 +70,7 @@ async function submitForm() {
 
   try {
     await authStore.login(username.value, password.value)
-    router.push('/')
+    await router.push('/')
   } catch (error) {
     if (error.response && error.response.status === 401) {
       errorMessage.value = 'Invalid username or password.'

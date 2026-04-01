@@ -50,11 +50,11 @@ start_detached() {
 stop_if_running() {
   local name="$1"
   local port="$2"
-  
+
   local pids
   # fuser outputs pids to stdout and port info to stderr
-  pids=$(fuser -n tcp "${port}" 2>/dev/null)
-  
+  pids=$(fuser -n tcp "${port}" 2>/dev/null || true)
+
   if [[ -n "${pids}" ]]; then
     echo "Stopping ${name} on port ${port} (pids:${pids})..."
     for pid in ${pids}; do
