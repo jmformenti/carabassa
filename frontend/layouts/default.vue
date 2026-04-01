@@ -139,6 +139,7 @@ export default {
 
   mounted () {
     this.updatePwaDebugVisibility()
+    if (this.$route.path === '/login' || !this.authStore.isAuthenticated) return
     this.$carabassa.getDatasets()
       .then(async data => {
         this.datasets = data
@@ -154,6 +155,21 @@ export default {
         if (item.to === '/pwa-debug') return this.showPwaDebug
         return true
       })
+    }
+  },
+
+  watch: {
+    'authStore.isAuthenticated': {
+      immediate: true,
+      handler: async function (isAuth) {
+        if (isAuth && !this.datasetStore.datasetsLoaded) {
+          const data = await this.$carabassa.getDatasets()
+          this.datasets = data
+          await this.initDataset()
+          this.datasetStore.datasetsLoaded = true
+          console.log('datasetsLoaded set to true')
+        }
+      }
     }
   },
 
@@ -191,11 +207,12 @@ export default {
           // Dataset not found for the route name — leave it null so the page shows "not found"
           this.datasetStore.dataset = null
         }
-      } else if (this.$route.path === '/') {
-        // On root, pick the first dataset and redirect
-        // index.vue also has a redirect watch, but this handles initial load
+      } else {
+        // On root or login, pick the first dataset
         this.datasetStore.dataset = this.datasets[0]
-        this.changeDataset(this.datasets[0])
+        if (this.$route.path !== '/login') {
+          this.changeDataset(this.datasets[0])
+        }
       }
     }
   }
