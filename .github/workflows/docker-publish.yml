@@ -51,7 +51,7 @@ jobs:
           password: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Set up Docker Buildx
-        uses: docker/setup-buildx-action@v3
+        uses: docker/setup-buildx-action@v4
 
       - name: Extract metadata backend
         id: meta-backend
@@ -64,7 +64,7 @@ jobs:
             type=raw,value=latest
 
       - name: Build and push backend image
-        uses: docker/build-push-action@v6
+        uses: docker/build-push-action@v7
         with:
           context: backend
           file: backend/Dockerfile
@@ -86,7 +86,7 @@ jobs:
             type=raw,value=latest
 
       - name: Build and push cli image
-        uses: docker/build-push-action@v6
+        uses: docker/build-push-action@v7
         with:
           context: cli
           file: cli/Dockerfile
@@ -141,7 +141,7 @@ jobs:
         uses: docker/setup-buildx-action@v4
 
       - name: Build and push frontend image
-        uses: docker/build-push-action@v6
+        uses: docker/build-push-action@v7
         with:
           context: frontend
           file: frontend/Dockerfile
