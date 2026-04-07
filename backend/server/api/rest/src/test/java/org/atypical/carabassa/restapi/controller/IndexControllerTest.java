@@ -3,6 +3,7 @@ package org.atypical.carabassa.restapi.controller;
 import org.atypical.carabassa.core.model.TagInfo;
 import org.atypical.carabassa.core.service.DatasetService;
 import org.atypical.carabassa.core.service.TagInfoService;
+import org.atypical.carabassa.core.service.UserService;
 import org.atypical.carabassa.restapi.configuration.RestApiConfiguration;
 import org.atypical.carabassa.restapi.representation.assembler.TagInfoModelAssembler;
 import org.atypical.carabassa.restapi.representation.mapper.DatasetMapper;
@@ -60,6 +61,9 @@ public class IndexControllerTest {
 
         @MockitoBean
         private TagInfoService tagInfoService;
+
+        @MockitoBean
+        private UserService userService;
 
         @MockitoBean
         private TagInfoMapper tagInfoMapper;

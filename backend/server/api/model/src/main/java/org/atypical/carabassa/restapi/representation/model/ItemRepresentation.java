@@ -21,6 +21,9 @@ public class ItemRepresentation extends RepresentationModel<ItemRepresentation> 
     private Instant archiveTime;
     private long size;
     private SortedSet<TagEntityRepresentation> tags;
+    private boolean favorite;
+    private Long datasetId;
+    private String datasetName;
 
     public Long getId() {
         return id;
@@ -112,6 +115,30 @@ public class ItemRepresentation extends RepresentationModel<ItemRepresentation> 
 
     public void setTags(SortedSet<TagEntityRepresentation> tags) {
         this.tags = tags;
+    }
+
+    public boolean isFavorite() {
+        return favorite;
+    }
+
+    public void setFavorite(boolean favorite) {
+        this.favorite = favorite;
+    }
+
+    public Long getDatasetId() {
+        return datasetId;
+    }
+
+    public void setDatasetId(Long datasetId) {
+        this.datasetId = datasetId;
+    }
+
+    public String getDatasetName() {
+        return datasetName;
+    }
+
+    public void setDatasetName(String datasetName) {
+        this.datasetName = datasetName;
     }
 
 }

@@ -3,6 +3,7 @@ package org.atypical.carabassa.core.model;
 import java.time.Instant;
 
 public interface Tag {
+    String FAVORITE_NAME = "favorite";
 
     Long getId();
 

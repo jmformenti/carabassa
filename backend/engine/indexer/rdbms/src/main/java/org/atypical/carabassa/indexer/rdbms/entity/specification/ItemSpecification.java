@@ -65,7 +65,9 @@ public class ItemSpecification implements Specification<IndexedItemEntity> {
 
         final List<Predicate> predicates = new ArrayList<>();
 
-        predicates.add(builder.equal(root.get(IndexedItemEntity_.DATASET), this.dataset));
+        if (this.dataset != null) {
+            predicates.add(builder.equal(root.get(IndexedItemEntity_.DATASET), this.dataset));
+        }
 
         for (SearchCondition condition : searchCriteria.getConditions()) {
             predicates.add(toPredicateFromCondition(condition, root, query, builder));

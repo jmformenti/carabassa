@@ -3,6 +3,8 @@ package org.atypical.carabassa.restapi.controller.impl;
 import java.io.File;
 import java.io.IOException;
 import java.nio.file.Paths;
+import java.util.List;
+import java.util.stream.Collectors;
 
 import org.atypical.carabassa.core.exception.EntityExistsException;
 import org.atypical.carabassa.core.exception.EntityNotFoundException;
@@ -20,7 +22,6 @@ import org.atypical.carabassa.restapi.helper.SearchCriteriaParser;
 import org.atypical.carabassa.restapi.representation.assembler.DatasetModelAssembler;
 import org.atypical.carabassa.restapi.representation.assembler.ItemModelAssembler;
 import org.atypical.carabassa.restapi.representation.mapper.DatasetMapper;
-import org.atypical.carabassa.restapi.representation.mapper.ItemMapper;
 import org.atypical.carabassa.restapi.representation.mapper.ItemTagMapper;
 import org.atypical.carabassa.restapi.representation.mapper.TagMapper;
 import org.atypical.carabassa.restapi.representation.model.DatasetEditableRepresentation;
@@ -39,6 +40,7 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.web.PagedResourcesAssembler;
 import org.springframework.hateoas.PagedModel;
+import org.springframework.hateoas.server.RepresentationModelAssembler;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
@@ -46,9 +48,6 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Component;
 import org.springframework.web.multipart.MultipartFile;
 import org.springframework.web.server.ResponseStatusException;
-
-import java.util.List;
-import java.util.stream.Collectors;
 
 @Component
 public class DatasetControllerImpl implements DatasetController {
@@ -62,9 +61,6 @@ public class DatasetControllerImpl implements DatasetController {
 
     @Autowired
     private DatasetMapper datasetMapper;
-
-    @Autowired
-    private ItemMapper itemMapper;
 
     @Autowired
     private TagMapper tagMapper;
@@ -153,7 +149,7 @@ public class DatasetControllerImpl implements DatasetController {
     }
 
     @Override
-    public PagedModel<ItemRepresentation> findItems(Long datasetId, String search, Pageable pageable) {
+    public PagedModel<ItemRepresentation> findItems(Long datasetId, String search, boolean includeTags, Pageable pageable) {
         Dataset dataset = getDataset(datasetId);
 
         try {
@@ -169,7 +165,9 @@ public class DatasetControllerImpl implements DatasetController {
                 page = datasetService.findItems(dataset, searchCriteria, pageable);
             }
 
-            return itemPagedResourcesAssembler.toModel(page, itemModelAssembler);
+            RepresentationModelAssembler<IndexedItem, ItemRepresentation> assembler =
+                    includeTags ? itemModelAssembler::toDetailedModel : itemModelAssembler;
+            return itemPagedResourcesAssembler.toModel(page, assembler);
         } catch (Exception e) {
             throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, e.getMessage());
         }
@@ -178,7 +176,7 @@ public class DatasetControllerImpl implements DatasetController {
     @Override
     public ItemRepresentation findItem(Long datasetId, Long itemId) {
         IndexedItem indexedItem = getIndexedItem(getDataset(datasetId), itemId);
-        return itemMapper.toRepresentation(indexedItem);
+        return itemModelAssembler.toDetailedModel(indexedItem);
     }
 
     @Override

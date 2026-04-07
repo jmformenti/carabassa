@@ -15,6 +15,7 @@ import org.atypical.carabassa.core.model.impl.StoredItemImpl;
 import org.atypical.carabassa.core.model.impl.StoredItemThumbnailImpl;
 import org.atypical.carabassa.core.service.DatasetService;
 import org.atypical.carabassa.core.service.TagInfoService;
+import org.atypical.carabassa.core.service.UserService;
 import org.atypical.carabassa.restapi.configuration.RestApiConfiguration;
 import org.atypical.carabassa.restapi.representation.assembler.DatasetModelAssembler;
 import org.atypical.carabassa.restapi.representation.assembler.ItemModelAssembler;
@@ -94,6 +95,9 @@ public class DatasetControllerTest extends DatasetControllerHelper {
         private DatasetService datasetService;
 
         @MockitoBean
+        private UserService userService;
+
+        @MockitoBean
         private DatasetMapper datasetMapper;
 
         @MockitoBean
@@ -169,6 +173,9 @@ public class DatasetControllerTest extends DatasetControllerHelper {
                                 fieldWithPath("modification").description("Item date last modification in repository"),
                                 fieldWithPath("archiveTime").description("Item archived date (by default, shot date)"),
                                 fieldWithPath("size").description("Item file size"),
+                                fieldWithPath("favorite").description("Item marked as favorite"),
+                                fieldWithPath("datasetId").description("Dataset identifier for the item").optional(),
+                                fieldWithPath("datasetName").description("Dataset name for the item").optional(),
                                 subsectionWithPath("tags[]").description("Array of tags") };
         }
 
@@ -304,7 +311,10 @@ public class DatasetControllerTest extends DatasetControllerHelper {
                                                                 parameterWithName("size")
                                                                                 .description("Entries per page"),
                                                                 parameterWithName("search")
-                                                                                .description("Search string")),
+                                                                                .description("Search string"),
+                                                                parameterWithName("includeTags")
+                                                                                .description("Include tags in item representations")
+                                                                                .optional()),
                                                 pagingLinks, //
                                                 responseFields(
                                                                 subsectionWithPath("_links")
@@ -320,7 +330,7 @@ public class DatasetControllerTest extends DatasetControllerHelper {
         public void findItem() throws Exception {
                 when(datasetService.findById(DATASET_ID)).thenReturn(dataset);
                 when(datasetService.findItemById(dataset, ITEM_ID)).thenReturn(indexedItem);
-                when(itemMapper.toRepresentation(indexedItem)).thenReturn(itemRepresentation);
+                when(itemModelAssembler.toDetailedModel(indexedItem)).thenReturn(itemRepresentation);
 
                 mvc.perform(get("/api/dataset/{datasetId}/item/{itemId}", DATASET_ID, ITEM_ID)) //
                                 .andExpect(status().isOk()) //

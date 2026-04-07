@@ -139,8 +139,8 @@ if [[ "${RESET_DB}" == "true" ]]; then
     # Ensure CLI is up-to-date
     mvn -DskipTests install > /dev/null 2>&1
     
-    # Use MAVEN_OPTS for reliable property propagation
-    export MAVEN_OPTS="-Dcarabassa.auth.token=${TOKEN} -Dcarabassa.api-url=${CARABASSA_API_URL}"
+    export CARABASSA_AUTH_TOKEN="${TOKEN}"
+    export CARABASSA_API_URL="${CARABASSA_API_URL}"
     
     mvn spring-boot:run -Dspring-boot.run.arguments="create --dataset=test"
     mvn spring-boot:run -Dspring-boot.run.arguments="upload --dataset=test --path=../backend/engine/indexer/rdbms/src/test/resources/images"

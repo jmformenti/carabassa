@@ -6,6 +6,7 @@ import org.atypical.carabassa.core.model.TagInfo;
 import org.atypical.carabassa.core.model.enums.ValueType;
 import org.atypical.carabassa.core.service.DatasetService;
 import org.atypical.carabassa.core.service.TagInfoService;
+import org.atypical.carabassa.core.service.UserService;
 import org.atypical.carabassa.restapi.configuration.RestApiConfiguration;
 import org.atypical.carabassa.restapi.representation.assembler.DatasetModelAssembler;
 import org.atypical.carabassa.restapi.representation.assembler.ItemModelAssembler;
@@ -94,6 +95,9 @@ public class TagInfoControllerTest {
 
     @MockitoBean
     private DatasetService datasetService;
+
+    @MockitoBean
+    private UserService userService;
 
     @MockitoBean
     private DatasetMapper datasetMapper;

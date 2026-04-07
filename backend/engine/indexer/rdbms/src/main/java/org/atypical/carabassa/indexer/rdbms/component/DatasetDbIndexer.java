@@ -1,41 +1,5 @@
 package org.atypical.carabassa.indexer.rdbms.component;
 
-import org.apache.commons.lang3.StringUtils;
-import org.atypical.carabassa.core.component.indexer.DatasetIndexer;
-import org.atypical.carabassa.core.component.tagger.Tagger;
-import org.atypical.carabassa.core.component.util.LocalizedMessage;
-import org.atypical.carabassa.core.exception.EntityExistsException;
-import org.atypical.carabassa.core.exception.EntityNotFoundException;
-import org.atypical.carabassa.core.model.Dataset;
-import org.atypical.carabassa.core.model.IndexedItem;
-import org.atypical.carabassa.core.model.ItemTagInfo;
-import org.atypical.carabassa.core.model.SearchCriteria;
-import org.atypical.carabassa.core.model.SearchCondition;
-import org.atypical.carabassa.core.model.impl.SearchCriteriaImpl;
-import org.atypical.carabassa.core.model.Tag;
-import org.atypical.carabassa.core.model.enums.ItemType;
-import org.atypical.carabassa.core.model.impl.SearchConditionImpl;
-import org.atypical.carabassa.indexer.rdbms.entity.DatasetEntity;
-import org.atypical.carabassa.indexer.rdbms.entity.IndexedItemEntity;
-import org.atypical.carabassa.indexer.rdbms.entity.TagEntity;
-import org.atypical.carabassa.indexer.rdbms.entity.TagInfoEntity;
-import org.atypical.carabassa.indexer.rdbms.entity.specification.ItemSpecification;
-import org.atypical.carabassa.indexer.rdbms.repository.DatasetRepository;
-import org.atypical.carabassa.indexer.rdbms.repository.IndexedItemRepository;
-import org.atypical.carabassa.indexer.rdbms.repository.TagInfoRepository;
-import org.atypical.carabassa.core.model.impl.ItemTagInfoImpl;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.core.io.Resource;
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.Pageable;
-import org.springframework.data.domain.PageRequest;
-import org.springframework.data.domain.Sort;
-import org.springframework.stereotype.Component;
-import org.springframework.util.Assert;
-
-import jakarta.persistence.EntityManager;
-import jakarta.persistence.PersistenceContext;
-import jakarta.transaction.Transactional;
 import java.io.IOException;
 import java.time.Instant;
 import java.time.LocalDateTime;
@@ -50,6 +14,43 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 import java.util.stream.StreamSupport;
+
+import org.apache.commons.lang3.StringUtils;
+import org.atypical.carabassa.core.component.indexer.DatasetIndexer;
+import org.atypical.carabassa.core.component.tagger.Tagger;
+import org.atypical.carabassa.core.component.util.LocalizedMessage;
+import org.atypical.carabassa.core.exception.EntityExistsException;
+import org.atypical.carabassa.core.exception.EntityNotFoundException;
+import org.atypical.carabassa.core.model.Dataset;
+import org.atypical.carabassa.core.model.IndexedItem;
+import org.atypical.carabassa.core.model.ItemTagInfo;
+import org.atypical.carabassa.core.model.SearchCondition;
+import org.atypical.carabassa.core.model.SearchCriteria;
+import org.atypical.carabassa.core.model.Tag;
+import org.atypical.carabassa.core.model.enums.ItemType;
+import org.atypical.carabassa.core.model.impl.ItemTagInfoImpl;
+import org.atypical.carabassa.core.model.impl.SearchConditionImpl;
+import org.atypical.carabassa.core.model.impl.SearchCriteriaImpl;
+import org.atypical.carabassa.indexer.rdbms.entity.DatasetEntity;
+import org.atypical.carabassa.indexer.rdbms.entity.IndexedItemEntity;
+import org.atypical.carabassa.indexer.rdbms.entity.TagEntity;
+import org.atypical.carabassa.indexer.rdbms.entity.TagInfoEntity;
+import org.atypical.carabassa.indexer.rdbms.entity.specification.ItemSpecification;
+import org.atypical.carabassa.indexer.rdbms.repository.DatasetRepository;
+import org.atypical.carabassa.indexer.rdbms.repository.IndexedItemRepository;
+import org.atypical.carabassa.indexer.rdbms.repository.TagInfoRepository;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.core.io.Resource;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
+import org.springframework.stereotype.Component;
+import org.springframework.util.Assert;
+
+import jakarta.persistence.EntityManager;
+import jakarta.persistence.PersistenceContext;
+import jakarta.transaction.Transactional;
 
 @Component
 @Transactional(rollbackOn = Exception.class)
