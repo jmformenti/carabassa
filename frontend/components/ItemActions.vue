@@ -1,4 +1,16 @@
 <template>
+  <v-tooltip :text="isFavorite(item) ? 'Remove favorite' : 'Add favorite'" location="top">
+    <template #activator="{ props }">
+      <v-btn
+        v-bind="props"
+        :icon="isFavorite(item) ? 'mdi-star' : 'mdi-star-outline'"
+        :color="isFavorite(item) ? 'orange' : 'orange-darken-2'"
+        variant="text"
+        @click="toggleFavorite(item)"
+      />
+    </template>
+  </v-tooltip>
+
   <v-tooltip text="Download" location="top">
     <template #activator="{ props }">
       <v-btn
@@ -6,7 +18,7 @@
         icon="mdi-download"
         color="orange-darken-2"
         variant="text"
-        :href="$carabassa.getItemContentURL(item.id)"
+        :href="$carabassa.getItemContentURL(item)"
         target="_blank"
       />
     </template>
@@ -38,6 +50,8 @@
 </template>
 
 <script setup>
+const { isFavorite, toggleFavorite } = useItemActions()
+
 defineProps({
   item: {
     type: Object,

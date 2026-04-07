@@ -8,8 +8,7 @@
       <v-list v-if="authStore.isAuthenticated">
         <v-list-item
           prepend-icon="mdi-account"
-          :title="authStore.user"
-          :subtitle="authStore.role"
+          :title="authStore.username"
           class="bg-orange-darken-2 mb-2"
         />
         <v-divider />
@@ -35,7 +34,7 @@
       <v-app-bar-title>{{ title }}</v-app-bar-title>
       <v-spacer />
       <v-menu
-        v-if="datasets.length > 0 && datasetStore.dataset"
+        v-if="showDatasetSelector"
       >
         <template #activator="{ props }">
           <v-btn
@@ -132,6 +131,11 @@ export default {
           title: 'PWA Debug',
           icon: 'mdi-bug',
           to: '/pwa-debug'
+        },
+        {
+          title: 'Favorites',
+          icon: 'mdi-star',
+          to: '/favorites'
         }
       ]
     }
@@ -149,11 +153,24 @@ export default {
   },
 
   computed: {
+    showDatasetSelector () {
+      return this.datasets.length > 0 && 
+             this.datasetStore.dataset && 
+             (this.$route.path === '/' || this.$route.path.startsWith('/dataset'))
+    },
     menuItems () {
       return this.items.filter(item => {
         if (item.adminOnly && !this.authStore.isAdmin) return false
         if (item.to === '/pwa-debug') return this.showPwaDebug
         return true
+      }).map(item => {
+        if (item.title === 'Search' && this.datasetStore.dataset) {
+          return {
+            ...item,
+            to: `/dataset/${this.datasetStore.dataset.name}`
+          }
+        }
+        return item
       })
     }
   },

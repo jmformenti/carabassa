@@ -47,7 +47,7 @@
         <video
           v-if="isVideo(item)"
           class="overlay-video"
-          :src="$carabassa.getItemContentURL(item.id)"
+          :src="$carabassa.getItemContentURL(item)"
           controls
           autoplay
         />
@@ -55,27 +55,13 @@
           v-else
           width="500"
           max-height="65vh"
-          :src="$carabassa.getItemContentURL(item.id)"
+          :src="$carabassa.getItemContentURL(item)"
           class="overlay-image"
           @click="$emit('update:modelValue', false)" 
         />
       </v-card-text>
       <v-card-actions class="overlay-actions">
-        <v-tooltip text="Enter detail" location="top">
-          <template #activator="{ props }">
-            <v-btn
-              v-bind="props"
-              icon="mdi-magnify"
-              color="orange-darken-2"
-              @click="navigateDetail"
-            />
-          </template>
-        </v-tooltip>
-        <ItemActions
-          :item="item"
-          @delete="$emit('delete', item)"
-          @copy-link="copyLink"
-        />
+        <v-spacer />
       </v-card-actions>
     </v-card>
 
@@ -173,12 +159,12 @@ const onTouchCancel = () => {
 
 const navigateDetail = () => {
   emit('update:modelValue', false)
-  const datasetName = route.params.name
+  const datasetName = props.item.datasetName || route.params.name
   if (datasetName) {
     router.push(`/dataset/${datasetName}/item/${props.item.id}`)
     return
   }
-  $notification.alert('No dataset in context. Open the item from a dataset page.')
+  $notification.alert('No dataset in context.')
 }
 
 const copyLink = async () => {

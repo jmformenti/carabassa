@@ -47,6 +47,14 @@ export class CarabassaService {
     )
   }
 
+  getFavorites(currentPage, pageSize, sort) {
+    const sortParam = sort ? `&sort=${sort}` : ''
+    return $fetch(
+      `${this.apiBaseURL}/api/user/favorite?size=${pageSize}&page=${currentPage}${sortParam}`,
+      { headers: this._headers() }
+    )
+  }
+
   getTagInfos(page = 0, size = 200, { forceRefresh = false } = {}) {
     if (!forceRefresh && Array.isArray(this.tagInfosCache)) {
       return Promise.resolve(this.tagInfosCache)
@@ -79,9 +87,9 @@ export class CarabassaService {
     )
   }
 
-  getItem(itemId) {
+  getItem(item) {
     return $fetch(
-      `${this.apiBaseURL}/api/dataset/${this.datasetStore.dataset.id}/item/${itemId}`,
+      `${this.apiBaseURL}/api/dataset/${item.datasetId}/item/${item.id}`,
       { headers: this._headers() }
     )
   }
@@ -103,9 +111,9 @@ export class CarabassaService {
     return true
   }
 
-  addItemTag(itemId, tagRepresentation) {
+  addItemTag(item, tagRepresentation) {
     return $fetch(
-      `${this.apiBaseURL}/api/dataset/${this.datasetStore.dataset.id}/item/${itemId}/tag`,
+      `${this.apiBaseURL}/api/dataset/${item.datasetId}/item/${item.id}/tag`,
       {
         method: 'POST',
         headers: this._headers(),
@@ -114,25 +122,25 @@ export class CarabassaService {
     )
   }
 
-  getItemThumbnailURL(itemId) {
-    const url = `${this.apiBaseURL}/api/dataset/${this.datasetStore.dataset.id}/item/${itemId}/thumbnail`
+  getItemThumbnailURL(item) {
+    const url = `${this.apiBaseURL}/api/dataset/${item.datasetId}/item/${item.id}/thumbnail`
     if (this.authStore && this.authStore.token) {
       return `${url}?token=${this.authStore.token}`
     }
     return url
   }
 
-  getItemContentURL(itemId) {
-    const url = `${this.apiBaseURL}/api/dataset/${this.datasetStore.dataset.id}/item/${itemId}/content`
+  getItemContentURL(item) {
+    const url = `${this.apiBaseURL}/api/dataset/${item.datasetId}/item/${item.id}/content`
     if (this.authStore && this.authStore.token) {
       return `${url}?token=${this.authStore.token}`
     }
     return url
   }
 
-  deleteItem(itemId) {
+  deleteItem(item) {
     return fetch(
-      `${this.apiBaseURL}/api/dataset/${this.datasetStore.dataset.id}/item/${itemId}`,
+      `${this.apiBaseURL}/api/dataset/${item.datasetId}/item/${item.id}`,
       { method: 'DELETE', headers: this._headers() }
     ).then((response) => {
       if (!response.ok) {

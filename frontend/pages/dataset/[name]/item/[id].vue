@@ -20,7 +20,7 @@
           <video
             v-if="isVideo"
             class="media-content"
-            :src="$carabassa.getItemContentURL(item.id)"
+            :src="$carabassa.getItemContentURL(item)"
             controls
             autoplay
           />
@@ -39,7 +39,7 @@
             <img
               ref="mediaImage"
               class="media-content"
-              :src="$carabassa.getItemContentURL(item.id)"
+              :src="$carabassa.getItemContentURL(item)"
               @load="onImageLoad"
               draggable="false"
             />
@@ -588,12 +588,14 @@ export default {
         if (routeDatasetName) {
           const dataset = await this.$carabassa.getDatasetByName(routeDatasetName)
           this.datasetStore.dataset = dataset
-          this.item = await this.$carabassa.getItem(itemId)
+          const datasetId = this.datasetStore.dataset?.id
+          this.item = await this.$carabassa.getItem({ id: itemId, datasetId })
           return
         }
 
         if (this.datasetStore.dataset) {
-          this.item = await this.$carabassa.getItem(itemId)
+          const datasetId = this.datasetStore.dataset.id
+          this.item = await this.$carabassa.getItem({ id: itemId, datasetId })
           return
         }
 
@@ -728,7 +730,7 @@ export default {
           tagData.boundingBox = boundingBox
         }
 
-        await this.$carabassa.addItemTag(this.item.id, tagData)
+        await this.$carabassa.addItemTag(this.item, tagData)
         await this.fetchItem()
         this.closeAddTagDialog()
       } catch (err) {
@@ -910,7 +912,7 @@ export default {
     async deleteItem() {
       this.deletingItem = true
       try {
-        await this.$carabassa.deleteItem(this.item.id)
+        await this.$carabassa.deleteItem(this.item)
         this.deleteItemDialog = false
         this.$router.back()
       } catch (err) {

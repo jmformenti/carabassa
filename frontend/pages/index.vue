@@ -10,12 +10,13 @@
 </template>
 
 <script setup>
-import { computed, watch } from 'vue'
+import { computed, watch, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
 import { useDatasetStore } from '../stores/dataset'
 
 const datasetStore = useDatasetStore()
 const router = useRouter()
+const { $carabassa } = useNuxtApp()
 
 const hasDataset = computed(() => !!datasetStore.dataset)
 const datasetsLoaded = computed(() => datasetStore.datasetsLoaded)
@@ -26,4 +27,17 @@ watch(() => datasetStore.dataset, (newDataset) => {
     router.replace(`/dataset/${newDataset.name}`)
   }
 }, { immediate: true })
+
+onMounted(async () => {
+  if (datasetsLoaded.value && !hasDataset.value) {
+    try {
+      const datasets = await $carabassa.getDatasets()
+      if (datasets && datasets.length > 0) {
+        datasetStore.dataset = datasets[0]
+      }
+    } catch (e) {
+      console.error('Error fetching datasets on index page:', e)
+    }
+  }
+})
 </script>

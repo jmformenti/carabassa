@@ -25,6 +25,7 @@ import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.multipart.MultipartFile;
 
 import jakarta.validation.Valid;
+
 @RestController
 @RequestMapping(value = {"/api/dataset"})
 public interface DatasetController {
@@ -53,7 +54,9 @@ public interface DatasetController {
 
     @GetMapping(value = "/{datasetId}/item")
     PagedModel<ItemRepresentation> findItems(@PathVariable("datasetId") Long datasetId,
-                                             @RequestParam(value = "search", required = false) String search, Pageable pageable);
+                                             @RequestParam(value = "search", required = false) String search,
+                                             @RequestParam(value = "includeTags", required = false, defaultValue = "false") boolean includeTags,
+                                             Pageable pageable);
 
     @GetMapping(value = "/{datasetId}/item/{id}")
     ItemRepresentation findItem(@PathVariable("datasetId") Long datasetId, @PathVariable("id") Long itemId);
