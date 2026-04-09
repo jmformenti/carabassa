@@ -14,12 +14,7 @@ export const useAuthStore = defineStore('auth', {
     authHeaders: (state) => (state.token ? { Authorization: `Bearer ${state.token}` } : {}),
   },
   actions: {
-    async login(username: string, password: string) {
-      const config = useRuntimeConfig()
-      const data: any = await $fetch(`${config.public.apiBaseUrl}/api/auth/login`, {
-        method: 'POST',
-        body: { username, password },
-      })
+    setSession(data: any) {
       this.token = data.token
       this.username = data.username
       this.role = data.role
@@ -36,6 +31,14 @@ export const useAuthStore = defineStore('auth', {
         )
       }
     },
+    async login(username: string, password: string) {
+      const config = useRuntimeConfig()
+      const data: any = await $fetch(`${config.public.apiBaseUrl}/api/auth/login`, {
+        method: 'POST',
+        body: { username, password },
+      })
+      this.setSession(data)
+    },
     logout() {
       this.token = null
       this.username = null
@@ -51,10 +54,7 @@ export const useAuthStore = defineStore('auth', {
         if (saved) {
           try {
             const data = JSON.parse(saved)
-            this.token = data.token
-            this.username = data.username
-            this.role = data.role
-            this.defaultDataset = data.defaultDataset || null
+            this.setSession(data)
           } catch (e) {
             // ignore
           }

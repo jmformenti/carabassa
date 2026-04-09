@@ -90,6 +90,36 @@
         </v-card-text>
       </v-card>
     </v-footer>
+
+    <v-dialog
+      v-model="sessionDialog"
+      max-width="420"
+    >
+      <v-card>
+        <v-card-title class="text-h6">Session expiring</v-card-title>
+        <v-card-text>
+          Your session will expire soon. Do you want to continue?
+        </v-card-text>
+        <v-card-actions>
+          <v-spacer />
+          <v-btn
+            color="orange-darken-4"
+            @click="handleLogout"
+          >
+            Logout
+          </v-btn>
+          <v-btn
+            color="orange-darken-4"
+            :loading="refreshingSession"
+            :disabled="refreshingSession"
+            @click="refreshSession"
+          >
+            Continue
+          </v-btn>
+          <v-spacer />
+        </v-card-actions>
+      </v-card>
+    </v-dialog>
   </v-app>
 </template>
 
@@ -110,6 +140,10 @@ export default {
       drawer: false,
       datasets: [],
       showPwaDebug: false,
+      sessionDialog: false,
+      sessionWarningTimeout: null,
+      sessionExpiryTimeout: null,
+      refreshingSession: false,
       items: [
         {
           title: 'Search',
@@ -150,6 +184,11 @@ export default {
         await this.initDataset()
         this.datasetStore.datasetsLoaded = true
       })
+    this.scheduleSessionWarning()
+  },
+
+  beforeUnmount () {
+    this.clearSessionTimers()
   },
 
   computed: {
@@ -186,6 +225,11 @@ export default {
           this.datasetStore.datasetsLoaded = true
           console.log('datasetsLoaded set to true')
         }
+        if (isAuth) {
+          this.scheduleSessionWarning()
+        } else {
+          this.clearSessionTimers()
+        }
       }
     }
   },
@@ -194,6 +238,10 @@ export default {
     logout () {
       this.authStore.logout()
       this.$router.push('/login')
+    },
+    handleLogout () {
+      this.sessionDialog = false
+      this.logout()
     },
     updatePwaDebugVisibility () {
       if (typeof window === 'undefined') return
@@ -243,6 +291,71 @@ export default {
         if (this.$route.path !== '/login') {
           this.changeDataset(this.datasets[0])
         }
+      }
+    },
+
+    getTokenExpMs (token) {
+      try {
+        const payload = token.split('.')[1]
+        const base64 = payload.replace(/-/g, '+').replace(/_/g, '/')
+        const json = decodeURIComponent(atob(base64).split('').map(c =>
+          '%' + ('00' + c.charCodeAt(0).toString(16)).slice(-2)
+        ).join(''))
+        const data = JSON.parse(json)
+        if (!data.exp) return null
+        return data.exp * 1000
+      } catch (e) {
+        return null
+      }
+    },
+
+    clearSessionTimers () {
+      if (this.sessionWarningTimeout) {
+        clearTimeout(this.sessionWarningTimeout)
+        this.sessionWarningTimeout = null
+      }
+      if (this.sessionExpiryTimeout) {
+        clearTimeout(this.sessionExpiryTimeout)
+        this.sessionExpiryTimeout = null
+      }
+    },
+
+    scheduleSessionWarning () {
+      this.clearSessionTimers()
+      const token = this.authStore.token
+      if (!token) return
+      const expMs = this.getTokenExpMs(token)
+      if (!expMs) return
+
+      const now = Date.now()
+      const msUntilExp = expMs - now
+      if (msUntilExp <= 0) {
+        this.handleLogout()
+        return
+      }
+
+      const warningMs = Math.max(msUntilExp - 60000, 0)
+      this.sessionWarningTimeout = setTimeout(() => {
+        this.sessionDialog = true
+      }, warningMs)
+
+      this.sessionExpiryTimeout = setTimeout(() => {
+        this.handleLogout()
+      }, msUntilExp)
+    },
+
+    async refreshSession () {
+      if (this.refreshingSession) return
+      this.refreshingSession = true
+      try {
+        const data = await this.$carabassa.refreshToken()
+        this.authStore.setSession(data)
+        this.sessionDialog = false
+        this.scheduleSessionWarning()
+      } catch (e) {
+        this.handleLogout()
+      } finally {
+        this.refreshingSession = false
       }
     }
   }
