@@ -35,6 +35,9 @@ public class UserEntity {
     @Column(nullable = false)
     private String role;
 
+    @Column
+    private String defaultDataset;
+
     @Column(nullable = false)
     private boolean enabled = true;
  

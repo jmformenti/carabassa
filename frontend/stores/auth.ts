@@ -6,6 +6,7 @@ export const useAuthStore = defineStore('auth', {
     token: null,
     username: null,
     role: null,
+    defaultDataset: null,
   }),
   getters: {
     isAuthenticated: (state) => !!state.token,
@@ -22,6 +23,7 @@ export const useAuthStore = defineStore('auth', {
       this.token = data.token
       this.username = data.username
       this.role = data.role
+      this.defaultDataset = data.defaultDataset || null
       if (import.meta.client) {
         localStorage.setItem(
           'carabassa_auth',
@@ -29,6 +31,7 @@ export const useAuthStore = defineStore('auth', {
             token: this.token,
             username: this.username,
             role: this.role,
+            defaultDataset: this.defaultDataset,
           })
         )
       }
@@ -37,6 +40,7 @@ export const useAuthStore = defineStore('auth', {
       this.token = null
       this.username = null
       this.role = null
+      this.defaultDataset = null
       if (import.meta.client) {
         localStorage.removeItem('carabassa_auth')
       }
@@ -50,6 +54,7 @@ export const useAuthStore = defineStore('auth', {
             this.token = data.token
             this.username = data.username
             this.role = data.role
+            this.defaultDataset = data.defaultDataset || null
           } catch (e) {
             // ignore
           }

@@ -22,4 +22,6 @@ public class UserRequest {
 
     private boolean enabled = true;
 
+    private String defaultDataset;
+
 }

@@ -12,6 +12,7 @@ public class UserResponse {
     private Long id;
     private String username;
     private String role;
+    private String defaultDataset;
     private boolean enabled;
     private Instant createdAt;
 
