@@ -83,7 +83,7 @@ public class AuthController {
         }
  
         String token = jwtService.generateToken(user.getUsername(), user.getRole());
-        return new LoginResponse(token, user.getUsername(), user.getRole());
+        return new LoginResponse(token, user.getUsername(), user.getRole(), user.getDefaultDataset());
     }
  
     // -------------------------------------------------------------------------
@@ -112,6 +112,7 @@ public class AuthController {
                 passwordEncoder.encode(request.getPassword()),
                 request.getRole().toUpperCase());
         user.setEnabled(request.isEnabled());
+        user.setDefaultDataset(normalizeDefaultDataset(request.getDefaultDataset()));
         return toResponse(userRepository.save(user));
     }
  
@@ -130,6 +131,9 @@ public class AuthController {
         user.setUsername(request.getUsername());
         user.setRole(request.getRole().toUpperCase());
         user.setEnabled(request.isEnabled());
+        if (request.getDefaultDataset() != null) {
+            user.setDefaultDataset(normalizeDefaultDataset(request.getDefaultDataset()));
+        }
         if (request.getPassword() != null && !request.getPassword().isBlank()) {
             user.setPasswordHash(passwordEncoder.encode(request.getPassword()));
         }
@@ -169,14 +173,33 @@ public class AuthController {
         user.setPasswordHash(passwordEncoder.encode(request.password()));
         userRepository.save(user);
     }
+
+    @PutMapping("/me/default-dataset")
+    @ResponseStatus(HttpStatus.NO_CONTENT)
+    public void updateMyDefaultDataset(@RequestBody DefaultDatasetRequest request) {
+        String username = org.springframework.security.core.context.SecurityContextHolder.getContext().getAuthentication().getName();
+        UserEntity user = userRepository.findByUsername(username)
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "User not found"));
+
+        user.setDefaultDataset(normalizeDefaultDataset(request.defaultDataset()));
+        userRepository.save(user);
+    }
  
     // -------------------------------------------------------------------------
  
     private UserResponse toResponse(UserEntity user) {
         return new UserResponse(user.getId(), user.getUsername(),
-                user.getRole(), user.isEnabled(), user.getCreatedAt());
+                user.getRole(), user.getDefaultDataset(), user.isEnabled(), user.getCreatedAt());
+    }
+
+    private String normalizeDefaultDataset(String defaultDataset) {
+        if (defaultDataset == null || defaultDataset.isBlank()) {
+            return null;
+        }
+        return defaultDataset;
     }
  
 }
  
 record PasswordChangeRequest(String password) {}
+record DefaultDatasetRequest(String defaultDataset) {}

@@ -2,7 +2,7 @@
   <div>
     <v-row class="mb-4">
       <v-col class="d-flex align-center">
-        <h1 class="text-h4">User Management</h1>
+        <h2 class="text-h5 text-orange-darken-4">User Management</h2>
         <v-spacer />
         <v-btn
           color="orange-darken-2"

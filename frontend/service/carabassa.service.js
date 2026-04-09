@@ -197,6 +197,17 @@ export class CarabassaService {
     })
   }
 
+  changeMyDefaultDataset(defaultDataset) {
+    return $fetch(
+      `${this.apiBaseURL}/api/auth/me/default-dataset`,
+      {
+        method: 'PUT',
+        headers: this._headers(),
+        body: { defaultDataset }
+      }
+    )
+  }
+
   // -------------------------------------------------------------------------
   // User Management (Admin only)
   // -------------------------------------------------------------------------

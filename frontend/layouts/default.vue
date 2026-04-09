@@ -225,6 +225,19 @@ export default {
           this.datasetStore.dataset = null
         }
       } else {
+        const preferredDatasetName = this.authStore.defaultDataset
+        const preferredDataset = preferredDatasetName
+          ? this.datasets.find(dataset => dataset.name === preferredDatasetName)
+          : null
+
+        if (preferredDataset) {
+          this.datasetStore.dataset = preferredDataset
+          if (this.$route.path !== '/login') {
+            this.changeDataset(preferredDataset)
+          }
+          return
+        }
+
         // On root or login, pick the first dataset
         this.datasetStore.dataset = this.datasets[0]
         if (this.$route.path !== '/login') {
