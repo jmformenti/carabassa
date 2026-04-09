@@ -174,6 +174,20 @@ public class AuthController {
         userRepository.save(user);
     }
 
+    @PostMapping("/refresh")
+    public LoginResponse refreshToken() {
+        String username = org.springframework.security.core.context.SecurityContextHolder.getContext().getAuthentication().getName();
+        UserEntity user = userRepository.findByUsername(username)
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "User not found"));
+
+        if (!user.isEnabled()) {
+            throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "Account is disabled. Please contact an administrator.");
+        }
+
+        String token = jwtService.generateToken(user.getUsername(), user.getRole());
+        return new LoginResponse(token, user.getUsername(), user.getRole(), user.getDefaultDataset());
+    }
+
     @PutMapping("/me/default-dataset")
     @ResponseStatus(HttpStatus.NO_CONTENT)
     public void updateMyDefaultDataset(@RequestBody DefaultDatasetRequest request) {
