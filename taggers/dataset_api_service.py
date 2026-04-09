@@ -181,6 +181,9 @@ def generate_hash(file_path: Path) -> str:
 # Service implementation
 # ---------------------------------------------------------------------------
 
+import urllib3
+urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
+
 class DatasetApiService:
     """
     Python equivalent of ``DatasetApiServiceImpl.java``.
@@ -192,9 +195,12 @@ class DatasetApiService:
         datasets = service.find_all()
     """
 
-    def __init__(self, base_url: str, token: str | None = None) -> None:
+    def __init__(self, base_url: str, token: str | None = None, verify_ssl: bool = True) -> None:
         self.base_url = base_url if base_url.endswith("/") else base_url + "/"
         self.session = requests.Session()
+        self.session.verify = verify_ssl
+        if not verify_ssl:
+            urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
         if token:
             self.session.headers.update({"Authorization": f"Bearer {token}"})
 
@@ -328,6 +334,7 @@ class DatasetApiService:
         search_string: str | None = None,
         page: int | None = None,
         size: int | None = None,
+        include_tags: bool | None = None,
     ) -> list[Item] | PagedResult[Item]:
         """
         Return items in a dataset.
@@ -341,6 +348,8 @@ class DatasetApiService:
             params["size"] = size
         elif page is None:
             params["size"] = 100  # Default larger batch for fetch-all
+        if include_tags is not None:
+            params["includeTags"] = "true" if include_tags else "false"
 
         path = f"dataset/{dataset_id}/item"
 

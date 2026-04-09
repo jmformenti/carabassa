@@ -132,7 +132,7 @@ if [[ "${RESET_DB}" == "true" ]]; then
     echo "Failed to obtain authentication token. Check backend logs."
     exit 1
   fi
-  
+
   echo "Importing items using the CLI..."
   (
     cd "${ROOT_DIR}/cli"
@@ -146,6 +146,8 @@ if [[ "${RESET_DB}" == "true" ]]; then
     mvn spring-boot:run -Dspring-boot.run.arguments="upload --dataset=test --path=../backend/engine/indexer/rdbms/src/test/resources/images"
     mvn spring-boot:run -Dspring-boot.run.arguments="upload --dataset=test --path=../backend/engine/indexer/rdbms/src/test/resources/videos"
   )
+
+  echo "API Token: ${TOKEN}"
   echo "Dataset 'test' created and items imported."
 fi
 

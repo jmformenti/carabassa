@@ -29,6 +29,8 @@ class DatasetTagger:
         self.parser = argparse.ArgumentParser(description=description)
         self.parser.add_argument("--dataset", type=str, help="Name of the Carabassa dataset to process")
         self.parser.add_argument("--api-url", type=str, default=os.environ.get("CARABASSA_API_URL", "http://localhost:8080/api/"), help="Carabassa API URL")
+        self.parser.add_argument("--insecure", action="store_true", help="Disable SSL certificate verification")
+        self.parser.add_argument("--debug", action="store_true", help="Enable debug logging")
         
         # Allow subclasses to add more arguments
         self.add_custom_args(self.parser)
@@ -42,6 +44,20 @@ class DatasetTagger:
         Override this method to add custom arguments to the parser.
         """
         pass
+
+    def include_tags_in_search(self) -> bool:
+        """
+        Override to include tags in find_items responses.
+        """
+        return False
+
+    @property
+    def needs_content(self) -> bool:
+        """
+        Override to True (default) if the tagger needs the image content/binary to process items.
+        If False, process_item will be called with img=None.
+        """
+        return True
 
     def load_image(self, path: Path):
         """
@@ -83,6 +99,10 @@ class DatasetTagger:
         Main execution method.
         """
         self.args = self.parser.parse_args()
+
+        if self.args.debug:
+            logging.getLogger().setLevel(logging.DEBUG)
+            logger.debug("Debug logging enabled.")
         
         if getattr(self, "handle_test_mode", lambda: False)():
             return
@@ -92,7 +112,11 @@ class DatasetTagger:
 
         logger.info(f"Processing dataset '{self.args.dataset}' with API URL '{self.args.api_url}'")
         token = os.environ.get("CARABASSA_TOKEN")
-        self.service = DatasetApiService(self.args.api_url, token=token)
+        self.service = DatasetApiService(
+            self.args.api_url, 
+            token=token, 
+            verify_ssl=not self.args.insecure
+        )
 
         try:
             self.dataset_id = self.service.find_by_name(self.args.dataset)
@@ -102,8 +126,13 @@ class DatasetTagger:
 
         if not self.setup():
             return
-        self._process_dataset_items()
-        self.post_process()
+        
+        try:
+            self._process_dataset_items()
+        except KeyboardInterrupt:
+            logger.info("\nProcess interrupted by user.")
+        finally:
+            self.post_process()
 
     def get_search_query(self) -> str:
         """
@@ -179,7 +208,6 @@ class DatasetTagger:
 
                 for item in items:
                     self._handle_single_item(item, pbar)
-                    pbar.update(1)
 
     def _process_with_paged_prefetch(self, search_query, batch_size):
         first_result = self._fetch_page_sync(search_query, 0, batch_size)
@@ -202,7 +230,6 @@ class DatasetTagger:
                     break
                 for item in items:
                     self._handle_single_item(item, pbar)
-                    pbar.update(1)
                 if current_page >= total_pages - 1:
                     break
 
@@ -242,6 +269,7 @@ class DatasetTagger:
             search_string=search_query,
             page=page,
             size=batch_size,
+            include_tags=self.include_tags_in_search(),
         )
         return result
 
@@ -251,12 +279,13 @@ class DatasetTagger:
 
     def _handle_single_item(self, item, pbar):
         try:
-            # Download item to cache
-            img_path = self.service.get_item_content(self.dataset_id, item.id)
-            
-            img = self.load_image(img_path)
-            if img is None:
-                tqdm.write(f"⚠ No image for item {item.id} found at: {img_path}", file=sys.stderr)
+            img = None
+            if self.needs_content:
+                # Download item to cache
+                img_path = self.service.get_item_content(self.dataset_id, item.id)
+                img = self.load_image(img_path)
+                if img is None:
+                    tqdm.write(f"⚠ No image for item {item.id} found at: {img_path}", file=sys.stderr)
 
             tags = self.process_item(item, img)
 
@@ -266,6 +295,8 @@ class DatasetTagger:
                         self.add_item_tag(item.id, tag)
                     except Exception as e:
                         tqdm.write(f"Failed to add tag to item {item.filename} ({item.id}): {e}", file=sys.stderr)
+            
+            pbar.update(1)
         
         except Exception as e:
             tqdm.write(f"Error processing item {item.id} ({item.filename}): {e}", file=sys.stderr)

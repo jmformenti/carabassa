@@ -479,7 +479,8 @@ export default {
       rules: {
         required: value => !!value || 'Required.',
         numeric: value => !isNaN(parseFloat(value)) && isFinite(value) || 'Must be a number.'
-      }
+      },
+      tagValuesCache: new Map()
     }
   },
   computed: {
@@ -731,6 +732,7 @@ export default {
         }
 
         await this.$carabassa.addItemTag(this.item, tagData)
+        this.invalidateTagCache(tagData.name)
         await this.fetchItem()
         this.closeAddTagDialog()
       } catch (err) {
@@ -750,6 +752,7 @@ export default {
       this.deletingTag = true
       try {
         await this.$carabassa.deleteItemTag(this.item.id, this.tagToDelete.id)
+        this.invalidateTagCache(this.tagToDelete.name)
         await this.fetchItem()
         this.deleteTagDialog = false
         this.tagToDelete = null
@@ -825,15 +828,36 @@ export default {
         this.tagValueOptions = []
         return
       }
+
+      if (this.tagValuesCache.has(tagName)) {
+        this.tagValueOptions = await this.tagValuesCache.get(tagName)
+        return
+      }
+
+      const promise = (async () => {
+        try {
+          const values = await this.$carabassa.getItemTagValues(tagName)
+          return Array.isArray(values) ? values : []
+        } catch (err) {
+          this.tagValuesCache.delete(tagName)
+          throw err
+        }
+      })()
+
+      this.tagValuesCache.set(tagName, promise)
       this.tagValueLoading = true
       try {
-        const values = await this.$carabassa.getItemTagValues(tagName)
-        this.tagValueOptions = Array.isArray(values) ? values : []
+        this.tagValueOptions = await promise
       } catch (err) {
         console.warn('Failed to load tag values:', err)
         this.tagValueOptions = []
       } finally {
         this.tagValueLoading = false
+      }
+    },
+    invalidateTagCache(tagName) {
+      if (this.tagValuesCache) {
+        this.tagValuesCache.delete(tagName)
       }
     },
     extractTagName(selection) {
