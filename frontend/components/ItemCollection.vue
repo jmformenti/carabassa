@@ -327,7 +327,7 @@ const reset = () => {
   datasetStore.setListState({ datasetName: route.params.name || null })
 }
 
-const search = () => {
+const search = async () => {
   if (!hasDataset.value) return
   if (props.fixedSearch) return
 
@@ -337,7 +337,7 @@ const search = () => {
   
   query.sort = combinedSort.value
   
-  router.push({ query })
+  await router.push({ query })
   reset()
   getItems()
 }
