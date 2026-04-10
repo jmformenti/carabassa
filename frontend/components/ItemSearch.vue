@@ -219,10 +219,10 @@ const handleInput = async () => {
   const textBefore = (searchString.value || '').substring(0, pos)
 
   // Match tagName:partialValue (allow spaces in value)
-  const match = textBefore.match(/(\w+):([^:]*)$/)
+  const match = textBefore.match(/(?:"([^"]+)"|([\w.]+)):([^:]*)$/)
   if (match) {
-    const key = match[1]
-    let val = match[2]
+    const key = match[1] || match[2]
+    let val = match[3]
 
     // If the value is already quoted, strip the starting quote for filtering
     if (val.startsWith('"')) {
@@ -257,7 +257,7 @@ const handleInput = async () => {
           currentTagMatch.value = {
             tagName: key,
             value: val,
-            start: pos - match[2].length,
+            start: pos - match[3].length,
             end: pos
           }
           menu.value = true
@@ -278,7 +278,9 @@ const selectSuggestion = (suggestion) => {
   const text = searchString.value
   let finalSuggestion = suggestion
   if (suggestion.includes(' ')) {
-    finalSuggestion = `"${suggestion}"`
+    // Escape internal double-quotes before wrapping
+    const escaped = suggestion.replace(/"/g, '\\"')
+    finalSuggestion = `"${escaped}"`
   }
 
   const newText = text.substring(0, match.start) + finalSuggestion + ' ' + text.substring(match.end)

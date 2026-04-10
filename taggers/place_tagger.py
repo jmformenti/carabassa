@@ -321,12 +321,15 @@ class PlaceTagger(DatasetTagger):
 
         if self.args.force and getattr(item, "tags", None):
             for t in item.tags:
-                if t.name in (TAG_NAME, TAGGER_TAG_NAME) and t.id is not None:
+                # Tags are dicts, not objects
+                tag_name = t.get("name") if isinstance(t, dict) else t.name
+                tag_id = t.get("id") if isinstance(t, dict) else t.id
+                if tag_name in (TAG_NAME, TAGGER_TAG_NAME) and tag_id is not None:
                     try:
-                        self.service.delete_item_tag(self.dataset_id, item.id, t.id)
+                        self.service.delete_item_tag(self.dataset_id, item.id, tag_id)
                     except Exception as e:
                         tqdm.write(
-                            f"Failed to delete existing tag {t.name} for item {item.id}: {e}",
+                            f"Failed to delete existing tag {tag_name} for item {item.id}: {e}",
                             file=sys.stderr,
                         )
 
@@ -396,15 +399,17 @@ class PlaceTagger(DatasetTagger):
         lat, lon = None, None
         if getattr(item, "tags", None):
             for t in item.tags:
-                tag_name = t.name
+                # Tags are dicts, not objects
+                tag_name = t.get("name") if isinstance(t, dict) else t.name
+                tag_value = t.get("value") if isinstance(t, dict) else t.value
                 if tag_name == "meta.GeoLatitude":
                     try:
-                        lat = float(t.value)
+                        lat = float(tag_value)
                     except (ValueError, TypeError):
                         pass
                 elif tag_name == "meta.GeoLongitude":
                     try:
-                        lon = float(t.value)
+                        lon = float(tag_value)
                     except (ValueError, TypeError):
                         pass
         return lat, lon

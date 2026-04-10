@@ -847,12 +847,23 @@ export default {
       this.tagValuesCache.set(tagName, promise)
       this.tagValueLoading = true
       try {
-        this.tagValueOptions = await promise
+        const result = await promise
+        // Only set options if the tagName still matches the current selection
+        const currentTagName = this.extractTagName(this.tagForm.nameSelection)
+        if (tagName === currentTagName) {
+          this.tagValueOptions = result
+        }
       } catch (err) {
         console.warn('Failed to load tag values:', err)
-        this.tagValueOptions = []
+        const currentTagName = this.extractTagName(this.tagForm.nameSelection)
+        if (tagName === currentTagName) {
+          this.tagValueOptions = []
+        }
       } finally {
-        this.tagValueLoading = false
+        const currentTagName = this.extractTagName(this.tagForm.nameSelection)
+        if (tagName === currentTagName) {
+          this.tagValueLoading = false
+        }
       }
     },
     invalidateTagCache(tagName) {
