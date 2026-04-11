@@ -829,22 +829,22 @@ export default {
         return
       }
 
+      let promise
       if (this.tagValuesCache.has(tagName)) {
-        this.tagValueOptions = await this.tagValuesCache.get(tagName)
-        return
+        promise = this.tagValuesCache.get(tagName)
+      } else {
+        promise = (async () => {
+          try {
+            const values = await this.$carabassa.getItemTagValues(tagName)
+            return Array.isArray(values) ? values : []
+          } catch (err) {
+            this.tagValuesCache.delete(tagName)
+            throw err
+          }
+        })()
+        this.tagValuesCache.set(tagName, promise)
       }
 
-      const promise = (async () => {
-        try {
-          const values = await this.$carabassa.getItemTagValues(tagName)
-          return Array.isArray(values) ? values : []
-        } catch (err) {
-          this.tagValuesCache.delete(tagName)
-          throw err
-        }
-      })()
-
-      this.tagValuesCache.set(tagName, promise)
       this.tagValueLoading = true
       try {
         const result = await promise
