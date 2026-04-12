@@ -192,10 +192,10 @@ export class CarabassaService {
     }
   }
 
-  async deleteItemTag(itemId, tagId) {
+  async deleteItemTag(item, tagId) {
     try {
       await this.fetch(
-        `${this.apiBaseURL}/api/dataset/${this.datasetStore.dataset.id}/item/${itemId}/tag/${tagId}`,
+        `${this.apiBaseURL}/api/dataset/${item.datasetId}/item/${item.id}/tag/${tagId}`,
         { method: 'DELETE', headers: this._headers() }
       )
     } catch (err) {

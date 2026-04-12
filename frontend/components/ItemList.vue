@@ -35,7 +35,7 @@
           <div
             class="favorite-overlay"
             :class="{ 'favorite-active': isFavorite(item) }"
-            @click.stop="toggleFavorite(item)"
+            @click.stop="toggleFavoriteWrapper(item)"
           >
             <v-icon
               :color="isFavorite(item) ? 'amber' : 'white'"
@@ -202,9 +202,14 @@ const props = defineProps({
   }
 })
 
+const toggleFavoriteWrapper = async (item) => {
+  await toggleFavorite(item)
+  emit('toggle-favorite', item)
+}
+
 const isSelected = (item) => props.selectedItems.includes(item.id)
 
-defineEmits(['select', 'toggle-select', 'delete', 'copy-link'])
+const emit = defineEmits(['select', 'toggle-select', 'delete', 'copy-link', 'toggle-favorite'])
 </script>
 
 <style scoped>
@@ -247,6 +252,13 @@ defineEmits(['select', 'toggle-select', 'delete', 'copy-link'])
   transition: all 0.2s;
   box-shadow: 0 0 2px rgba(0,0,0,0.2);
 }
+@media (hover: none) {
+  .selection-overlay {
+    background: rgba(255, 255, 255, 0.7);
+    width: 28px;
+    height: 28px;
+  }
+}
 .selection-overlay:hover {
   background: rgba(255, 255, 255, 0.9);
   transform: scale(1.1);
@@ -272,6 +284,14 @@ defineEmits(['select', 'toggle-select', 'delete', 'copy-link'])
   opacity: 1;
   background: rgba(0, 0, 0, 0.4);
 }
+@media (hover: none) {
+  .favorite-overlay {
+    opacity: 1;
+    background: rgba(0, 0, 0, 0.3);
+    width: 32px;
+    height: 32px;
+  }
+}
 .favorite-overlay:hover {
   background: rgba(0, 0, 0, 0.6);
   transform: scale(1.15);
@@ -294,6 +314,17 @@ defineEmits(['select', 'toggle-select', 'delete', 'copy-link'])
 }
 .with-pointer:hover .actions-overlay {
   transform: translateY(0);
+}
+@media (hover: none) {
+  .actions-overlay {
+    transform: translateY(0);
+    height: 42px; /* Slightly more compact on mobile */
+    background: linear-gradient(to top, rgba(0,0,0,0.6) 0%, rgba(0,0,0,0) 100%);
+  }
+  .actions-overlay :deep(.v-btn) {
+    width: 32px;
+    height: 32px;
+  }
 }
 .actions-overlay :deep(.v-btn) {
   background: rgba(255,255,255,0.1);

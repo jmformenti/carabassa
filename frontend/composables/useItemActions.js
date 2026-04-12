@@ -22,7 +22,7 @@ export const useItemActions = () => {
 
     const favTag = getFavoriteTag(item)
     if (favTag) {
-      await $carabassa.deleteItemTag(item.id, favTag.id)
+      await $carabassa.deleteItemTag(item, favTag.id)
       if (item.tags) {
         item.tags = item.tags.filter(t => t.id !== favTag.id)
       }
