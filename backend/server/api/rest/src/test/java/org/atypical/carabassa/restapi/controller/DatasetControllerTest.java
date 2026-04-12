@@ -357,10 +357,10 @@ public class DatasetControllerTest extends DatasetControllerHelper {
         }
 
         @Test
-        public void findDatasetItemTagValuesByName() throws Exception {
+        public void findDistinctValuesByTagName() throws Exception {
                 when(datasetService.findById(DATASET_ID)).thenReturn(dataset);
                 Page<String> page = new PageImpl<>(List.of(TAG_VALUE), PageRequest.of(0, 10), 1L);
-                when(datasetService.findDistinctTagValuesByName(isA(Dataset.class), isA(String.class),
+                when(datasetService.findDistinctValuesByTagName(isA(Dataset.class), isA(String.class),
                                 isA(Pageable.class)))
                                 .thenReturn(page);
 
