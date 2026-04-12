@@ -197,11 +197,11 @@ public class DatasetControllerImpl implements DatasetController {
     }
 
     @Override
-    public PagedModel<String> findDatasetItemTagValuesByName(Long datasetId, String tagName, Pageable pageable) {
+    public PagedModel<String> findDistinctValuesByTagName(Long datasetId, String tagName, Pageable pageable) {
         Dataset dataset = getDataset(datasetId);
         Page<String> page;
         try {
-            page = datasetService.findDistinctTagValuesByName(dataset, tagName, pageable);
+            page = datasetService.findDistinctValuesByTagName(dataset, tagName, pageable);
         } catch (EntityNotFoundException e) {
             throw new ResponseStatusException(HttpStatus.NOT_FOUND, e.getMessage());
         }

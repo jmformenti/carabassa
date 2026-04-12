@@ -46,7 +46,7 @@ public interface DatasetService {
 
     Page<ItemTagInfo> findItemTagsByName(Dataset dataset, String tagName, Pageable pageable) throws EntityNotFoundException;
 
-    Page<String> findDistinctTagValuesByName(Dataset dataset, String tagName, Pageable pageable) throws EntityNotFoundException;
+    Page<String> findDistinctValuesByTagName(Dataset dataset, String tagName, Pageable pageable) throws EntityNotFoundException;
 
     Dataset findByName(String datasetName) throws EntityNotFoundException;
 

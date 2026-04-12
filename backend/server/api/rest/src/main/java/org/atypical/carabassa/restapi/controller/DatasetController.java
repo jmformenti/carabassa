@@ -66,8 +66,8 @@ public interface DatasetController {
             @PathVariable("tagName") String tagName, Pageable pageable);
 
     @GetMapping(value = "/{datasetId}/item/tag/{tagName}/values", produces = "application/hal+json")
-    PagedModel<String> findDatasetItemTagValuesByName(@PathVariable("datasetId") Long datasetId,
-            @PathVariable("tagName") String tagName, Pageable pageable);
+    PagedModel<String> findDistinctValuesByTagName(@PathVariable("datasetId") Long datasetId,
+                                                   @PathVariable("tagName") String tagName, Pageable pageable);
 
     @GetMapping(value = "/{datasetId}/item/exists/{hash}")
     void existsItem(@PathVariable("datasetId") Long datasetId, @PathVariable("hash") String hash);

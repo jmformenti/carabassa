@@ -1,6 +1,6 @@
 <template>
   <v-row
-    justify="center" 
+    justify="center"
     align="center"
   >
     <v-col
@@ -73,14 +73,19 @@
             </template>
           </v-text-field>
         </template>
-        <v-list v-if="suggestions.length > 0" density="compact">
-          <v-list-item
-            v-for="(item, i) in suggestions"
-            :key="i"
-            @click="selectSuggestion(item)"
+        <v-list v-if="suggestions.length > 0" class="pa-0" density="compact" elevation="2">
+          <v-virtual-scroll
+            :items="suggestions"
+            max-height="300"
           >
-            <v-list-item-title>{{ item }}</v-list-item-title>
-          </v-list-item>
+            <template #default="{ item }">
+              <v-list-item
+                @click="selectSuggestion(item)"
+              >
+                <v-list-item-title>{{ item }}</v-list-item-title>
+              </v-list-item>
+            </template>
+          </v-virtual-scroll>
         </v-list>
       </v-menu>
     </v-col>
@@ -197,6 +202,8 @@ const onMountedActions = async () => {
 
 onMounted(onMountedActions)
 
+const tagValuesCache = new Map()
+
 const handleInput = async () => {
   await nextTick()
   if (!textField.value) {
@@ -207,30 +214,50 @@ const handleInput = async () => {
   if (!el) return
   const input = el.querySelector('input')
   if (!input) return
-  
+
   const pos = input.selectionStart
   const textBefore = (searchString.value || '').substring(0, pos)
-  
-  // Match tagName:partialValue
-  const match = textBefore.match(/(\w+):([^:\s]*)$/)
+
+  // Match tagName:partialValue (allow spaces in value)
+  const match = textBefore.match(/(?:"([^"]+)"|([\w.]+)):([^:]*)$/)
   if (match) {
-    const key = match[1]
-    const val = match[2]
-    
+    const key = match[1] || match[2]
+    let val = match[3]
+
+    // If the value is already quoted, strip the starting quote for filtering
+    if (val.startsWith('"')) {
+      val = val.substring(1)
+    }
+
     // Find tag info
     const tagInfo = (tagInfos.value || []).find(t => t.tagName === key || t.alias === key)
     if (tagInfo && tagInfo.type === 'STRING') {
       try {
-        const values = await $carabassa.getItemTagValues(tagInfo.tagName)
-        suggestions.value = values.filter(v => 
+        let values;
+        if (tagValuesCache.has(tagInfo.tagName)) {
+          values = await tagValuesCache.get(tagInfo.tagName)
+        } else {
+          const promise = (async () => {
+            try {
+              return await $carabassa.getItemTagValues(tagInfo.tagName)
+            } catch (err) {
+              tagValuesCache.delete(tagInfo.tagName)
+              throw err
+            }
+          })()
+          tagValuesCache.set(tagInfo.tagName, promise)
+          values = await promise
+        }
+
+        suggestions.value = values.filter(v =>
           String(v || '').toLowerCase().startsWith(val.toLowerCase())
-        ).slice(0, 10)
-        
+        )
+
         if (suggestions.value.length > 0) {
           currentTagMatch.value = {
             tagName: key,
             value: val,
-            start: pos - val.length,
+            start: pos - match[3].length,
             end: pos
           }
           menu.value = true
@@ -247,12 +274,19 @@ const handleInput = async () => {
 const selectSuggestion = (suggestion) => {
   const match = currentTagMatch.value
   if (!match) return
-  
+
   const text = searchString.value
-  const newText = text.substring(0, match.start) + suggestion + ' ' + text.substring(match.end)
+  let finalSuggestion = suggestion
+  if (suggestion.includes(' ')) {
+    // Escape internal double-quotes before wrapping
+    const escaped = suggestion.replace(/"/g, '\\"')
+    finalSuggestion = `"${escaped}"`
+  }
+
+  const newText = text.substring(0, match.start) + finalSuggestion + ' ' + text.substring(match.end)
   searchString.value = newText
   menu.value = false
-  
+
   // Refocus input
   nextTick(() => {
     textField.value.$el.querySelector('input').focus()

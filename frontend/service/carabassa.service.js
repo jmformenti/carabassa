@@ -5,7 +5,6 @@ export class CarabassaService {
   constructor(datasetStore, authStore) {
     const runtimeConfig = useRuntimeConfig()
     this.apiBaseURL = runtimeConfig.public.apiBaseUrl || ''
-    console.log(`API base url: ${this.apiBaseURL}`)
     this.datasetStore = datasetStore
     this.authStore = authStore
     this.tagInfosCache = null
@@ -55,19 +54,39 @@ export class CarabassaService {
   }
 
   getItems(currentPage, pageSize, searchString, sort) {
-    const sortParam = sort ? `&sort=${sort}` : ''
-    const searchParam = searchString ? `&search=${searchString}` : ''
+    const query = {
+      size: pageSize,
+      page: currentPage
+    }
+    if (searchString) {
+      query.search = searchString
+    }
+    if (sort) {
+      query.sort = sort
+    }
     return this.fetch(
-      `${this.apiBaseURL}/api/dataset/${this.datasetStore.dataset.id}/item?size=${pageSize}&page=${currentPage}${searchParam}${sortParam}`,
-      { headers: this._headers() }
+      `${this.apiBaseURL}/api/dataset/${this.datasetStore.dataset.id}/item`,
+      {
+        headers: this._headers(),
+        query: query
+      }
     )
   }
 
   getFavorites(currentPage, pageSize, sort) {
-    const sortParam = sort ? `&sort=${sort}` : ''
+    const query = {
+      size: pageSize,
+      page: currentPage
+    }
+    if (sort) {
+      query.sort = sort
+    }
     return this.fetch(
-      `${this.apiBaseURL}/api/user/favorite?size=${pageSize}&page=${currentPage}${sortParam}`,
-      { headers: this._headers() }
+      `${this.apiBaseURL}/api/user/favorite`,
+      {
+        headers: this._headers(),
+        query: query
+      }
     )
   }
 
@@ -214,17 +233,30 @@ export class CarabassaService {
     }
   }
 
-  getItemTagValues(tagName, page = 0, size = 100) {
-    return this.fetch(
-      `${this.apiBaseURL}/api/dataset/${this.datasetStore.dataset.id}/item/tag/${tagName}/values?page=${page}&size=${size}`,
-      { headers: this._headers() }
-    ).then((data) => {
-      if (data.content) return data.content
-      if (data._embedded && data._embedded.stringList) {
-        return data._embedded.stringList
-      }
-      return []
-    })
+  async getItemTagValues(tagName) {
+    let currentPage = 0;
+    let totalPages = 1;
+    let allValues = [];
+    const size = 100;
+
+    while (currentPage < totalPages) {
+      const data = await this.fetch(
+        `${this.apiBaseURL}/api/dataset/${this.datasetStore.dataset.id}/item/tag/${tagName}/values`,
+        {
+          headers: this._headers(),
+          query: {
+            page: currentPage,
+            size: size
+          }
+        }
+      );
+      const values = data.content || (data._embedded && data._embedded.stringList) || [];
+      allValues = allValues.concat(values);
+      totalPages = data.page ? data.page.totalPages : 1;
+      currentPage++;
+    }
+    allValues.sort((a, b) => String(a || '').localeCompare(String(b || ''), undefined, { sensitivity: 'base' }));
+    return allValues;
   }
 
   changeMyDefaultDataset(defaultDataset) {
