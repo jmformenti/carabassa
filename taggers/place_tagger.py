@@ -8,10 +8,13 @@ Dependencies:
     pip install geopy
 """
 
-import json
 import logging
+import math
 import sys
 import time
+from dataset_tagger import DatasetTagger
+from dataset_api_service import Tag, Dataset
+from collections import defaultdict
 from pathlib import Path
 from typing import List, Tuple, Optional
 from tqdm import tqdm
@@ -21,8 +24,6 @@ from geopy.exc import GeocoderTimedOut, GeocoderServiceError
 
 # Add current directory to path to import dataset_tagger
 sys.path.append(str(Path(__file__).parent))
-from dataset_tagger import DatasetTagger
-from dataset_api_service import Tag
 
 logger = logging.getLogger(__name__)
 
@@ -171,7 +172,6 @@ class SpatialIndex:
         """
         Returns (name, type) of the closest entry within radius.
         """
-        import math
         best_entry = None
         best_dist = float("inf")
         
@@ -254,14 +254,14 @@ class PlaceTagger(DatasetTagger):
         # Index for spatial caching (combines reference locations and previous results)
         self.spatial_index = SpatialIndex(radius_m=self.args.custom_radius)
         
-        if not self.args.force:
-            # 1. Load reference locations (manual tags)
-            self._load_spatial_data(SOURCE_TAG_NAME, "reference")
+        # 1. ALWAYS load reference locations (manual tags), they are ground truth
+        self._load_spatial_data(SOURCE_TAG_NAME, "reference")
             
+        if not self.args.force:
             # 2. Load existing resolved locations (auto-cache from previous runs)
             self._load_spatial_data(TAG_NAME, "auto-cache")
         else:
-            logger.info("Force mode enabled: skipping load of existing tags (clean start).")
+            logger.info("Force mode enabled: skipping load of auto-cache tags.")
 
         if self.args.local_nominatim_url:
             url = self.args.local_nominatim_url
@@ -279,14 +279,12 @@ class PlaceTagger(DatasetTagger):
     def _load_spatial_data(self, tag_name, label):
         logger.info(f"Loading {label} data from tag '{tag_name}'...")
         try:
-            # If global mode, we might need to iterate over all datasets, but for now 
-            # we'll use find_all_item_tags_by_name if it exists or just current dataset
-            
             datasets_to_search = []
             if self.args.global_locations:
-                datasets_to_search = self.service.find_datasets()
+                datasets_to_search = self.service.find_all()
             else:
-                datasets_to_search = [self.service.find_dataset(self.dataset_id)]
+                # We already have the current dataset ID and name from the tagger instance
+                datasets_to_search = [Dataset(id=self.dataset_id, name=self.args.dataset)]
 
             count = 0
             for dataset in datasets_to_search:
@@ -294,7 +292,12 @@ class PlaceTagger(DatasetTagger):
                 if not item_tags:
                     continue
 
-                for item_id, infos in tqdm(item_tags.items(), desc=f"Indexing {label} ({dataset.name})", leave=False):
+                # Group tags by item_id since find_dataset_item_tags_by_name returns a list
+                tags_by_item = defaultdict(list)
+                for it in item_tags:
+                    tags_by_item[it.item_id].append(it)
+
+                for item_id, infos in tqdm(tags_by_item.items(), desc=f"Indexing {label} ({dataset.name})", leave=False):
                     try:
                         item = self.service.find_item(dataset.id, item_id)
                         lat, lon = self._get_gps_from_item(item)
@@ -303,7 +306,11 @@ class PlaceTagger(DatasetTagger):
                             continue
 
                         for tag_info in infos:
-                            location_name = str(tag_info.value)
+                            if tag_info.tag_value is None:
+                                continue
+                            location_name = str(tag_info.tag_value).strip()
+                            if not location_name:
+                                continue
                             self.spatial_index.add_place(lat, lon, location_name, place_type=label)
                             count += 1
 

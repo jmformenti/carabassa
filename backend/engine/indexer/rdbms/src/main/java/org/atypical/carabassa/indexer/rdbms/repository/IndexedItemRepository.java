@@ -23,8 +23,10 @@ public interface IndexedItemRepository
             "where i.dataset=:dataset and t.name=:tagName")
     Page<Object[]> findItemTagsByName(Dataset dataset, String tagName, Pageable pageable);
 
-    @Query("select distinct t.textValue from IndexedItemEntity i join i.tags t " +
-            "where i.dataset=:dataset and t.name=:tagName")
+    @Query(value = "select distinct t.textValue from IndexedItemEntity i join i.tags t " +
+            "where i.dataset=:dataset and t.name=:tagName and t.textValue is not null and t.textValue <> ''",
+            countQuery = "select count(distinct t.textValue) from IndexedItemEntity i join i.tags t " +
+            "where i.dataset=:dataset and t.name=:tagName and t.textValue is not null and t.textValue <> ''")
     Page<String> findDistinctTagValuesByName(Dataset dataset, String tagName, Pageable pageable);
 
     @Query("from IndexedItemEntity where dataset=:dataset and id=:itemId")
