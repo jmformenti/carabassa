@@ -12,8 +12,6 @@ import logging
 import math
 import sys
 import time
-from dataset_tagger import DatasetTagger
-from dataset_api_service import Tag, Dataset
 from collections import defaultdict
 from pathlib import Path
 from typing import List, Tuple, Optional
@@ -24,6 +22,8 @@ from geopy.exc import GeocoderTimedOut, GeocoderServiceError
 
 # Add current directory to path to import dataset_tagger
 sys.path.append(str(Path(__file__).parent))
+from dataset_tagger import DatasetTagger
+from dataset_api_service import Tag, Dataset
 
 logger = logging.getLogger(__name__)
 
