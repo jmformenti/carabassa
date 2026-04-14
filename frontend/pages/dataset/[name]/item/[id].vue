@@ -751,7 +751,7 @@ export default {
 
       this.deletingTag = true
       try {
-        await this.$carabassa.deleteItemTag(this.item.id, this.tagToDelete.id)
+        await this.$carabassa.deleteItemTag(this.item, this.tagToDelete.id)
         this.invalidateTagCache(this.tagToDelete.name)
         await this.fetchItem()
         this.deleteTagDialog = false

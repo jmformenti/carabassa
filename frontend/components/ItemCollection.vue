@@ -79,6 +79,7 @@
           @select="expandItem"
           @toggle-select="toggleSelect"
           @delete="confirmDelete"
+          @toggle-favorite="onToggleFavorite"
         />
 
         <v-row>
@@ -206,8 +207,8 @@ const props = defineProps({
 const route = useRoute()
 const router = useRouter()
 const datasetStore = useDatasetStore()
-const authStore = useAuthStore()
 const { $carabassa } = useNuxtApp()
+const { isFavorite } = useItemActions()
 
 // Use fixedSearch if provided, otherwise route search
 const effectiveSearch = computed(() => {
@@ -402,6 +403,26 @@ const toggleSelect = (item) => {
     selectedIds.value.push(item.id)
   } else {
     selectedIds.value.splice(index, 1)
+  }
+}
+
+const onToggleFavorite = (item) => {
+  if (props.favorites && !isFavorite(item)) {
+    const previousLength = items.value.length
+    items.value = items.value.filter(i => i.id !== item.id)
+    const itemWasRemoved = items.value.length < previousLength
+
+    if (itemWasRemoved) {
+      totalItems.value = Math.max(0, totalItems.value - 1)
+    }
+
+    selectedIds.value = selectedIds.value.filter(id => id !== item.id)
+
+    datasetStore.setListState({
+      items: [...items.value],
+      totalItems: totalItems.value,
+      selectedIds: [...selectedIds.value]
+    })
   }
 }
 
