@@ -1,8 +1,12 @@
+[build-system]
+requires = ["setuptools>=61.0"]
+build-backend = "setuptools.build_meta"
+
 [project]
 name = "carabassa-taggers"
 version = "0.1.0"
 description = "Python taggers for the Carabassa REST API"
-requires-python = ">=3.12"
+requires-python = ">=3.11"
 dependencies = [
     "requests>=2.32",
     "chromadb>=1.4.0",
@@ -14,4 +18,16 @@ dependencies = [
     "torch>=2.10.0",
     "transformers>=5.3.0",
     "geopy>=2.4.1",
+]
+
+[tool.setuptools]
+py-modules = [
+    "aesthetic_tagger",
+    "check_dataset_images",
+    "dataset_api_service",
+    "dataset_tagger",
+    "duplicate_tagger",
+    "face_tagger",
+    "place_tagger",
+    "scene_tagger"
 ]
