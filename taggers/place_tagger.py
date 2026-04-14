@@ -293,9 +293,11 @@ class PlaceTagger(DatasetTagger):
                     continue
 
                 # Group tags by item_id since find_dataset_item_tags_by_name returns a list
+                # Filter out tags with None item_id to avoid calling find_item with None
                 tags_by_item = defaultdict(list)
                 for it in item_tags:
-                    tags_by_item[it.item_id].append(it)
+                    if it.item_id is not None:
+                        tags_by_item[it.item_id].append(it)
 
                 for item_id, infos in tqdm(tags_by_item.items(), desc=f"Indexing {label} ({dataset.name})", leave=False):
                     try:
