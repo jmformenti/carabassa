@@ -408,11 +408,20 @@ const toggleSelect = (item) => {
 
 const onToggleFavorite = (item) => {
   if (props.favorites && !isFavorite(item)) {
+    const previousLength = items.value.length
     items.value = items.value.filter(i => i.id !== item.id)
-    totalItems.value--
+    const itemWasRemoved = items.value.length < previousLength
+
+    if (itemWasRemoved) {
+      totalItems.value = Math.max(0, totalItems.value - 1)
+    }
+
+    selectedIds.value = selectedIds.value.filter(id => id !== item.id)
+
     datasetStore.setListState({
       items: [...items.value],
-      totalItems: totalItems.value
+      totalItems: totalItems.value,
+      selectedIds: [...selectedIds.value]
     })
   }
 }
