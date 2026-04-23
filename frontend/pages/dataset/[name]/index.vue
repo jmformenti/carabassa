@@ -1,5 +1,5 @@
 <template>
-  <ItemCollection />
+  <ItemCollection :key="`dataset-${$route.params.name}`" />
 </template>
 
 <script setup>

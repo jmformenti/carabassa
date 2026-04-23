@@ -288,9 +288,6 @@ export default {
 
         // On root or login, pick the first dataset
         this.datasetStore.dataset = this.datasets[0]
-        if (this.$route.path !== '/login') {
-          this.changeDataset(this.datasets[0])
-        }
       }
     },
 
