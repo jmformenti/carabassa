@@ -217,7 +217,7 @@ const effectiveSearch = computed(() => {
   return route.query.search || ''
 })
 
-const initialState = (datasetStore.listState.datasetName === route.params.name && datasetStore.listState.isFavorites === !!props.favorites)
+const initialState = (String(datasetStore.listState.datasetName ?? '') === String(route.params.name ?? '') && !!(datasetStore.listState.isFavorites) === !!props.favorites)
   ? datasetStore.listState
   : {
     datasetName: route.params.name,
