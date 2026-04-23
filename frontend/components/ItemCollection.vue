@@ -217,10 +217,11 @@ const effectiveSearch = computed(() => {
   return route.query.search || ''
 })
 
-const initialState = datasetStore.listState.datasetName === route.params.name
+const initialState = (String(datasetStore.listState.datasetName ?? '') === String(route.params.name ?? '') && !!(datasetStore.listState.isFavorites) === !!props.favorites)
   ? datasetStore.listState
   : {
     datasetName: route.params.name,
+    isFavorites: !!props.favorites,
     items: [],
     currentPage: 0,
     totalItems: 0,
@@ -294,6 +295,7 @@ const getItems = async () => {
       
       datasetStore.setListState({
         datasetName: props.favorites ? null : (route.params.name || null),
+        isFavorites: !!props.favorites,
         items: [...items.value],
         totalItems: totalItems.value,
         totalPages: totalPages.value,
