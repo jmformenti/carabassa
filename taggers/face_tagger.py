@@ -3,7 +3,7 @@ from pathlib import Path
 import numpy as np
 import chromadb
 from chromadb.config import Settings
-from typing import List
+from typing import List, Optional
 import hashlib
 import onnxruntime
 import logging
@@ -22,13 +22,14 @@ logger = logging.getLogger(__name__)
 
 SOURCE_TAG_NAME = "tagger.face.reference"
 TAG_NAME = "tagger.face.person"
-TAGGER_TAG_NAME = "tagger.face"
+TAGGER_TAG_NAME = "tagger.face.processed"
 TAG_INFO_META = {
     TAG_NAME: {
         "description": "Detected person name from face recognition.",
         "alias": "person",
         "internal": False,
         "sortable": False,
+        "showInHelp": True,
         "type": "STRING",
     },
     SOURCE_TAG_NAME: {
@@ -36,6 +37,7 @@ TAG_INFO_META = {
         "alias": "face.reference",
         "internal": False,
         "sortable": False,
+        "showInHelp": False,
         "type": "STRING",
     },
     TAGGER_TAG_NAME: {
@@ -43,6 +45,7 @@ TAG_INFO_META = {
         "alias": None,
         "internal": True,
         "sortable": False,
+        "showInHelp": False,
         "type": "BOOLEAN",
     },
 }
@@ -67,10 +70,10 @@ class FaceDatabase:
         with open(file_path, 'rb') as f:
             return hashlib.md5(f.read()).hexdigest()
     
-    def add_face(self, file_path: Path, embedding: np.ndarray, person_name: str = "Unknown"):
+    def add_face(self, file_path: Path, embedding: np.ndarray, person_name: str = "Unknown", tag_id: Optional[int] = None):
         """Add a face to the database"""
         file_hash = self._get_file_hash(file_path)
-        doc_id = f"face_{file_hash}"
+        doc_id = f"face_{file_hash}_{tag_id}" if tag_id is not None else f"face_{file_hash}"
         
         # Check if already exists
         existing = self.faces_collection.get(ids=[doc_id])
@@ -150,11 +153,39 @@ class FaceTagger(DatasetTagger):
         parser.add_argument("--global-faces", action="store_true", help="Use a shared face DB across all datasets")
         parser.add_argument("--rebuild-db", action="store_true", help="Rebuild face DB for this run")
         parser.add_argument("--device", type=str, choices=["cuda", "cpu"], default="cuda", help="Device to run inference on")
+        parser.add_argument("--list", action="store_true", help="List all faces in the database")
 
     def get_search_query(self) -> str:
         if self.args.force:
              return "type:I"
         return f"type:I missing_tag:{TAGGER_TAG_NAME}"
+
+    def handle_test_mode(self):
+        if self.args.list:
+            self.list_db_faces()
+            return True
+        return False
+
+    def list_db_faces(self):
+        db_path = self._resolve_db_path()
+        if not db_path.exists():
+            print(f"Database at '{db_path}' does not exist.")
+            return
+        
+        db = FaceDatabase(str(db_path))
+        results = db.faces_collection.get()
+        
+        print(f"\nDatabase: {db_path}")
+        print(f"Found {len(results['ids'])} faces:\n")
+        print(f"{'Person':<20} | {'File'}")
+        print("-" * 50)
+        
+        for i in range(len(results['ids'])):
+            metadata = results['metadatas'][i]
+            person = metadata.get('person_name', 'Unknown')
+            filename = metadata.get('filename', 'Unknown')
+            print(f"{person:<20} | {filename}")
+        print("")
 
     def setup(self):
         if not self._ensure_tag_infos(
@@ -208,7 +239,7 @@ class FaceTagger(DatasetTagger):
         return True
 
     def _process_dataset_faces(self, dataset_id, reference_tags):
-        if not tag_infos:
+        if not reference_tags:
             logger.info("No source faces found in dataset.")
             return True
 
@@ -235,9 +266,10 @@ class FaceTagger(DatasetTagger):
                     person_name = str(tag_info.tag_value)
                     
                     # Find the actual tag representation in the item to get boundingBox
-                    source_tag = next((t for t in item.tags if t['name'] == SOURCE_TAG_NAME and str(t['value']) == person_name), None)
+                    # We match by tag_id for precision, especially if there are multiple tags for the same person
+                    source_tag = next((t for t in (item.tags or []) if t.get('id') == tag_info.tag_id), None)
                     if not source_tag or 'boundingBox' not in source_tag:
-                        logger.warning(f"No boundingBox for tag '{person_name}' in item {item_id}")
+                        logger.warning(f"No boundingBox for tag '{person_name}' (ID: {tag_info.tag_id}) in item {item_id}")
                         continue
                     
                     bb = source_tag['boundingBox']
@@ -256,7 +288,7 @@ class FaceTagger(DatasetTagger):
                     
                     if best_face and max_iou > 0.5:
                         emb = self.recognizer.get_normalized_embedding(img, best_face.landmarks)
-                        self.db.add_face(img_path, emb, person_name)
+                        self.db.add_face(img_path, emb, person_name, tag_info.tag_id)
                     else:
                         tqdm.write(f"Could not match tag '{person_name}' to any detected face ({len(detected_faces)}) in item {item_id} (max IoU: {max_iou:.2f}): tag box ({tag_box} vs face box ({face.bbox}))")
             

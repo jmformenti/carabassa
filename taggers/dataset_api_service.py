@@ -335,6 +335,7 @@ class DatasetApiService:
         page: int | None = None,
         size: int | None = None,
         include_tags: bool | None = None,
+        sort: str | None = None,
     ) -> list[Item] | PagedResult[Item]:
         """
         Return items in a dataset.
@@ -350,6 +351,8 @@ class DatasetApiService:
             params["size"] = 100  # Default larger batch for fetch-all
         if include_tags is not None:
             params["includeTags"] = "true" if include_tags else "false"
+        if sort is not None:
+            params["sort"] = sort
 
         path = f"dataset/{dataset_id}/item"
 

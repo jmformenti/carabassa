@@ -51,7 +51,7 @@
                   <template v-if="tagInfos.length">
                     <br>
                     <span
-                      v-for="tagInfo in tagInfos"
+                      v-for="tagInfo in tagInfos.filter(t => t.showInHelp)"
                       :key="tagInfo.id || tagInfo.tagName"
                     >
                       <b>{{ tagInfo.alias || tagInfo.tagName }}:</b>
@@ -150,6 +150,7 @@ const currentTagMatch = ref(null)
 
 const baseSortOptions = [
   { text: 'date', value: 'archiveTime' },
+  { text: 'upload date', value: 'creation' },
   { text: 'size', value: 'size' }
 ]
 

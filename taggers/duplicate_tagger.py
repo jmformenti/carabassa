@@ -20,7 +20,7 @@ from dataset_tagger import DatasetTagger
 
 logger = logging.getLogger(__name__)
 
-TAGGER_TAG_NAME = "tagger.duplicate"
+TAGGER_TAG_NAME = "tagger.duplicate.processed"
 PHASH_TAG_NAME = "tagger.duplicate.phash"
 DUPLICATED_TAG_NAME = "tagger.duplicate.duplicated"
 DUPLICATED_GROUP_TAG_NAME = "tagger.duplicate.group"
@@ -30,6 +30,7 @@ TAG_INFO_META = {
         "alias": None,
         "internal": True,
         "sortable": False,
+        "showInHelp": False,
         "type": "BOOLEAN",
     },
     PHASH_TAG_NAME: {
@@ -37,6 +38,7 @@ TAG_INFO_META = {
         "alias": "phash",
         "internal": True,
         "sortable": False,
+        "showInHelp": False,
         "type": "STRING",
     },
     DUPLICATED_TAG_NAME: {
@@ -44,6 +46,7 @@ TAG_INFO_META = {
         "alias": "duplicated",
         "internal": False,
         "sortable": False,
+        "showInHelp": True,
         "type": "BOOLEAN",
     },
     DUPLICATED_GROUP_TAG_NAME: {
@@ -51,6 +54,7 @@ TAG_INFO_META = {
         "alias": "duplicated.group",
         "internal": False,
         "sortable": True,
+        "showInHelp": True,
         "type": "STRING",
     },
 }

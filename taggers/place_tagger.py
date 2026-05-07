@@ -30,7 +30,7 @@ logger = logging.getLogger(__name__)
 # Constants
 SOURCE_TAG_NAME = "tagger.place.reference"
 TAG_NAME = "tagger.place.location"
-TAGGER_TAG_NAME = "tagger.place"
+TAGGER_TAG_NAME = "tagger.place.processed"
 
 # Constants for spatial calculations to avoid magic numbers
 METERS_PER_DEGREE = 111000.0
@@ -42,6 +42,7 @@ TAG_INFO_META = {
         "alias": "place",
         "internal": False,
         "sortable": False,
+        "showInHelp": True,
         "type": "STRING",
     },
     SOURCE_TAG_NAME: {
@@ -49,6 +50,7 @@ TAG_INFO_META = {
         "alias": "place.reference",
         "internal": False,
         "sortable": False,
+        "showInHelp": False,
         "type": "STRING",
     },
     TAGGER_TAG_NAME: {
@@ -56,6 +58,7 @@ TAG_INFO_META = {
         "alias": None,
         "internal": True,
         "sortable": False,
+        "showInHelp": False,
         "type": "BOOLEAN",
     },
 }

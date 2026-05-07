@@ -18,7 +18,7 @@ from transformers import CLIPProcessor, CLIPModel
 
 logger = logging.getLogger(__name__)
 
-TAGGER_TAG_NAME = "tagger.aesthetic"
+TAGGER_TAG_NAME = "tagger.aesthetic.processed"
 SCORE_TAG_NAME = "tagger.aesthetic.score"
 
 TAG_INFO_META = {
@@ -27,6 +27,7 @@ TAG_INFO_META = {
         "alias": None,
         "internal": True,
         "sortable": False,
+        "showInHelp": False,
         "type": "BOOLEAN",
     },
     SCORE_TAG_NAME: {
@@ -34,6 +35,7 @@ TAG_INFO_META = {
         "alias": "aesthetic.score",
         "internal": False,
         "sortable": True,
+        "showInHelp": True,
         "type": "DOUBLE",
     },
 }

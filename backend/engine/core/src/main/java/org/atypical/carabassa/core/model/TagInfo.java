@@ -31,4 +31,8 @@ public interface TagInfo {
     ValueType getType();
 
     void setType(ValueType type);
+
+    Boolean getShowInHelp();
+
+    void setShowInHelp(Boolean showInHelp);
 }

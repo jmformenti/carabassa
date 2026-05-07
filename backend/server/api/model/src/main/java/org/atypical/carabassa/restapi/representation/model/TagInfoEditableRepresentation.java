@@ -15,6 +15,7 @@ public class TagInfoEditableRepresentation {
     private String alias;
     private Boolean internal;
     private Boolean sortable;
+    private Boolean showInHelp;
     private ValueType type;
 
     public TagInfoEditableRepresentation() {
@@ -22,12 +23,13 @@ public class TagInfoEditableRepresentation {
     }
 
     public TagInfoEditableRepresentation(String tagName, String description, String alias, Boolean internal,
-                                         Boolean sortable, ValueType type) {
+                                         Boolean sortable, Boolean showInHelp, ValueType type) {
         this.tagName = tagName;
         this.description = description;
         this.alias = alias;
         this.internal = internal;
         this.sortable = sortable;
+        this.showInHelp = showInHelp;
         this.type = type;
     }
 }

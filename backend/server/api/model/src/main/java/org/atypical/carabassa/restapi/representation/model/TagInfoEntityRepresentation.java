@@ -17,6 +17,7 @@ public class TagInfoEntityRepresentation extends RepresentationModel<TagInfoEnti
     private String alias;
     private Boolean internal;
     private Boolean sortable;
+    private Boolean showInHelp;
     private ValueType type;
 
     public TagInfoEntityRepresentation() {
