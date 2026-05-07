@@ -37,6 +37,9 @@ public class TagInfoEntity implements TagInfo {
     @Column(nullable = false)
     private Boolean sortable = false;
 
+    @Column(name = "SHOW_IN_HELP", nullable = false)
+    private Boolean showInHelp = false;
+
     @Column(name = "VALUE_TYPE", length = 1, nullable = false)
     @Convert(converter = ValueTypeConverter.class)
     private ValueType type = ValueType.STRING;
@@ -52,6 +55,7 @@ public class TagInfoEntity implements TagInfo {
         this.alias = tagInfo.getAlias();
         this.internal = tagInfo.getInternal();
         this.sortable = tagInfo.getSortable();
+        this.showInHelp = tagInfo.getShowInHelp();
         this.type = tagInfo.getType();
     }
 
@@ -113,6 +117,16 @@ public class TagInfoEntity implements TagInfo {
     @Override
     public void setSortable(Boolean sortable) {
         this.sortable = sortable;
+    }
+
+    @Override
+    public Boolean getShowInHelp() {
+        return showInHelp;
+    }
+
+    @Override
+    public void setShowInHelp(Boolean showInHelp) {
+        this.showInHelp = showInHelp;
     }
 
     @Override

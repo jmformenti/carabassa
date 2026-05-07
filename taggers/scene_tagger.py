@@ -54,6 +54,7 @@ TAG_INFO_META = {
         "alias": "scene",
         "internal": False,
         "sortable": True,
+        "showInHelp": True,
         "type": "STRING",
     },
     TAGGER_TAG_NAME: {
@@ -61,6 +62,7 @@ TAG_INFO_META = {
         "alias": None,
         "internal": True,
         "sortable": False,
+        "showInHelp": False,
         "type": "BOOLEAN",
     },
 }

@@ -147,9 +147,10 @@ public class TagInfoControllerTest {
         when(tagInfo.getDescription()).thenReturn("description");
         when(tagInfo.getInternal()).thenReturn(false);
         when(tagInfo.getSortable()).thenReturn(false);
+        when(tagInfo.getShowInHelp()).thenReturn(false);
         when(tagInfo.getType()).thenReturn(TAG_TYPE);
 
-        tagInfoEditable = new TagInfoEditableRepresentation(TAG_NAME, "description", TAG_ALIAS, false, false, TAG_TYPE);
+        tagInfoEditable = new TagInfoEditableRepresentation(TAG_NAME, "description", TAG_ALIAS, false, false, false, TAG_TYPE);
 
         tagInfoRepresentation = new TagInfoEntityRepresentation();
         tagInfoRepresentation.setId(TAG_INFO_ID);
@@ -158,6 +159,7 @@ public class TagInfoControllerTest {
         tagInfoRepresentation.setAlias(TAG_ALIAS);
         tagInfoRepresentation.setInternal(false);
         tagInfoRepresentation.setSortable(false);
+        tagInfoRepresentation.setShowInHelp(false);
         tagInfoRepresentation.setType(TAG_TYPE);
 
         tagInfoDescriptor = getTagInfoDescriptor();
@@ -173,6 +175,7 @@ public class TagInfoControllerTest {
                 fieldWithPath("alias").description("Tag alias"),
                 fieldWithPath("internal").description("Internal tag flag"),
                 fieldWithPath("sortable").description("Sortable tag flag"),
+                fieldWithPath("showInHelp").description("Show in help tag flag"),
                 fieldWithPath("type").description("Tag value type")
         };
     }
@@ -184,6 +187,7 @@ public class TagInfoControllerTest {
                 fieldWithPath("alias").description("Tag alias"),
                 fieldWithPath("internal").description("Internal tag flag"),
                 fieldWithPath("sortable").description("Sortable tag flag"),
+                fieldWithPath("showInHelp").description("Show in help tag flag"),
                 fieldWithPath("type").description("Tag value type")
         };
     }
