@@ -190,7 +190,7 @@ const onSortFieldChange = async () => {
 
 const loadTagInfos = async () => {
   try {
-    const data = await $carabassa.getPublicTagInfos()
+    const data = await $carabassa.getTagInfos()
     tagInfos.value = Array.isArray(data) ? data : []
   } catch (error) {
     console.warn('Failed to load tag info:', error)
