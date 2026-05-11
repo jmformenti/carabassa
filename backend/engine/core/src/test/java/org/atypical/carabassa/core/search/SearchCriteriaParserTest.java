@@ -1,4 +1,4 @@
-package org.atypical.carabassa.restapi.helper;
+package org.atypical.carabassa.core.search;
 
 import org.apache.commons.lang3.time.DateUtils;
 import org.atypical.carabassa.core.model.SearchCriteria;

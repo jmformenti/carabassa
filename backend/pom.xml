@@ -25,6 +25,7 @@
         <m2e.apt.activation>jdt_apt</m2e.apt.activation>
         <org.mapstruct.version>1.6.3</org.mapstruct.version>
         <jjwt.version>0.12.6</jjwt.version>
+        <spring-ai.version>2.0.0-M6</spring-ai.version>
         <!-- TODO: update to 2.4.240, unit tests fail validating check constraints for enum types -->
         <h2.version>2.3.232</h2.version>
 
@@ -33,6 +34,13 @@
 
     <dependencyManagement>
         <dependencies>
+            <dependency>
+                <groupId>org.springframework.ai</groupId>
+                <artifactId>spring-ai-bom</artifactId>
+                <version>${spring-ai.version}</version>
+                <type>pom</type>
+                <scope>import</scope>
+            </dependency>
             <dependency>
                 <groupId>io.jsonwebtoken</groupId>
                 <artifactId>jjwt-api</artifactId>

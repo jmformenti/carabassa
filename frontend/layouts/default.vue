@@ -151,6 +151,11 @@ export default {
           to: '/'
         },
         {
+          title: 'Ask',
+          icon: 'mdi-comment-question-outline',
+          to: '/ask'
+        },
+        {
           title: 'Profile',
           icon: 'mdi-account-cog',
           to: '/user'
@@ -193,9 +198,9 @@ export default {
 
   computed: {
     showDatasetSelector () {
-      return this.datasets.length > 0 && 
-             this.datasetStore.dataset && 
-             (this.$route.path === '/' || this.$route.path.startsWith('/dataset'))
+      return this.datasets.length > 0 &&
+             this.datasetStore.dataset &&
+             (this.$route.path === '/' || this.$route.path.startsWith('/dataset') || this.$route.path === '/ask')
     },
     menuItems () {
       return this.items.filter(item => {
