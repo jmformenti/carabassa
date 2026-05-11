@@ -1,4 +1,4 @@
-package org.atypical.carabassa.restapi.helper;
+package org.atypical.carabassa.core.search;
 
 import org.apache.commons.lang3.StringUtils;
 import org.atypical.carabassa.core.model.SearchCriteria;
@@ -53,7 +53,7 @@ public class SearchCriteriaParser {
                     throw new IllegalArgumentException("Unsupported search operator: " + operatorStr);
                 }
                 String value = matcher.group(VALUE_QUOTED_POS) != null ? matcher.group(VALUE_QUOTED_POS) : matcher.group(VALUE_UNQUOTED_POS);
-                
+
                 // For tagged search, we normalize the key to lowercase
                 searchCriteria.add(new SearchConditionImpl(keyOrValue.trim().toLowerCase(java.util.Locale.ROOT), operator, value));
             }
