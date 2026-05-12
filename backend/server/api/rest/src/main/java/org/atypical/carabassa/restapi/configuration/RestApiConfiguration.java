@@ -1,9 +1,11 @@
 package org.atypical.carabassa.restapi.configuration;
 
+import org.atypical.carabassa.engine.llm.config.LlmConfiguration;
 import org.springframework.context.MessageSource;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.ComponentScan;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.context.annotation.Import;
 import org.springframework.data.web.config.EnableSpringDataWebSupport;
 import org.springframework.data.web.config.EnableSpringDataWebSupport.PageSerializationMode;
 import org.springframework.hateoas.config.EnableHypermediaSupport;
@@ -15,6 +17,7 @@ import org.springframework.validation.beanvalidation.LocalValidatorFactoryBean;
 @EnableHypermediaSupport(type = HypermediaType.HAL)
 @ComponentScan(basePackages = { "org.atypical.carabassa.restapi.controller", "org.atypical.carabassa.restapi.mapper",
         "org.atypical.carabassa.restapi.representation.assembler" })
+@Import(LlmConfiguration.class)
 public class RestApiConfiguration {
 
     @Bean

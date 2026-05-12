@@ -53,6 +53,21 @@ export class CarabassaService {
     })
   }
 
+  askItems(question) {
+    const datasetId = this.datasetStore?.dataset?.id
+    if (!datasetId) {
+      return Promise.reject(new Error('No dataset selected.'))
+    }
+    return this.fetch(
+      `${this.apiBaseURL}/api/dataset/${datasetId}/ask`,
+      {
+        method: 'POST',
+        headers: this._headers(),
+        body: { question }
+      }
+    )
+  }
+
   getItems(currentPage, pageSize, searchString, sort) {
     const query = {
       size: pageSize,

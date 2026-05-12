@@ -12,6 +12,16 @@ export CARABASSA_BASE_URL=http://localhost:8080
 export CARABASSA_API_URL="${CARABASSA_BASE_URL}/api"
 export CARABASSA_H2_CONSOLE=true
 
+# Natural-language search ("Ask"). Override these in your shell to point at a
+# different OpenAI-compatible endpoint; unset to leave the feature disabled.
+export CARABASSA_LLM_URL="${CARABASSA_LLM_URL:-http://localhost:11434/v1}"
+export CARABASSA_LLM_MODEL="${CARABASSA_LLM_MODEL:-gpt-oss:20b}"
+export CARABASSA_LLM_API_KEY="${CARABASSA_LLM_API_KEY:-ignored}"
+# Optional: point to a file with a custom system prompt. The file is re-read
+# on every request, so edits take effect without restarting the backend. Use
+# {{tags}} as the placeholder for the auto-generated tag list.
+# export CARABASSA_LLM_PROMPT_FILE="${ROOT_DIR}/.dev/prompt.txt"
+
 RESET_DB=false
 STOP_ONLY=false
 for arg in "$@"; do

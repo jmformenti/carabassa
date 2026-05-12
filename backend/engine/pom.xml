@@ -16,6 +16,7 @@
     <modules>
         <module>core</module>
         <module>indexer</module>
+        <module>llm</module>
         <module>storage</module>
     </modules>
 

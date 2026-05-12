@@ -24,6 +24,11 @@
             <version>${revision}</version>
         </dependency>
         <dependency>
+            <groupId>org.atypical.carabassa</groupId>
+            <artifactId>carabassa-llm</artifactId>
+            <version>${revision}</version>
+        </dependency>
+        <dependency>
             <groupId>org.atypical.carabassa.server.api</groupId>
             <artifactId>carabassa-api-model</artifactId>
             <version>${revision}</version>
