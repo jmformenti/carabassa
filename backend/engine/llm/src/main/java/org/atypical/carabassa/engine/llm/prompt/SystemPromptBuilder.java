@@ -42,6 +42,9 @@ public class SystemPromptBuilder {
     }
 
     private String renderTags(List<? extends TagInfo> tagInfos) {
+        if (tagInfos == null) {
+            return "";
+        }
         StringBuilder sb = new StringBuilder();
         for (TagInfo info : tagInfos) {
             if (Boolean.TRUE.equals(info.getInternal())) {
