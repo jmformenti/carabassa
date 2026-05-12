@@ -48,5 +48,5 @@ Rules:
 - Call current_date whenever the user uses relative time references
   (e.g. 'last summer', 'this week', 'yesterday') so you can compute
   the right absolute dates.
-- Limit yourself to about 5 tool calls total.
+- Limit yourself to about {{maxIterations}} tool calls total.
 - The summary you return must be plain text, no markdown.

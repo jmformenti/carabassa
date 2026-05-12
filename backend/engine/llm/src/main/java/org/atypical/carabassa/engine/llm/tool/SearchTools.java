@@ -79,7 +79,7 @@ public class SearchTools {
 
     @Tool(name = "search_items", description = """
             Run a search using Carabassa's structured query syntax (e.g.
-            'person:Maria from:2026). Returns
+            'person:Maria from:2026'). Returns
             the total count and a sample of up to 10 matching items so you can
             decide whether to refine. The exact query you pass will also be the
             one whose results are returned to the user, so call this last with

@@ -6,6 +6,7 @@ import org.atypical.carabassa.core.model.TagInfo;
 import org.atypical.carabassa.core.service.DatasetService;
 import org.atypical.carabassa.core.service.TagInfoService;
 import org.atypical.carabassa.engine.llm.LlmSearchService;
+import org.atypical.carabassa.engine.llm.config.LlmProperties;
 import org.atypical.carabassa.engine.llm.prompt.SystemPromptBuilder;
 import org.atypical.carabassa.engine.llm.tool.SearchTools;
 import org.slf4j.Logger;
@@ -34,18 +35,21 @@ public class LlmSearchServiceImpl implements LlmSearchService {
     private final DatasetService datasetService;
     private final TagInfoService tagInfoService;
     private final SystemPromptBuilder systemPromptBuilder;
+    private final LlmProperties llmProperties;
     private final ZoneId zoneId;
 
     public LlmSearchServiceImpl(ObjectProvider<ChatClient.Builder> chatClientBuilderProvider,
                                 DatasetService datasetService,
                                 TagInfoService tagInfoService,
                                 SystemPromptBuilder systemPromptBuilder,
+                                LlmProperties llmProperties,
                                 @Value("${carabassa.default-tz:UTC}") String defaultTimeZone) {
         ChatClient.Builder builder = chatClientBuilderProvider.getIfAvailable();
         this.chatClient = (builder != null) ? builder.build() : null;
         this.datasetService = datasetService;
         this.tagInfoService = tagInfoService;
         this.systemPromptBuilder = systemPromptBuilder;
+        this.llmProperties = llmProperties;
         this.zoneId = parseZoneId(defaultTimeZone);
     }
 
@@ -65,7 +69,7 @@ public class LlmSearchServiceImpl implements LlmSearchService {
             throw new IllegalStateException("LLM client is not available.");
         }
         List<TagInfo> tagInfos = loadAllTagInfos();
-        String systemPrompt = systemPromptBuilder.build(tagInfos);
+        String systemPrompt = systemPromptBuilder.build(tagInfos, llmProperties.getMaxIterations());
 
         SearchTools tools = new SearchTools(dataset, datasetService, zoneId);
         String summary;

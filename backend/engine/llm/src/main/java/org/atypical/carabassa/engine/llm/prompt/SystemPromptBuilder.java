@@ -20,6 +20,7 @@ public class SystemPromptBuilder {
     private static final Logger logger = LoggerFactory.getLogger(SystemPromptBuilder.class);
     private static final String DEFAULT_PROMPT_RESOURCE = "llm/system-prompt.txt";
     private static final String TAGS_PLACEHOLDER = "{{tags}}";
+    private static final String MAX_ITERATIONS_PLACEHOLDER = "{{maxIterations}}";
     private static final long MAX_PROMPT_FILE_SIZE = 1024L * 1024L; // 1 MiB
 
     private final LlmProperties llmProperties;
@@ -31,14 +32,19 @@ public class SystemPromptBuilder {
     }
 
     public String build(List<? extends TagInfo> tagInfos) {
+        return build(tagInfos, llmProperties.getMaxIterations());
+    }
+
+    public String build(List<? extends TagInfo> tagInfos, int maxIterations) {
         String template = readOverride();
         if (template == null) {
             template = defaultTemplate;
         }
         String tagsBlock = renderTags(tagInfos);
-        return template.contains(TAGS_PLACEHOLDER)
+        String result = template.contains(TAGS_PLACEHOLDER)
                 ? template.replace(TAGS_PLACEHOLDER, tagsBlock)
                 : template + "\n\nAvailable tags:\n" + tagsBlock;
+        return result.replace(MAX_ITERATIONS_PLACEHOLDER, String.valueOf(maxIterations));
     }
 
     private String renderTags(List<? extends TagInfo> tagInfos) {
