@@ -44,9 +44,6 @@ public class SystemPromptBuilder {
     private String renderTags(List<? extends TagInfo> tagInfos) {
         StringBuilder sb = new StringBuilder();
         for (TagInfo info : tagInfos) {
-            if (Boolean.TRUE.equals(info.getInternal())) {
-                continue;
-            }
             sb.append("- ").append(info.getTagName());
             if (StringUtils.isNotBlank(info.getAlias())) {
                 sb.append(" (alias: ").append(info.getAlias()).append(")");
