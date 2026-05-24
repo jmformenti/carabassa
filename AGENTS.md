@@ -55,3 +55,7 @@ cd cli && mvn test
 ```
 
 ## Important notes
+
+- When the REST API changes (new endpoints, modified request/response fields, removed operations), update both:
+  - `mcp-server/carabassa_mcp/server.py` — MCP tools that wrap the API
+  - `cli/` — the Carabassa CLI client
