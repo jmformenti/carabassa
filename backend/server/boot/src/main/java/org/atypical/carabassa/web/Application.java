@@ -30,10 +30,21 @@ public class Application extends SpringBootServletInitializer {
     @Value("${carabassa.tempdir:#{null}}")
     private String tempDirLocation;
 
+    @Value("${carabassa.llm.url:}")
+    private String llmUrl;
+
+    @Value("${carabassa.llm.model:}")
+    private String llmModel;
+
     @SuppressWarnings("PMD.UnusedPrivateMethod")
     @PostConstruct
     private void postConstruct() throws IOException {
         logger.info("Using repository dir: {}", System.getenv("CARABASSA_REPO_DIR"));
+        if (!llmUrl.isBlank() && !llmModel.isBlank()) {
+            logger.info("LLM is enabled (url: {}, model: {})", llmUrl, llmModel);
+        } else {
+            logger.info("LLM is disabled");
+        }
         resetTempDir();
     }
 

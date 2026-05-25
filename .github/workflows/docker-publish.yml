@@ -20,6 +20,8 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v6
+        with:
+          persist-credentials: false
 
       - name: Extract version from tag
         run: |
@@ -97,6 +99,39 @@ jobs:
           cache-from: type=gha
           cache-to: type=gha,mode=max
 
+  publish-mcp:
+    name: Publish MCP to PyPI
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v6
+        with:
+          persist-credentials: false
+
+      - name: Extract version from tag
+        run: |
+          VERSION=${GITHUB_REF#refs/tags/v}
+          echo "VERSION=${VERSION:-0.0.0-local}" >> $GITHUB_ENV
+
+      - uses: astral-sh/setup-uv@v5
+
+      - name: Set version
+        working-directory: mcp-server
+        run: sed -i "s/^version = .*/version = \"${{ env.VERSION }}\"/" pyproject.toml
+
+      - name: Build
+        working-directory: mcp-server
+        run: uv build
+
+      - name: Publish
+        working-directory: mcp-server
+        run: uv publish
+        env:
+          UV_PUBLISH_TOKEN: ${{ secrets.PYPI_TOKEN }}
+
   build-frontend:
     name: Build & Push Frontend
     runs-on: ubuntu-latest
@@ -107,6 +142,8 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v6
+        with:
+          persist-credentials: false
 
       - name: Extract version from tag
         run: |
