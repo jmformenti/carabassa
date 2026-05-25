@@ -140,13 +140,31 @@ def list_items(
 ) -> Any:
     """List items in a dataset with optional search and pagination.
 
-    The `search` parameter supports a filter syntax, e.g.:
-      - `tag:person:John` — items tagged person=John
-      - `tag:year:2023`   — items tagged year=2023
+    Search query syntax (space-separated terms are AND-ed; no OR or grouping):
+
+      tag:value           Equals.            e.g. person:Maria
+      tag>value           Greater than.      e.g. year>2020
+      tag<value           Less than.
+      tag>=value          Greater or equal.
+      tag<=value          Less or equal.
+      "value with spaces" Quote multi-word values.
+      on:<date>           Exact date.        YYYY, YYYY-MM or YYYY-MM-DD
+      from:<date>         Range start date.  same formats
+      to:<date>           Range end date.    same formats
+      type:I              Photos only.
+      type:V              Videos only.
+
+    Tips:
+      - Call list_tag_infos to discover available tag names (person, year, location...).
+      - Call list_tag_values(tag_name=...) to verify exact values for a given tag
+        (e.g. exact spelling of a person's name) before composing the query.
+      - For either-of conditions, pick the most likely value or call list_items
+        twice with separate queries.
+      - Use type: only when the user explicitly distinguishes photos vs. videos.
 
     Args:
         dataset_id: Numeric dataset identifier.
-        search: Optional search/filter string.
+        search: Optional search/filter string using the syntax above.
         include_tags: Include full tag details in each item (default False).
         page: Page number (0-indexed).
         size: Page size (default 20).
@@ -169,22 +187,21 @@ def get_item(dataset_id: int, item_id: int) -> Any:
 
 
 @mcp.tool()
-def item_exists_by_hash(dataset_id: int, hash: str) -> str:
+def item_exists_by_hash(dataset_id: int, file_hash: str) -> str:
     """Check whether an item with the given hash exists in the dataset.
 
     Returns 'exists' or 'not found'.
 
     Args:
         dataset_id: Numeric dataset identifier.
-        hash: File hash string.
+        file_hash: File hash string.
     """
-    try:
-        _get(f"/dataset/{dataset_id}/item/exists/{hash}")
-        return "exists"
-    except httpx.HTTPStatusError as e:
-        if e.response.status_code == 404:
+    with _client() as c:
+        r = c.get(f"/dataset/{dataset_id}/item/exists/{file_hash}")
+        if r.status_code == 404:
             return "not found"
-        raise
+        r.raise_for_status()
+        return "exists"
 
 
 if WRITE_ENABLED:
@@ -348,7 +365,7 @@ if WRITE_ENABLED:
         internal: bool = False,
         sortable: bool = False,
         show_in_help: bool = True,
-        type: str = "STRING",
+        value_type: str = "STRING",
     ) -> Any:
         """Create a new tag info metadata entry.
 
@@ -359,7 +376,7 @@ if WRITE_ENABLED:
             internal: Whether the tag is internal/system use only.
             sortable: Whether items can be sorted by this tag.
             show_in_help: Whether to show this tag in help/docs.
-            type: Value type: BOOLEAN, INTEGER, LONG, FLOAT, DOUBLE, STRING, DATE, DATE_TIME.
+            value_type: Value type: BOOLEAN, INTEGER, LONG, FLOAT, DOUBLE, STRING, DATE, DATE_TIME.
         """
         return _post_json("/tag-info", {
             "tagName": tag_name,
@@ -368,7 +385,7 @@ if WRITE_ENABLED:
             "internal": internal,
             "sortable": sortable,
             "showInHelp": show_in_help,
-            "type": type,
+            "type": value_type,
         })
 
     @mcp.tool()
@@ -380,7 +397,7 @@ if WRITE_ENABLED:
         internal: bool = False,
         sortable: bool = False,
         show_in_help: bool = True,
-        type: str = "STRING",
+        value_type: str = "STRING",
     ) -> str:
         """Update an existing tag info entry.
 
@@ -392,7 +409,7 @@ if WRITE_ENABLED:
             internal: Internal/system-only flag.
             sortable: Sortable flag.
             show_in_help: Show in help flag.
-            type: Value type: BOOLEAN, INTEGER, LONG, FLOAT, DOUBLE, STRING, DATE, DATE_TIME.
+            value_type: Value type: BOOLEAN, INTEGER, LONG, FLOAT, DOUBLE, STRING, DATE, DATE_TIME.
         """
         return _put_json(f"/tag-info/{tag_info_id}", {
             "tagName": tag_name,
@@ -401,7 +418,7 @@ if WRITE_ENABLED:
             "internal": internal,
             "sortable": sortable,
             "showInHelp": show_in_help,
-            "type": type,
+            "type": value_type,
         })
 
     @mcp.tool()

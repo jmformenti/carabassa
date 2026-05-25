@@ -54,6 +54,14 @@ cd frontend && yarn test
 cd cli && mvn test
 ```
 
+## MCP Server
+
+The `mcp-server/` directory contains an MCP (Model Context Protocol) server that exposes the Carabassa REST API as tools for AI agents.
+
+- **Capabilities:** query datasets, list/search/get items and tags, upload files, manage tag metadata.
+- **Interfaces:** stdio transport (MCP protocol); configured via `CARABASSA_BASE_URL` and `CARABASSA_WRITE_ENABLED` environment variables.
+- **Responsibilities:** read-only by default (12 tools); write operations (create/update/delete) require `CARABASSA_WRITE_ENABLED=true`.
+
 ## Important notes
 
 - When the REST API changes (new endpoints, modified request/response fields, removed operations), update both:

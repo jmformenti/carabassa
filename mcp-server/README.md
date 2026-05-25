@@ -42,6 +42,7 @@ Set `CARABASSA_WRITE_ENABLED` to `"true"` to enable create/update/delete tools.
 ## Available tools
 
 ### Datasets
+
 | Tool | Description |
 |------|-------------|
 | `list_datasets` | List all datasets (paginated) |
@@ -52,6 +53,7 @@ Set `CARABASSA_WRITE_ENABLED` to `"true"` to enable create/update/delete tools.
 | `delete_dataset` | Delete a dataset and all its items *(write mode only)* |
 
 ### Items
+
 | Tool | Description |
 |------|-------------|
 | `list_items` | List items with optional search filter and pagination |
@@ -64,6 +66,7 @@ Set `CARABASSA_WRITE_ENABLED` to `"true"` to enable create/update/delete tools.
 | `get_item_thumbnail_url` | Get URL for item thumbnail |
 
 ### Tags
+
 | Tool | Description |
 |------|-------------|
 | `add_item_tag` | Add a name/value tag to an item *(write mode only)* |
@@ -72,6 +75,7 @@ Set `CARABASSA_WRITE_ENABLED` to `"true"` to enable create/update/delete tools.
 | `list_tag_values` | List all distinct values for a tag name in a dataset |
 
 ### Tag info (metadata)
+
 | Tool | Description |
 |------|-------------|
 | `list_tag_infos` | List all tag metadata entries |
