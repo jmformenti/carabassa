@@ -7,27 +7,28 @@ import org.springframework.stereotype.Component;
 import picocli.CommandLine;
 import picocli.CommandLine.IFactory;
 
+/** Delegates CLI execution to Picocli and returns exit codes to Spring Boot. */
 @Component
 public class ApplicationRunner implements CommandLineRunner, ExitCodeGenerator {
 
-    private final CarabassaCommand carabassaCommand;
+  private final CarabassaCommand carabassaCommand;
 
-    private final IFactory factory; // auto-configured to inject PicocliSpringFactory
+  private final IFactory factory; // auto-configured to inject PicocliSpringFactory
 
-    private int exitCode;
+  private int exitCode;
 
-    public ApplicationRunner(CarabassaCommand carabassaCommand, IFactory factory) {
-        this.carabassaCommand = carabassaCommand;
-        this.factory = factory;
-    }
+  public ApplicationRunner(CarabassaCommand carabassaCommand, IFactory factory) {
+    this.carabassaCommand = carabassaCommand;
+    this.factory = factory;
+  }
 
-    @Override
-    public void run(String... args) {
-        exitCode = new CommandLine(carabassaCommand, factory).execute(args);
-    }
+  @Override
+  public void run(String... args) {
+    exitCode = new CommandLine(carabassaCommand, factory).execute(args);
+  }
 
-    @Override
-    public int getExitCode() {
-        return exitCode;
-    }
+  @Override
+  public int getExitCode() {
+    return exitCode;
+  }
 }
