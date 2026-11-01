@@ -30,6 +30,10 @@ jobs:
           distribution: 'temurin'
           cache: maven
 
+      # video tests call ffmpeg, as the backend image does (backend/Dockerfile)
+      - name: Install ffmpeg
+        run: sudo apt-get update && sudo apt-get install -y --no-install-recommends ffmpeg
+
       # the CLI depends on backend artifacts, so the backend is installed first
       - name: Build and test backend
         run: mvn -B install -Dasciidoctor.skip=true --no-transfer-progress -f backend/pom.xml
