@@ -16,6 +16,7 @@ import org.atypical.carabassa.core.util.HashGenerator;
 import org.atypical.carabassa.restapi.representation.model.DatasetEntityRepresentation;
 import org.atypical.carabassa.restapi.representation.model.IdRepresentation;
 import org.atypical.carabassa.restapi.representation.model.ItemRepresentation;
+import org.atypical.carabassa.restapi.representation.model.TagEditableRepresentation;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 
@@ -131,6 +132,26 @@ public class DatasetApiServiceImpl implements DatasetApiService {
     }
 
     @Override
+    public Long addItemTag(Long datasetId, Long itemId, String name, Object value, String type) throws ApiException {
+        Assert.hasText(name, "Tag name can not be empty.");
+        Assert.notNull(value, "Tag value can not be null.");
+
+        TagEditableRepresentation tag = new TagEditableRepresentation(name, value, null, type);
+        try {
+            return webClient.post()
+                    .uri("dataset/{datasetId}/item/{itemId}/tag", datasetId, itemId)
+                    .contentType(MediaType.APPLICATION_JSON)
+                    .bodyValue(objectMapper.writeValueAsString(tag))
+                    .retrieve()
+                    .bodyToMono(IdRepresentation.class)
+                    .block()
+                    .getId();
+        } catch (WebClientResponseException e) {
+            throw buildApiException(e);
+        }
+    }
+
+    @Override
     public Long create(String name, String description) throws ApiException, JacksonException {
         Assert.notNull(name, "Name can not be null.");
 
@@ -169,6 +190,19 @@ public class DatasetApiServiceImpl implements DatasetApiService {
         try {
             webClient.delete()
                     .uri("dataset/{datasetId}/item/{id}", datasetId, id)
+                    .retrieve()
+                    .toBodilessEntity()
+                    .block();
+        } catch (WebClientResponseException e) {
+            throw buildApiException(e);
+        }
+    }
+
+    @Override
+    public void deleteItemTag(Long datasetId, Long itemId, Long tagId) throws ApiException {
+        try {
+            webClient.delete()
+                    .uri("dataset/{datasetId}/item/{itemId}/tag/{tagId}", datasetId, itemId, tagId)
                     .retrieve()
                     .toBodilessEntity()
                     .block();
@@ -224,9 +258,16 @@ public class DatasetApiServiceImpl implements DatasetApiService {
 
     @Override
     public List<ItemRepresentation> findItems(Long datasetId, String searchString) throws ApiException {
+        return findItems(datasetId, searchString, false);
+    }
+
+    @Override
+    public List<ItemRepresentation> findItems(Long datasetId, String searchString, boolean includeTags)
+            throws ApiException {
         try {
             String json = webClient.get()
-                    .uri("dataset/{datasetId}/item?size={size}&search={searchString}", datasetId, 100, searchString)
+                    .uri("dataset/{datasetId}/item?size={size}&search={searchString}&includeTags={includeTags}",
+                            datasetId, 100, searchString, includeTags)
                     .retrieve()
                     .bodyToMono(String.class)
                     .block();
@@ -244,6 +285,19 @@ public class DatasetApiServiceImpl implements DatasetApiService {
             throw buildApiException(e);
         } catch (JacksonException e) {
             throw new ApiException("Error parsing response: " + e.getMessage());
+        }
+    }
+
+    @Override
+    public ItemRepresentation findItem(Long datasetId, Long itemId) throws ApiException {
+        try {
+            return webClient.get()
+                    .uri("dataset/{datasetId}/item/{itemId}", datasetId, itemId)
+                    .retrieve()
+                    .bodyToMono(ItemRepresentation.class)
+                    .block();
+        } catch (WebClientResponseException e) {
+            throw buildApiException(e);
         }
     }
 

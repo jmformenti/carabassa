@@ -15,11 +15,15 @@ public interface DatasetApiService {
 
     Long addItem(Long datasetId, ItemToUpload itemToUpload) throws ItemAlreadyExists, ApiException, IOException;
 
+    Long addItemTag(Long datasetId, Long itemId, String name, Object value, String type) throws ApiException;
+
     Long create(String name, String description) throws ApiException, JsonProcessingException;
 
     void delete(Long datasetId) throws ApiException;
 
     void deleteItem(Long datasetId, Long id) throws ApiException;
+
+    void deleteItemTag(Long datasetId, Long itemId, Long tagId) throws ApiException;
 
     List<DatasetEntityRepresentation> findAll() throws ApiException;
 
@@ -28,6 +32,10 @@ public interface DatasetApiService {
     List<ItemRepresentation> findItems(Long datasetId) throws ApiException;
 
     List<ItemRepresentation> findItems(Long datasetId, String searchString) throws ApiException;
+
+    List<ItemRepresentation> findItems(Long datasetId, String searchString, boolean includeTags) throws ApiException;
+
+    ItemRepresentation findItem(Long datasetId, Long itemId) throws ApiException;
 
     void reindex(Long datasetId, Long id) throws ApiException;
 

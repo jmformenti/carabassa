@@ -11,7 +11,8 @@ import java.util.concurrent.Callable;
 @Component
 @Command(name = "carabassa", mixinStandardHelpOptions = true, versionProvider = CarabassaVersion.class, subcommands = {
         CreateDatasetCommand.class, ListDatasetCommand.class, UpdateDatasetCommand.class, DeleteDatasetCommand.class,
-        UploadDatasetCommand.class, ListItemsCommand.class, ReindexItemsCommand.class, DeleteItemCommand.class})
+        UploadDatasetCommand.class, ListItemsCommand.class, ReindexItemsCommand.class, DeleteItemCommand.class,
+        ListTagsCommand.class, AddTagCommand.class, DeleteTagCommand.class})
 public class CarabassaCommand implements Callable<Integer> {
 
     @Option(names = {"--token"}, description = "JWT token for authentication (or set CARABASSA_TOKEN env var)")
