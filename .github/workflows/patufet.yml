@@ -37,11 +37,12 @@ jobs:
       # Shell that must pass before a PR is opened (leave empty to let the agent infer it).
       # fix-review reuses it through the YAML alias *test-command.
       test-command: &test-command |
-        # same build as docker-publish.yml, with tests; backend must be installed before the CLI
+        # same as .github/workflows/ci.yml; backend must be installed before the CLI
+        command -v ffmpeg >/dev/null || (sudo apt-get update && sudo apt-get install -y --no-install-recommends ffmpeg)  # video tests
         export JAVA_HOME="${JAVA_HOME_21_X64:-$JAVA_HOME}"
         mvn -B install -Dasciidoctor.skip=true --no-transfer-progress -f backend/pom.xml
         mvn -B package --no-transfer-progress -f cli/pom.xml
-        (cd frontend && corepack enable && yarn install --immutable && yarn generate)
+        (cd frontend && (corepack enable 2>/dev/null || sudo corepack enable) && yarn install --immutable && yarn generate)
 
   # every push to a non-draft PR → review + verdict label
   review:
@@ -59,7 +60,7 @@ jobs:
     with:
       language: "en"
       # Names of the CI jobs that already run tests/build on PRs (so the reviewer does not try to)
-      ci-check-names: ""
+      ci-check-names: "CI / Backend + CLI tests (backend + CLI build with all backend tests), CI / Frontend build (yarn generate)"
 
   # warning / fail → apply the review, push, which re-triggers review
   fix-review:
