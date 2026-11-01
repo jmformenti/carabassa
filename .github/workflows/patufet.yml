@@ -1,0 +1,81 @@
+# patufet — autonomous issue → PR → review → fix → e2e flow.
+# Installed by scripts/bootstrap.sh from https://github.com/jmformenti/patufet
+#
+# Everything project-specific lives in the `with:` blocks below and in
+# .github/patufet/*.md (prompt extensions) and *.sh (e2e hooks).
+# Reference of every input: https://github.com/jmformenti/patufet/blob/main/docs/customization.md
+name: patufet
+
+on:
+  issues:
+    types: [labeled]
+  pull_request:
+    types: [opened, synchronize, ready_for_review, reopened, labeled]
+  workflow_dispatch:
+    inputs:
+      issue:
+        description: Issue number to implement (must have an approved plan comment)
+        required: true
+        type: number
+
+jobs:
+  # ready-to-implement → branch + PR
+  implement:
+    if: |
+      github.event_name == 'workflow_dispatch' ||
+      (github.event_name == 'issues' && github.event.label.name == 'ready-to-implement')
+    uses: jmformenti/patufet/.github/workflows/implement.yml@v1
+    permissions:
+      contents: write
+      pull-requests: write
+      issues: write
+      id-token: write
+    secrets: inherit
+    with:
+      issue-number: ${{ fromJSON(inputs.issue || github.event.issue.number) }}
+      language: "en"
+      # Shell that must pass before a PR is opened (leave empty to let the agent infer it).
+      # fix-review reuses it through the YAML alias *test-command.
+      test-command: &test-command |
+        # same build as docker-publish.yml, with tests; backend must be installed before the CLI
+        export JAVA_HOME="${JAVA_HOME_21_X64:-$JAVA_HOME}"
+        mvn -B install -Dasciidoctor.skip=true --no-transfer-progress -f backend/pom.xml
+        mvn -B package --no-transfer-progress -f cli/pom.xml
+        (cd frontend && corepack enable && yarn install --immutable && yarn generate)
+
+  # every push to a non-draft PR → review + verdict label
+  review:
+    if: |
+      github.event_name == 'pull_request' &&
+      contains(fromJSON('["opened","synchronize","ready_for_review","reopened"]'), github.event.action) &&
+      github.event.pull_request.draft == false
+    uses: jmformenti/patufet/.github/workflows/review.yml@v1
+    permissions:
+      contents: read
+      pull-requests: write
+      issues: read
+      id-token: write
+    secrets: inherit
+    with:
+      language: "en"
+      # Names of the CI jobs that already run tests/build on PRs (so the reviewer does not try to)
+      ci-check-names: ""
+
+  # warning / fail → apply the review, push, which re-triggers review
+  fix-review:
+    if: |
+      github.event_name == 'pull_request' && github.event.action == 'labeled' &&
+      (github.event.label.name == 'warning' || github.event.label.name == 'fail')
+    uses: jmformenti/patufet/.github/workflows/fix-review.yml@v1
+    permissions:
+      contents: write
+      pull-requests: write
+      issues: read
+      id-token: write
+    secrets: inherit
+    with:
+      language: "en"
+      max-review-cycles: 10
+      human-reviewer: "jmformenti"
+      test-command: *test-command
+

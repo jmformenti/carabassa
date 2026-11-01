@@ -1,0 +1,4 @@
+- REST API changes (endpoints, request/response fields) must be mirrored in `mcp-server/carabassa_mcp/server.py` and in the CLI client (`cli/.../service/DatasetApiService*`), as required by AGENTS.md.
+- REST controllers are declared as interfaces in `restapi/controller/` with the implementation in `restapi/controller/impl/`. Mapping annotations belong on the interface.
+- Representations in `backend/server/api/model` are shared with the CLI. A change there affects `cli/` too.
+- Frontend search strings are parsed by `SearchCriteriaParser` (backend core). Values with spaces must be quoted, and DATE values use `yyyy-MM-dd`.
