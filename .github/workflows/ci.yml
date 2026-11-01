@@ -1,0 +1,74 @@
+name: CI
+
+on:
+  pull_request:
+  push:
+    branches: [master]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  backend-cli:
+    name: Backend + CLI tests
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v6
+        with:
+          persist-credentials: false
+
+      - name: Set up JDK 21
+        uses: actions/setup-java@v5
+        with:
+          java-version: '21'
+          distribution: 'temurin'
+          cache: maven
+
+      # video tests call ffmpeg, as the backend image does (backend/Dockerfile)
+      - name: Install ffmpeg
+        run: sudo apt-get update && sudo apt-get install -y --no-install-recommends ffmpeg
+
+      # the CLI depends on backend artifacts, so the backend is installed first
+      - name: Build and test backend
+        run: mvn -B install -Dasciidoctor.skip=true --no-transfer-progress -f backend/pom.xml
+
+      - name: Build and test CLI
+        run: mvn -B package --no-transfer-progress -f cli/pom.xml
+
+  frontend:
+    name: Frontend build
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: frontend
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v6
+        with:
+          persist-credentials: false
+
+      - name: Set up Node
+        uses: actions/setup-node@v6
+        with:
+          node-version: '24'
+
+      - name: Cache yarn dependencies
+        uses: actions/cache@v5
+        with:
+          path: frontend/.yarn/cache
+          key: yarn-${{ hashFiles('frontend/yarn.lock') }}
+          restore-keys: yarn-
+
+      - name: Install dependencies
+        run: |
+          corepack enable
+          yarn install --immutable
+
+      - name: Generate
+        run: yarn generate
