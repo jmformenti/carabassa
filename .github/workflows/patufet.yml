@@ -30,7 +30,9 @@ jobs:
       pull-requests: write
       issues: write
       id-token: write
-    secrets: inherit
+    secrets:
+      CLAUDE_CODE_OAUTH_TOKEN: ${{ secrets.CLAUDE_CODE_OAUTH_TOKEN }}
+      ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
     with:
       issue-number: ${{ fromJSON(inputs.issue || github.event.issue.number) }}
       language: "en"
@@ -51,7 +53,9 @@ jobs:
       id-token: write
       actions: read # the logs of failed CI jobs
       checks: read # the state of CI (needed on private repositories)
-    secrets: inherit
+    secrets:
+      CLAUDE_CODE_OAUTH_TOKEN: ${{ secrets.CLAUDE_CODE_OAUTH_TOKEN }}
+      ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
     with:
       language: "en"
       human-reviewer: "jmformenti"
@@ -68,7 +72,9 @@ jobs:
       pull-requests: write
       issues: read
       id-token: write
-    secrets: inherit
+    secrets:
+      CLAUDE_CODE_OAUTH_TOKEN: ${{ secrets.CLAUDE_CODE_OAUTH_TOKEN }}
+      ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
     with:
       language: "en"
       max-review-cycles: 10
