@@ -48,7 +48,7 @@ cd backend && mvn test
 The frontend has no tests.
 
 ```bash
-cd frontend && yarn lint && yarn generate
+cd frontend && yarn generate
 ```
 
 ### Run the cli tests
