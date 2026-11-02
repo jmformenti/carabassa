@@ -1,0 +1,4 @@
+- Backend tests run against in-memory H2; no external services are needed.
+- Run a single backend test: `mvn -f backend/pom.xml -pl <module> -am test -Dtest=<ClassName> -Dsurefire.failIfNoSpecifiedTests=false`.
+- The CLI depends on backend artifacts (`restapi` representations, `core`): run `mvn -f backend/pom.xml install -DskipTests -Dasciidoctor.skip=true` before building or testing `cli/`.
+- Do not modify `.github/workflows/docker-publish.yml` unless the issue asks for it: it publishes Docker images and the PyPI package on `v*` tags.

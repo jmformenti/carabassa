@@ -16,19 +16,19 @@ mvn clean install
 Runs the backend, frontend, and creates a `test` dataset for testing.
 
 ```bash
-./run-dev.sh
+./run_dev.sh
 ```
 
 To restart and reset the dataset:
 
 ```bash
-./run-dev.sh --reset
+./run_dev.sh --reset
 ```
 
 To stop the services:
 
 ```bash
-./run-dev.sh --stop
+./run_dev.sh --stop
 ```
 
 ### Run the cli
@@ -44,9 +44,11 @@ mvn spring-boot:run
 cd backend && mvn test
 ```
 
-### Run the frontend tests
+### Check the frontend
+The frontend has no tests.
+
 ```bash
-cd frontend && yarn test
+cd frontend && yarn generate
 ```
 
 ### Run the cli tests

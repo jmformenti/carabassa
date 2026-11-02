@@ -1,0 +1,84 @@
+# patufet — autonomous issue → PR → review → fix → e2e flow.
+# Installed by scripts/bootstrap.sh from https://github.com/jmformenti/patufet
+#
+# Everything project-specific lives in the `with:` blocks below and in
+# .github/patufet/*.md (prompt extensions) and *.sh (e2e hooks).
+# Reference of every input: https://github.com/jmformenti/patufet/blob/main/docs/customization.md
+name: patufet
+
+on:
+  issues:
+    types: [labeled]
+  pull_request:
+    types: [opened, synchronize, ready_for_review, reopened, labeled]
+  workflow_dispatch:
+    inputs:
+      issue:
+        description: Issue number to implement (must have an approved plan comment)
+        required: true
+        type: number
+
+jobs:
+  # ready-to-implement → branch + PR
+  implement:
+    if: |
+      github.event_name == 'workflow_dispatch' ||
+      (github.event_name == 'issues' && github.event.label.name == 'ready-to-implement')
+    uses: jmformenti/patufet/.github/workflows/implement.yml@v1
+    permissions:
+      contents: write
+      pull-requests: write
+      issues: write
+      id-token: write
+    secrets:
+      CLAUDE_CODE_OAUTH_TOKEN: ${{ secrets.CLAUDE_CODE_OAUTH_TOKEN }}
+      ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+    with:
+      issue-number: ${{ fromJSON(inputs.issue || github.event.issue.number) }}
+      language: "en"
+      java-version: "21"
+      node-version: "24"
+
+  # every push to a non-draft PR → review + verdict label
+  review:
+    if: |
+      github.event_name == 'pull_request' &&
+      contains(fromJSON('["opened","synchronize","ready_for_review","reopened"]'), github.event.action) &&
+      github.event.pull_request.draft == false
+    uses: jmformenti/patufet/.github/workflows/review.yml@v1
+    permissions:
+      contents: read
+      pull-requests: write
+      issues: read
+      id-token: write
+      actions: read # the logs of failed CI jobs
+      checks: read # the state of CI (needed on private repositories)
+    secrets:
+      CLAUDE_CODE_OAUTH_TOKEN: ${{ secrets.CLAUDE_CODE_OAUTH_TOKEN }}
+      ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+    with:
+      language: "en"
+      human-reviewer: "jmformenti"
+      ci-checks: "Backend + CLI tests, Frontend build"
+
+  # warning / fail → apply the review, push, which re-triggers review
+  fix-review:
+    if: |
+      github.event_name == 'pull_request' && github.event.action == 'labeled' &&
+      (github.event.label.name == 'warning' || github.event.label.name == 'fail')
+    uses: jmformenti/patufet/.github/workflows/fix-review.yml@v1
+    permissions:
+      contents: write
+      pull-requests: write
+      issues: read
+      id-token: write
+    secrets:
+      CLAUDE_CODE_OAUTH_TOKEN: ${{ secrets.CLAUDE_CODE_OAUTH_TOKEN }}
+      ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+    with:
+      language: "en"
+      max-review-cycles: 10
+      human-reviewer: "jmformenti"
+      java-version: "21"
+      node-version: "24"
+
