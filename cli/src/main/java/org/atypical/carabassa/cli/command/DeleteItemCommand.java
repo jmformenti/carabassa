@@ -26,6 +26,9 @@ public class DeleteItemCommand implements Callable<Integer> {
     @Option(names = {"-s", "--search"}, description = "search conditions.")
     private String searchString;
 
+    @Option(names = {"-a", "--all"}, description = "delete every item of the dataset (required if --search is not set).", defaultValue = "false")
+    private Boolean all;
+
     @Option(names = {"-f", "--force"}, description = "no ask before deleting.", defaultValue = "false")
     private Boolean force;
 
@@ -39,6 +42,10 @@ public class DeleteItemCommand implements Callable<Integer> {
 
     @Override
     public Integer call() {
+        if (searchString == null && !all) {
+            cmdLogger.error("Items must be selected with --search, or use --all to delete the whole dataset.");
+            return ExitCode.USAGE;
+        }
         try {
             Long datasetId = datasetApiService.findByName(dataset);
             if (datasetId != null) {

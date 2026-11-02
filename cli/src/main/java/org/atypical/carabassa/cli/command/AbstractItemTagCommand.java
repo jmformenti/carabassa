@@ -17,7 +17,7 @@ public abstract class AbstractItemTagCommand {
     @Option(names = {"-d", "--dataset"}, description = "dataset name.", required = true)
     protected String dataset;
 
-    @Option(names = {"-i", "--item"}, split = ",", description = "item id(s), comma separated.")
+    @Option(names = {"-i", "--item"}, split = ",", description = "item id(s), comma separated. If any id does not exist the whole run is aborted before changing anything.")
     protected List<Long> itemIds;
 
     @Option(names = {"-s", "--search"}, description = "search conditions (ignored if --item is set).")

@@ -47,7 +47,6 @@ public class DatasetApiServiceImpl implements DatasetApiService {
 
     private static final int PAGE_SIZE = 100;
 
-
     @Value("${carabassa.api-url}")
     private String apiUrl;
 
