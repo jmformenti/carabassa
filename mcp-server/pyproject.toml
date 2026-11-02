@@ -8,7 +8,7 @@ authors = [{ name = "jmformenti" }]
 requires-python = ">=3.12"
 dependencies = [
     "httpx>=0.28.1",
-    "mcp[cli]>=1.27.1",
+    "mcp[cli]>=1.30.0,<2",
 ]
 
 [project.scripts]
