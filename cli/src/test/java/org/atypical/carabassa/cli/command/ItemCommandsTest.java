@@ -14,6 +14,7 @@ import java.util.List;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyLong;
+import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
@@ -43,6 +44,15 @@ class ItemCommandsTest {
         assertEquals(ExitCode.USAGE, run(new DeleteItemCommand(), "-d", "ds", "-f"));
         verify(api, never()).deleteItem(anyLong(), anyLong());
         verify(api, never()).findItems(anyLong());
+    }
+
+    @Test
+    void deleteWithBlankSearchAndNoAllIsRejected() throws Exception {
+        assertEquals(ExitCode.USAGE, run(new DeleteItemCommand(), "-d", "ds", "-s", "", "-f"));
+        assertEquals(ExitCode.USAGE, run(new DeleteItemCommand(), "-d", "ds", "-s", " ", "-f"));
+        verify(api, never()).deleteItem(anyLong(), anyLong());
+        verify(api, never()).findItems(anyLong());
+        verify(api, never()).findItems(anyLong(), anyString());
     }
 
     @Test
