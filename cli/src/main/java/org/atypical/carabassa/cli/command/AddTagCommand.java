@@ -34,6 +34,10 @@ public class AddTagCommand extends AbstractItemTagCommand implements Callable<In
 
     @Override
     public Integer call() {
+        if (!hasSelection()) {
+            cmdLogger.error("Items must be selected with --item or --search.");
+            return ExitCode.USAGE;
+        }
         try {
             Long datasetId = datasetApiService.findByName(dataset);
             if (datasetId == null) {

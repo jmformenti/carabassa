@@ -34,6 +34,10 @@ public class DeleteTagCommand extends AbstractItemTagCommand implements Callable
 
     @Override
     public Integer call() {
+        if (!hasSelection()) {
+            cmdLogger.error("Items must be selected with --item or --search.");
+            return ExitCode.USAGE;
+        }
         try {
             Long datasetId = datasetApiService.findByName(dataset);
             if (datasetId == null) {
