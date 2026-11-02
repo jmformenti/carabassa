@@ -1,24 +1,22 @@
 package org.atypical.carabassa.cli.service.impl;
 
-import org.atypical.carabassa.restapi.representation.model.DatasetEditableRepresentation;
-import tools.jackson.core.JacksonException;
-import tools.jackson.databind.DeserializationFeature;
-import tools.jackson.databind.JsonNode;
-import tools.jackson.databind.ObjectMapper;
-import tools.jackson.databind.json.JsonMapper;
+import java.io.IOException;
+import java.util.ArrayList;
+import java.util.List;
+
 import org.atypical.carabassa.cli.dto.ItemToUpload;
 import org.atypical.carabassa.cli.exception.ApiException;
 import org.atypical.carabassa.cli.exception.ItemAlreadyExists;
-import org.atypical.carabassa.cli.exception.ResponseBodyException;
+import org.atypical.carabassa.cli.exception.ResponseBodyError;
 import org.atypical.carabassa.cli.service.DatasetApiService;
 import org.atypical.carabassa.cli.util.CommandLogger;
 import org.atypical.carabassa.core.util.HashGenerator;
+import org.atypical.carabassa.restapi.representation.model.DatasetEditableRepresentation;
 import org.atypical.carabassa.restapi.representation.model.DatasetEntityRepresentation;
 import org.atypical.carabassa.restapi.representation.model.IdRepresentation;
 import org.atypical.carabassa.restapi.representation.model.ItemRepresentation;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
-
 import org.springframework.core.io.FileSystemResource;
 import org.springframework.core.io.Resource;
 import org.springframework.http.ContentDisposition;
@@ -26,7 +24,6 @@ import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
-
 import org.springframework.stereotype.Service;
 import org.springframework.util.Assert;
 import org.springframework.util.LinkedMultiValueMap;
@@ -36,9 +33,11 @@ import org.springframework.web.reactive.function.client.WebClient;
 import org.springframework.web.reactive.function.client.WebClientResponseException;
 
 import jakarta.annotation.PostConstruct;
-import java.io.IOException;
-import java.util.ArrayList;
-import java.util.List;
+import tools.jackson.core.JacksonException;
+import tools.jackson.databind.DeserializationFeature;
+import tools.jackson.databind.JsonNode;
+import tools.jackson.databind.ObjectMapper;
+import tools.jackson.databind.json.JsonMapper;
 
 @Service
 public class DatasetApiServiceImpl implements DatasetApiService {
@@ -276,9 +275,9 @@ public class DatasetApiServiceImpl implements DatasetApiService {
     }
 
     private ApiException buildApiException(WebClientResponseException e) {
-        ResponseBodyException responseBody;
+        ResponseBodyError responseBody;
         try {
-            responseBody = objectMapper.readValue(e.getResponseBodyAsString(), ResponseBodyException.class);
+            responseBody = objectMapper.readValue(e.getResponseBodyAsString(), ResponseBodyError.class);
         } catch (JacksonException je) {
             return new ApiException(e);
         }

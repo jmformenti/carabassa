@@ -4,14 +4,13 @@ import org.springframework.web.reactive.function.client.WebClientResponseExcepti
 
 public class ApiException extends Exception {
 
-    private static final long serialVersionUID = -2248750069186985643L;
+  private static final long serialVersionUID = -2248750069186985643L;
 
-    public ApiException(String message) {
-        super(message);
-    }
+  public ApiException(String message) {
+    super(message);
+  }
 
-    public ApiException(WebClientResponseException e) {
-        super(e);
-    }
-
+  public ApiException(WebClientResponseException e) {
+    super(e);
+  }
 }

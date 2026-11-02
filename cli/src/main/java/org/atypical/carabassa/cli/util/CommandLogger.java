@@ -3,11 +3,12 @@ package org.atypical.carabassa.cli.util;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+/** Wrapper around SLF4J for CLI commands. */
 public class CommandLogger {
 
-    private static final String SEPARATOR = " : ";
+  private static final String SEPARATOR = " : ";
 
-    private static final Logger logger = LoggerFactory.getLogger(CommandLogger.class);
+  private static final Logger logger = LoggerFactory.getLogger(CommandLogger.class);
 
     public static void debug(String message) {
         logger.debug(message);
