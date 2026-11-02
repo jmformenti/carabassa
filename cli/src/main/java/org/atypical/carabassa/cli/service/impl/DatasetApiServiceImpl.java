@@ -16,6 +16,7 @@ import org.atypical.carabassa.core.util.HashGenerator;
 import org.atypical.carabassa.restapi.representation.model.DatasetEntityRepresentation;
 import org.atypical.carabassa.restapi.representation.model.IdRepresentation;
 import org.atypical.carabassa.restapi.representation.model.ItemRepresentation;
+import org.atypical.carabassa.restapi.representation.model.TagEditableRepresentation;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 
@@ -38,10 +39,13 @@ import org.springframework.web.reactive.function.client.WebClientResponseExcepti
 import jakarta.annotation.PostConstruct;
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 
 @Service
 public class DatasetApiServiceImpl implements DatasetApiService {
+
+    private static final int PAGE_SIZE = 100;
 
     @Value("${carabassa.api-url}")
     private String apiUrl;
@@ -131,6 +135,26 @@ public class DatasetApiServiceImpl implements DatasetApiService {
     }
 
     @Override
+    public Long addItemTag(Long datasetId, Long itemId, String name, Object value, String type) throws ApiException {
+        Assert.hasText(name, "Tag name can not be empty.");
+        Assert.notNull(value, "Tag value can not be null.");
+
+        TagEditableRepresentation tag = new TagEditableRepresentation(name, value, null, type);
+        try {
+            return webClient.post()
+                    .uri("dataset/{datasetId}/item/{itemId}/tag", datasetId, itemId)
+                    .contentType(MediaType.APPLICATION_JSON)
+                    .bodyValue(objectMapper.writeValueAsString(tag))
+                    .retrieve()
+                    .bodyToMono(IdRepresentation.class)
+                    .block()
+                    .getId();
+        } catch (WebClientResponseException e) {
+            throw buildApiException(e);
+        }
+    }
+
+    @Override
     public Long create(String name, String description) throws ApiException, JacksonException {
         Assert.notNull(name, "Name can not be null.");
 
@@ -178,29 +202,22 @@ public class DatasetApiServiceImpl implements DatasetApiService {
     }
 
     @Override
-    public List<DatasetEntityRepresentation> findAll() throws ApiException {
+    public void deleteItemTag(Long datasetId, Long itemId, Long tagId) throws ApiException {
         try {
-            String json = webClient.get()
-                    .uri("dataset")
+            webClient.delete()
+                    .uri("dataset/{datasetId}/item/{itemId}/tag/{tagId}", datasetId, itemId, tagId)
                     .retrieve()
-                    .bodyToMono(String.class)
+                    .toBodilessEntity()
                     .block();
-
-            JsonNode root = objectMapper.readTree(json);
-            JsonNode embedded = root.path("_embedded");
-            JsonNode list = embedded.path("datasetEntityRepresentationList");
-            List<DatasetEntityRepresentation> datasets = new ArrayList<>();
-            if (list.isArray()) {
-                for (JsonNode node : list) {
-                    datasets.add(objectMapper.treeToValue(node, DatasetEntityRepresentation.class));
-                }
-            }
-            return datasets;
         } catch (WebClientResponseException e) {
             throw buildApiException(e);
-        } catch (JacksonException e) {
-            throw new ApiException("Error parsing response: " + e.getMessage());
         }
+    }
+
+    @Override
+    public List<DatasetEntityRepresentation> findAll() throws ApiException {
+        return fetchAllPages("datasetEntityRepresentationList", DatasetEntityRepresentation.class,
+                "dataset?size={size}&page={page}");
     }
 
     @Override
@@ -224,26 +241,64 @@ public class DatasetApiServiceImpl implements DatasetApiService {
 
     @Override
     public List<ItemRepresentation> findItems(Long datasetId, String searchString) throws ApiException {
-        try {
-            String json = webClient.get()
-                    .uri("dataset/{datasetId}/item?size={size}&search={searchString}", datasetId, 100, searchString)
-                    .retrieve()
-                    .bodyToMono(String.class)
-                    .block();
+        return findItems(datasetId, searchString, false);
+    }
 
-            JsonNode root = objectMapper.readTree(json);
-            JsonNode list = root.path("_embedded").path("itemRepresentationList");
-            List<ItemRepresentation> items = new ArrayList<>();
-            if (list.isArray()) {
-                for (JsonNode node : list) {
-                    items.add(objectMapper.treeToValue(node, ItemRepresentation.class));
+    @Override
+    public List<ItemRepresentation> findItems(Long datasetId, String searchString, boolean includeTags)
+            throws ApiException {
+        return fetchAllPages("itemRepresentationList", ItemRepresentation.class,
+                "dataset/{datasetId}/item?search={searchString}&includeTags={includeTags}&size={size}&page={page}",
+                datasetId, searchString, includeTags);
+    }
+
+    /**
+     * Reads every page of a paged resource. The uri must end with the {size} and {page} variables.
+     */
+    private <T> List<T> fetchAllPages(String listName, Class<T> type, String uri, Object... uriVariables)
+            throws ApiException {
+        List<T> elements = new ArrayList<>();
+        int page = 0;
+        int totalPages;
+        try {
+            do {
+                Object[] variables = Arrays.copyOf(uriVariables, uriVariables.length + 2);
+                variables[uriVariables.length] = PAGE_SIZE;
+                variables[uriVariables.length + 1] = page++;
+
+                String json = webClient.get()
+                        .uri(uri, variables)
+                        .retrieve()
+                        .bodyToMono(String.class)
+                        .block();
+
+                JsonNode root = objectMapper.readTree(json);
+                JsonNode list = root.path("_embedded").path(listName);
+                if (list.isArray()) {
+                    for (JsonNode node : list) {
+                        elements.add(objectMapper.treeToValue(node, type));
+                    }
                 }
-            }
-            return items;
+                totalPages = root.path("page").path("totalPages").asInt(0);
+            } while (page < totalPages);
+            return elements;
         } catch (WebClientResponseException e) {
             throw buildApiException(e);
         } catch (JacksonException e) {
             throw new ApiException("Error parsing response: " + e.getMessage());
+        }
+    }
+
+    @Override
+    public ItemRepresentation findItem(Long datasetId, Long itemId) throws ApiException {
+        try {
+            return webClient.get()
+                    .uri("dataset/{datasetId}/item/{itemId}", datasetId, itemId)
+                    .retrieve()
+                    .bodyToMono(ItemRepresentation.class)
+                    .block();
+        } catch (WebClientResponseException e) {
+            throw buildApiException(e);
         }
     }
 
