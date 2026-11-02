@@ -9,12 +9,16 @@ import org.springframework.test.util.ReflectionTestUtils;
 import picocli.CommandLine;
 import picocli.CommandLine.ExitCode;
 
+import java.io.ByteArrayOutputStream;
+import java.io.PrintStream;
 import java.util.Comparator;
 import java.util.List;
 import java.util.SortedSet;
 import java.util.TreeSet;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyBoolean;
 import static org.mockito.ArgumentMatchers.anyLong;
@@ -38,8 +42,7 @@ class TagCommandsTest {
         when(api.findByName("ds")).thenReturn(1L);
         assertEquals(ExitCode.USAGE, run(new DeleteTagCommand(), "-d", "ds", "-n", "t", "-f"));
         assertEquals(ExitCode.USAGE, run(new AddTagCommand(), "-d", "ds", "-n", "t", "-v", "x", "-f"));
-        assertEquals(ExitCode.USAGE, run(new ListTagsCommand(), "-d", "ds"));
-        verify(api, never()).findItems(anyLong(), any(), anyBoolean());
+        verify(api, never()).findAllItems(anyLong(), any(), anyBoolean());
         verify(api, never()).deleteItemTag(anyLong(), anyLong(), anyLong());
         verify(api, never()).addItemTag(anyLong(), anyLong(), anyString(), any(), any());
     }
@@ -71,6 +74,65 @@ class TagCommandsTest {
         org.mockito.Mockito.doThrow(new ApiException("boom")).when(api).deleteItemTag(1L, 5L, 10L);
 
         assertEquals(ExitCode.SOFTWARE, run(new DeleteTagCommand(), "-d", "ds", "-i", "5", "-n", "t", "-f"));
+    }
+
+    @Test
+    void addTagToSearchedItems() throws Exception {
+        when(api.findByName("ds")).thenReturn(1L);
+        ItemRepresentation first = item(5L);
+        ItemRepresentation second = item(6L);
+        when(api.findAllItems(1L, "race=SUP", true)).thenReturn(List.of(first, second));
+
+        assertEquals(ExitCode.OK, run(new AddTagCommand(),
+                "-d", "ds", "-s", "race=SUP", "-n", "t", "-v", "2026-10-03", "-t", "DATE", "-f"));
+        verify(api).addItemTag(1L, 5L, "t", "2026-10-03", "DATE");
+        verify(api).addItemTag(1L, 6L, "t", "2026-10-03", "DATE");
+    }
+
+    @Test
+    void addTagWithoutTypeLetsTheServerDecide() throws Exception {
+        when(api.findByName("ds")).thenReturn(1L);
+        ItemRepresentation item = item(5L);
+        when(api.findItem(1L, 5L)).thenReturn(item);
+
+        assertEquals(ExitCode.OK, run(new AddTagCommand(), "-d", "ds", "-i", "5", "-n", "t", "-v", "x"));
+        verify(api).addItemTag(1L, 5L, "t", "x", null);
+    }
+
+    @Test
+    void addTagApiErrorGivesSoftwareExitCode() throws Exception {
+        when(api.findByName("ds")).thenReturn(1L);
+        ItemRepresentation item = item(5L);
+        when(api.findItem(1L, 5L)).thenReturn(item);
+        when(api.addItemTag(1L, 5L, "t", "x", null)).thenThrow(new ApiException("boom"));
+
+        assertEquals(ExitCode.SOFTWARE, run(new AddTagCommand(), "-d", "ds", "-i", "5", "-n", "t", "-v", "x"));
+    }
+
+    @Test
+    void listTagsWithoutSelectionListsTheWholeDatasetFilteredByName() throws Exception {
+        when(api.findByName("ds")).thenReturn(1L);
+        ItemRepresentation item = item(5L);
+        SortedSet<TagEntityRepresentation> both = tags(tag(10L, "keep", "a"), tag(11L, "other", "b"));
+        when(item.getTags()).thenReturn(both);
+        when(api.findAllItems(1L, null, true)).thenReturn(List.of(item));
+
+        PrintStream stdout = System.out;
+        ByteArrayOutputStream captured = new ByteArrayOutputStream();
+        System.setOut(new PrintStream(captured));
+        try {
+            assertEquals(ExitCode.OK, run(new ListTagsCommand(), "-d", "ds", "-n", "keep"));
+        } finally {
+            System.setOut(stdout);
+        }
+        assertTrue(captured.toString().contains("keep"));
+        assertFalse(captured.toString().contains("other"));
+    }
+
+    private static ItemRepresentation item(Long id) {
+        ItemRepresentation item = mock(ItemRepresentation.class);
+        when(item.getId()).thenReturn(id);
+        return item;
     }
 
     private static SortedSet<TagEntityRepresentation> tags(TagEntityRepresentation... tags) {

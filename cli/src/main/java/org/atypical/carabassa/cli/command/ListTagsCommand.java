@@ -13,7 +13,7 @@ import java.util.List;
 import java.util.concurrent.Callable;
 
 @Component
-@Command(name = "list-tags", description = "list item tags.")
+@Command(name = "list-tags", description = "list item tags, of the whole dataset if no items are selected.")
 public class ListTagsCommand extends AbstractItemTagCommand implements Callable<Integer> {
 
     private static final String OUTPUT_FORMAT = "%8s\t%8s\t%-30s\t%s\n";
@@ -25,10 +25,6 @@ public class ListTagsCommand extends AbstractItemTagCommand implements Callable<
 
     @Override
     public Integer call() {
-        if (!hasSelection()) {
-            cmdLogger.error("Items must be selected with --item or --search.");
-            return ExitCode.USAGE;
-        }
         try {
             Long datasetId = datasetApiService.findByName(dataset);
             if (datasetId == null) {

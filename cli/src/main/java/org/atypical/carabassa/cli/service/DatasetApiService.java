@@ -33,7 +33,10 @@ public interface DatasetApiService {
 
     List<ItemRepresentation> findItems(Long datasetId, String searchString) throws ApiException;
 
-    List<ItemRepresentation> findItems(Long datasetId, String searchString, boolean includeTags) throws ApiException;
+    /**
+     * Returns every matching item, going through all the result pages.
+     */
+    List<ItemRepresentation> findAllItems(Long datasetId, String searchString, boolean includeTags) throws ApiException;
 
     ItemRepresentation findItem(Long datasetId, Long itemId) throws ApiException;
 

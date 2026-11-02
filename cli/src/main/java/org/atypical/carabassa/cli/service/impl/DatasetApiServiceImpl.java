@@ -44,6 +44,11 @@ import java.util.List;
 @Service
 public class DatasetApiServiceImpl implements DatasetApiService {
 
+    private static final int PAGE_SIZE = 100;
+
+    private record ItemsPage(List<ItemRepresentation> items, int totalPages) {
+    }
+
     @Value("${carabassa.api-url}")
     private String apiUrl;
 
@@ -258,16 +263,29 @@ public class DatasetApiServiceImpl implements DatasetApiService {
 
     @Override
     public List<ItemRepresentation> findItems(Long datasetId, String searchString) throws ApiException {
-        return findItems(datasetId, searchString, false);
+        return fetchItemsPage(datasetId, searchString, false, 0).items();
     }
 
     @Override
-    public List<ItemRepresentation> findItems(Long datasetId, String searchString, boolean includeTags)
+    public List<ItemRepresentation> findAllItems(Long datasetId, String searchString, boolean includeTags)
+            throws ApiException {
+        List<ItemRepresentation> items = new ArrayList<>();
+        int page = 0;
+        int totalPages;
+        do {
+            ItemsPage itemsPage = fetchItemsPage(datasetId, searchString, includeTags, page++);
+            items.addAll(itemsPage.items());
+            totalPages = itemsPage.totalPages();
+        } while (page < totalPages);
+        return items;
+    }
+
+    private ItemsPage fetchItemsPage(Long datasetId, String searchString, boolean includeTags, int page)
             throws ApiException {
         try {
             String json = webClient.get()
-                    .uri("dataset/{datasetId}/item?size={size}&search={searchString}&includeTags={includeTags}",
-                            datasetId, 100, searchString, includeTags)
+                    .uri("dataset/{datasetId}/item?size={size}&page={page}&search={searchString}&includeTags={includeTags}",
+                            datasetId, PAGE_SIZE, page, searchString, includeTags)
                     .retrieve()
                     .bodyToMono(String.class)
                     .block();
@@ -280,7 +298,7 @@ public class DatasetApiServiceImpl implements DatasetApiService {
                     items.add(objectMapper.treeToValue(node, ItemRepresentation.class));
                 }
             }
-            return items;
+            return new ItemsPage(items, root.path("page").path("totalPages").asInt(0));
         } catch (WebClientResponseException e) {
             throw buildApiException(e);
         } catch (JacksonException e) {

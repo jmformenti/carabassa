@@ -17,10 +17,10 @@ public abstract class AbstractItemTagCommand {
     @Option(names = {"-d", "--dataset"}, description = "dataset name.", required = true)
     protected String dataset;
 
-    @Option(names = {"-i", "--item"}, split = ",", description = "item id(s), comma separated. Either --item or --search is required.")
+    @Option(names = {"-i", "--item"}, split = ",", description = "item id(s), comma separated.")
     protected List<Long> itemIds;
 
-    @Option(names = {"-s", "--search"}, description = "search conditions; selects at most the first 100 matching items (ignored if --item is set). Either --item or --search is required.")
+    @Option(names = {"-s", "--search"}, description = "search conditions (ignored if --item is set).")
     protected String searchString;
 
     @Autowired
@@ -44,7 +44,7 @@ public abstract class AbstractItemTagCommand {
             }
             return items;
         }
-        return datasetApiService.findItems(datasetId, searchString, true);
+        return datasetApiService.findAllItems(datasetId, searchString, true);
     }
 
     protected static String valueAsString(Object value) {

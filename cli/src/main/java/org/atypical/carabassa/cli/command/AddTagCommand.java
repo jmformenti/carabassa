@@ -13,7 +13,7 @@ import java.util.List;
 import java.util.concurrent.Callable;
 
 @Component
-@Command(name = "add-tag", description = "add a tag to items.")
+@Command(name = "add-tag", description = "add a tag to the items selected with --item or --search.")
 public class AddTagCommand extends AbstractItemTagCommand implements Callable<Integer> {
 
     private static final CommandLogger cmdLogger = new CommandLogger();

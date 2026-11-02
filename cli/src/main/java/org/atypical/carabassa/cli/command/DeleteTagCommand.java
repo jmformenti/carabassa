@@ -15,7 +15,7 @@ import java.util.List;
 import java.util.concurrent.Callable;
 
 @Component
-@Command(name = "delete-tag", description = "delete tags from items.")
+@Command(name = "delete-tag", description = "delete tags from the items selected with --item or --search.")
 public class DeleteTagCommand extends AbstractItemTagCommand implements Callable<Integer> {
 
     private static final CommandLogger cmdLogger = new CommandLogger();
@@ -23,7 +23,7 @@ public class DeleteTagCommand extends AbstractItemTagCommand implements Callable
     @Option(names = {"-n", "--name"}, description = "tag name.", required = true)
     private String tagName;
 
-    @Option(names = {"-v", "--value"}, description = "delete only tags with this value.")
+    @Option(names = {"-v", "--value"}, description = "delete only tags with this value, written exactly as list-tags shows it.")
     private String tagValue;
 
     @Option(names = {"-f", "--force"}, description = "no ask before deleting.", defaultValue = "false")
