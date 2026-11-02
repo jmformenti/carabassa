@@ -42,7 +42,7 @@ class TagCommandsTest {
         when(api.findByName("ds")).thenReturn(1L);
         assertEquals(ExitCode.USAGE, run(new DeleteTagCommand(), "-d", "ds", "-n", "t", "-f"));
         assertEquals(ExitCode.USAGE, run(new AddTagCommand(), "-d", "ds", "-n", "t", "-v", "x", "-f"));
-        verify(api, never()).findAllItems(anyLong(), any(), anyBoolean());
+        verify(api, never()).findItems(anyLong(), any(), anyBoolean());
         verify(api, never()).deleteItemTag(anyLong(), anyLong(), anyLong());
         verify(api, never()).addItemTag(anyLong(), anyLong(), anyString(), any(), any());
     }
@@ -81,7 +81,7 @@ class TagCommandsTest {
         when(api.findByName("ds")).thenReturn(1L);
         ItemRepresentation first = item(5L);
         ItemRepresentation second = item(6L);
-        when(api.findAllItems(1L, "race=SUP", true)).thenReturn(List.of(first, second));
+        when(api.findItems(1L, "race=SUP", true)).thenReturn(List.of(first, second));
 
         assertEquals(ExitCode.OK, run(new AddTagCommand(),
                 "-d", "ds", "-s", "race=SUP", "-n", "t", "-v", "2026-10-03", "-t", "DATE", "-f"));
@@ -115,7 +115,7 @@ class TagCommandsTest {
         ItemRepresentation item = item(5L);
         SortedSet<TagEntityRepresentation> both = tags(tag(10L, "keep", "a"), tag(11L, "other", "b"));
         when(item.getTags()).thenReturn(both);
-        when(api.findAllItems(1L, null, true)).thenReturn(List.of(item));
+        when(api.findItems(1L, null, true)).thenReturn(List.of(item));
 
         PrintStream stdout = System.out;
         ByteArrayOutputStream captured = new ByteArrayOutputStream();

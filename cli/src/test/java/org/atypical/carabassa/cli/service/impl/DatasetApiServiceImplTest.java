@@ -1,5 +1,6 @@
 package org.atypical.carabassa.cli.service.impl;
 
+import org.atypical.carabassa.restapi.representation.model.DatasetEntityRepresentation;
 import org.atypical.carabassa.restapi.representation.model.ItemRepresentation;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -48,11 +49,11 @@ class DatasetApiServiceImplTest {
     }
 
     @Test
-    void findAllItemsGoesThroughAllPages() throws Exception {
+    void findItemsWithTagsGoesThroughAllPages() throws Exception {
         responses.add(page(2, 1, 2));
         responses.add(page(2, 3));
 
-        List<ItemRepresentation> items = service.findAllItems(1L, "race=SUP", true);
+        List<ItemRepresentation> items = service.findItems(1L, "race=SUP", true);
 
         assertEquals(List.of(1L, 2L, 3L), items.stream().map(ItemRepresentation::getId).toList());
         assertEquals(2, requests.size());
@@ -65,19 +66,33 @@ class DatasetApiServiceImplTest {
     }
 
     @Test
-    void findAllItemsWithNoResultsMakesOneRequest() throws Exception {
+    void findItemsWithNoResultsMakesOneRequest() throws Exception {
         responses.add("{\"page\":{\"size\":100,\"totalElements\":0,\"totalPages\":0,\"number\":0}}");
 
-        assertTrue(service.findAllItems(1L, "nothing", true).isEmpty());
+        assertTrue(service.findItems(1L, "nothing", true).isEmpty());
         assertEquals(1, requests.size());
     }
 
     @Test
-    void findItemsOnlyReadsTheFirstPage() throws Exception {
+    void findItemsOfTheWholeDatasetGoesThroughAllPages() throws Exception {
         responses.add(page(2, 1, 2));
+        responses.add(page(2, 3));
 
-        assertEquals(2, service.findItems(1L, "race=SUP").size());
-        assertEquals(1, requests.size());
+        assertEquals(3, service.findItems(1L).size());
+        assertEquals(2, requests.size());
+        assertTrue(requests.get(0).url().getQuery().contains("includeTags=false"));
+    }
+
+    @Test
+    void findAllDatasetsGoesThroughAllPages() throws Exception {
+        responses.add(datasets(2, 1));
+        responses.add(datasets(2, 2));
+
+        List<Long> ids = service.findAll().stream().map(DatasetEntityRepresentation::getId).toList();
+
+        assertEquals(List.of(1L, 2L), ids);
+        assertEquals(2, requests.size());
+        assertTrue(requests.get(1).url().getQuery().contains("page=1"));
     }
 
     @Test
@@ -105,6 +120,11 @@ class DatasetApiServiceImplTest {
 
         assertEquals(HttpMethod.DELETE, requests.get(0).method());
         assertEquals("/dataset/1/item/5/tag/10", requests.get(0).url().getPath());
+    }
+
+    private static String datasets(int totalPages, long id) {
+        return "{\"_embedded\":{\"datasetEntityRepresentationList\":[{\"id\":" + id + "}]},"
+                + "\"page\":{\"size\":100,\"totalElements\":2,\"totalPages\":" + totalPages + ",\"number\":0}}";
     }
 
     private static String page(int totalPages, long... ids) {

@@ -44,7 +44,7 @@ public abstract class AbstractItemTagCommand {
             }
             return items;
         }
-        return datasetApiService.findAllItems(datasetId, searchString, true);
+        return datasetApiService.findItems(datasetId, searchString, true);
     }
 
     protected static String valueAsString(Object value) {

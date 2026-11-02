@@ -39,6 +39,7 @@ import org.springframework.web.reactive.function.client.WebClientResponseExcepti
 import jakarta.annotation.PostConstruct;
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 
 @Service
@@ -46,8 +47,6 @@ public class DatasetApiServiceImpl implements DatasetApiService {
 
     private static final int PAGE_SIZE = 100;
 
-    private record ItemsPage(List<ItemRepresentation> items, int totalPages) {
-    }
 
     @Value("${carabassa.api-url}")
     private String apiUrl;
@@ -218,28 +217,8 @@ public class DatasetApiServiceImpl implements DatasetApiService {
 
     @Override
     public List<DatasetEntityRepresentation> findAll() throws ApiException {
-        try {
-            String json = webClient.get()
-                    .uri("dataset")
-                    .retrieve()
-                    .bodyToMono(String.class)
-                    .block();
-
-            JsonNode root = objectMapper.readTree(json);
-            JsonNode embedded = root.path("_embedded");
-            JsonNode list = embedded.path("datasetEntityRepresentationList");
-            List<DatasetEntityRepresentation> datasets = new ArrayList<>();
-            if (list.isArray()) {
-                for (JsonNode node : list) {
-                    datasets.add(objectMapper.treeToValue(node, DatasetEntityRepresentation.class));
-                }
-            }
-            return datasets;
-        } catch (WebClientResponseException e) {
-            throw buildApiException(e);
-        } catch (JacksonException e) {
-            throw new ApiException("Error parsing response: " + e.getMessage());
-        }
+        return fetchAllPages("datasetEntityRepresentationList", DatasetEntityRepresentation.class,
+                "dataset?size={size}&page={page}");
     }
 
     @Override
@@ -263,42 +242,47 @@ public class DatasetApiServiceImpl implements DatasetApiService {
 
     @Override
     public List<ItemRepresentation> findItems(Long datasetId, String searchString) throws ApiException {
-        return fetchItemsPage(datasetId, searchString, false, 0).items();
+        return findItems(datasetId, searchString, false);
     }
 
     @Override
-    public List<ItemRepresentation> findAllItems(Long datasetId, String searchString, boolean includeTags)
+    public List<ItemRepresentation> findItems(Long datasetId, String searchString, boolean includeTags)
             throws ApiException {
-        List<ItemRepresentation> items = new ArrayList<>();
-        int page = 0;
-        int totalPages;
-        do {
-            ItemsPage itemsPage = fetchItemsPage(datasetId, searchString, includeTags, page++);
-            items.addAll(itemsPage.items());
-            totalPages = itemsPage.totalPages();
-        } while (page < totalPages);
-        return items;
+        return fetchAllPages("itemRepresentationList", ItemRepresentation.class,
+                "dataset/{datasetId}/item?search={searchString}&includeTags={includeTags}&size={size}&page={page}",
+                datasetId, searchString, includeTags);
     }
 
-    private ItemsPage fetchItemsPage(Long datasetId, String searchString, boolean includeTags, int page)
+    /**
+     * Reads every page of a paged resource. The uri must end with the {size} and {page} variables.
+     */
+    private <T> List<T> fetchAllPages(String listName, Class<T> type, String uri, Object... uriVariables)
             throws ApiException {
+        List<T> elements = new ArrayList<>();
+        int page = 0;
+        int totalPages;
         try {
-            String json = webClient.get()
-                    .uri("dataset/{datasetId}/item?size={size}&page={page}&search={searchString}&includeTags={includeTags}",
-                            datasetId, PAGE_SIZE, page, searchString, includeTags)
-                    .retrieve()
-                    .bodyToMono(String.class)
-                    .block();
+            do {
+                Object[] variables = Arrays.copyOf(uriVariables, uriVariables.length + 2);
+                variables[uriVariables.length] = PAGE_SIZE;
+                variables[uriVariables.length + 1] = page++;
 
-            JsonNode root = objectMapper.readTree(json);
-            JsonNode list = root.path("_embedded").path("itemRepresentationList");
-            List<ItemRepresentation> items = new ArrayList<>();
-            if (list.isArray()) {
-                for (JsonNode node : list) {
-                    items.add(objectMapper.treeToValue(node, ItemRepresentation.class));
+                String json = webClient.get()
+                        .uri(uri, variables)
+                        .retrieve()
+                        .bodyToMono(String.class)
+                        .block();
+
+                JsonNode root = objectMapper.readTree(json);
+                JsonNode list = root.path("_embedded").path(listName);
+                if (list.isArray()) {
+                    for (JsonNode node : list) {
+                        elements.add(objectMapper.treeToValue(node, type));
+                    }
                 }
-            }
-            return new ItemsPage(items, root.path("page").path("totalPages").asInt(0));
+                totalPages = root.path("page").path("totalPages").asInt(0);
+            } while (page < totalPages);
+            return elements;
         } catch (WebClientResponseException e) {
             throw buildApiException(e);
         } catch (JacksonException e) {
