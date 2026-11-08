@@ -39,7 +39,8 @@ jobs:
       java-version: "21"
       node-version: "24"
 
-  # every push to a non-draft PR → review + verdict label
+  # every push to a non-draft PR → review, verdict label, and the stage that follows
+  # (the jobs below that `need` it, in this same run)
   review:
     if: |
       github.event_name == 'pull_request' &&
@@ -61,11 +62,15 @@ jobs:
       human-reviewer: "jmformenti"
       ci-checks: "Backend + CLI tests, Frontend build"
 
-  # warning / fail → apply the review, push, which re-triggers review
+  # review says warning / fail, or a person adds that label → apply the review and
+  # push, which starts a new review
   fix-review:
+    needs: review
     if: |
-      github.event_name == 'pull_request' && github.event.action == 'labeled' &&
-      (github.event.label.name == 'warning' || github.event.label.name == 'fail')
+      !cancelled() && (
+        needs.review.outputs.next-stage == 'fix-review' ||
+        (github.event_name == 'pull_request' && github.event.action == 'labeled' &&
+         (github.event.label.name == 'warning' || github.event.label.name == 'fail')))
     uses: jmformenti/patufet/.github/workflows/fix-review.yml@v1
     permissions:
       contents: write
