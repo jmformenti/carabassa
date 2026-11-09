@@ -52,15 +52,13 @@ jobs:
       pull-requests: write
       issues: read
       id-token: write
-      actions: read # the logs of failed CI jobs
-      checks: read # the state of CI (needed on private repositories)
+      actions: read # the CI runs of the commit and the logs of failed jobs
     secrets:
       CLAUDE_CODE_OAUTH_TOKEN: ${{ secrets.CLAUDE_CODE_OAUTH_TOKEN }}
       ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
     with:
       language: "en"
       human-reviewer: "jmformenti"
-      ci-checks: "Backend + CLI tests, Frontend build"
 
   # review says warning / fail, or a person adds that label → apply the review and
   # push, which starts a new review
