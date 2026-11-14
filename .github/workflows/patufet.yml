@@ -39,16 +39,14 @@ jobs:
       java-version: "21"
       node-version: "24"
 
-  # every push to a non-draft PR → review, verdict label, and the stage that follows
-  # (the jobs below that `need` it, in this same run)
-  review:
-    if: |
-      github.event_name == 'pull_request' &&
-      contains(fromJSON('["opened","synchronize","ready_for_review","reopened"]'), github.event.action) &&
-      github.event.pull_request.draft == false
-    uses: jmformenti/patufet/.github/workflows/review.yml@v1
-    permissions:
-      contents: read
+  # everything patufet does with a pull request, as jobs of one run: wait for the CI of
+  # the commit and review → verdict label → fix-review (warning / fail) or e2e (pass) →
+  # fix-e2e (e2e failed). A person adding a verdict label starts the stage that follows it.
+  pull-request:
+    if: github.event_name == 'pull_request'
+    uses: jmformenti/patufet/.github/workflows/pull-request.yml@v1
+    permissions: # the most a stage needs; each stage narrows them
+      contents: write # fix-review pushes; review and e2e only read
       pull-requests: write
       issues: read
       id-token: write
@@ -59,29 +57,8 @@ jobs:
     with:
       language: "en"
       human-reviewer: "jmformenti"
-
-  # review says warning / fail, or a person adds that label → apply the review and
-  # push, which starts a new review
-  fix-review:
-    needs: review
-    if: |
-      !cancelled() && (
-        needs.review.outputs.next-stage == 'fix-review' ||
-        (github.event_name == 'pull_request' && github.event.action == 'labeled' &&
-         (github.event.label.name == 'warning' || github.event.label.name == 'fail')))
-    uses: jmformenti/patufet/.github/workflows/fix-review.yml@v1
-    permissions:
-      contents: write
-      pull-requests: write
-      issues: read
-      id-token: write
-    secrets:
-      CLAUDE_CODE_OAUTH_TOKEN: ${{ secrets.CLAUDE_CODE_OAUTH_TOKEN }}
-      ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
-    with:
-      language: "en"
       max-review-cycles: 10
-      human-reviewer: "jmformenti"
       java-version: "21"
       node-version: "24"
-
+      # no live e2e stage in this repository (no .github/patufet/e2e-up.sh)
+      e2e: false
