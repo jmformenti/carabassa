@@ -1,0 +1,17 @@
+# patufet — the project's setup, run before the agent (implement, fix-review, fix-e2e)
+# and before the e2e-up hook. The same runtimes as CI, without its dependency cache:
+# these jobs can push, and a cache entry restored here runs with their permissions.
+# https://github.com/jmformenti/patufet/blob/main/docs/customization.md#preparing-the-environment
+name: Project setup for patufet
+description: Java 21 (Temurin) and Node.js 24, as in CI
+runs:
+  using: composite
+  steps:
+    - uses: actions/setup-java@v6
+      with:
+        distribution: temurin
+        java-version: "21"
+    - uses: actions/setup-node@v7
+      with:
+        node-version: "24"
+        package-manager-cache: false

@@ -36,8 +36,6 @@ jobs:
     with:
       issue-number: ${{ fromJSON(inputs.issue || github.event.issue.number) }}
       language: "en"
-      java-version: "21"
-      node-version: "24"
 
   # everything patufet does with a pull request, as jobs of one run: wait for the CI of
   # the commit and review → verdict label → fix-review (warning / fail) or e2e (pass) →
@@ -58,7 +56,5 @@ jobs:
       language: "en"
       human-reviewer: "jmformenti"
       max-review-cycles: 10
-      java-version: "21"
-      node-version: "24"
       # no live e2e stage in this repository (no .github/patufet/e2e-up.sh)
       e2e: false
